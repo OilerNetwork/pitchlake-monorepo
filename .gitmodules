@@ -5,4 +5,4 @@
 [submodule "fossil"]
 	path = fossil
 	url = https://github.com/NethermindEth/fossil-monorepo.git
-	branch = main
+	branch = handover-updates
