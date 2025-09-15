@@ -1,0 +1,4 @@
+[submodule "contracts-indexer/event-logger/juno"]
+	path = contracts-indexer/event-logger/juno
+	url = git@github.com:NethermindEth/juno.git
+	branch = main
