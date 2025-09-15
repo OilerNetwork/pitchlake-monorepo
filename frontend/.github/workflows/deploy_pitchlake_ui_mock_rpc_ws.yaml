@@ -1,0 +1,309 @@
+# name: Docker Build, Push and Deploy Pitchlake UI
+# on:
+#   push:
+#     branches:
+#       - develop
+
+# env:
+#   AWS_REGION: eu-central-1
+#   ECR_REPOSITORY: pitchlake-ui-new_images_repository
+#   # Mock service configuration
+#   ECS_SERVICE_MOCK: pitchlake-ui-mock-app
+#   CONTAINER_NAME_MOCK: pitchlake-ui-mock
+#   TASK_NAME_MOCK: pitchlake-ui-mock-app
+#   NEXT_PUBLIC_ENVIRONMENT_MOCK: ${{vars.ENVIRONMENT_DEMO}}
+#   DEMO_ACCOUNT_ADDRESS: ${{secrets.DEMO_ACCOUNT_ADDRESS}}
+#   DEMO_PRIVATE_KEY: ${{secrets.DEMO_PRIVATE_KEY}}
+#   # RPC service configuration
+#   ECS_SERVICE_RPC: pitchlake-ui-rpc-app
+#   CONTAINER_NAME_RPC: pitchlake-ui-rpc
+#   TASK_NAME_RPC: pitchlake-ui-rpc-app
+#   NEXT_PUBLIC_ENVIRONMENT_RPC: ${{vars.ENVIRONMENT_RPC}}
+#   # WS service configuration
+#   ECS_SERVICE_WS: pitchlake-ui-ws-app
+#   CONTAINER_NAME_WS: pitchlake-ui-ws
+#   TASK_NAME_WS: pitchlake-ui-ws-app
+#   NEXT_PUBLIC_ENVIRONMENT_WS: ${{vars.ENVIRONMENT_WS}}
+#   # Shared configuration
+#   ECS_CLUSTER: pitchlake-ui-new-ecs-cluster
+#   NODE_ENV: production
+#   PORT: ${{vars.PORT}}
+#   NEXT_PUBLIC_VAULT_ADDRESSES: ${{vars.VAULT_ADDRESSES_NEW}}
+#   NEXT_PUBLIC_RPC_URL_MAINNET: ${{secrets.RPC_URL_MAINNET}}
+#   NEXT_PUBLIC_RPC_URL_SEPOLIA: ${{secrets.RPC_URL_SEPOLIA}}
+#   NEXT_PUBLIC_WS_URL: ${{vars.WS_URL}}
+#   FOSSIL_API_KEY: ${{secrets.FOSSIL_API_KEY}}
+#   FOSSIL_DB_URL: ${{secrets.FOSSIL_DB_URL}}
+#   NEXT_PUBLIC_FOSSIL_API_URL: ${{vars.FOSSIL_API_URL}}
+#   APPLICATION_PASSWORD: ${{secrets.APPLICATION_PASSWORD}}
+
+# permissions:
+#   id-token: write
+#   contents: write
+
+# jobs:
+#   deploy_mock:
+#     runs-on: ubuntu-latest
+#     environment: staging
+
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v4
+
+#       - name: Check if Docker is installed
+#         run: |
+#           if ! command -v docker &> /dev/null
+#           then
+#             sudo apt-get update
+#             sudo apt-get install -y docker.io
+#             sudo apt-get install -y docker-compose
+#           fi
+
+#       - name: Configure AWS credentials
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           role-to-assume: arn:aws:iam::654654236251:role/terraform-20241003185909187100000001
+#           role-session-name: Github
+#           aws-region: ${{ env.AWS_REGION }}
+
+#       - name: Login to Amazon ECR
+#         id: login-ecr
+#         uses: aws-actions/amazon-ecr-login@v2
+#         with:
+#           mask-password: "true"
+
+#       - name: Install Apache2-utils (for htpasswd)
+#         run: sudo apt-get install -y apache2-utils
+
+#       - name: Create htpasswd file
+#         run: htpasswd -bc .htpasswd pitchlake ${{ secrets.APPLICATION_PASSWORD }}
+
+#       - name: Build, tag, and push image to Amazon ECR
+#         id: build-image-mock
+#         env:
+#           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+#           ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
+#         run: |
+#           IMAGE_TAG=pitchlake-ui-mock-${{ github.sha }}
+#           IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+#           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+#           docker buildx build \
+#             --platform=linux/amd64 \
+#             --build-arg PORT=${{ env.PORT }} \
+#             --build-arg NEXT_PUBLIC_VAULT_ADDRESSES=${{ env.NEXT_PUBLIC_VAULT_ADDRESSES }} \
+#             --build-arg NEXT_PUBLIC_ENVIRONMENT=${{ env.NEXT_PUBLIC_ENVIRONMENT_MOCK }} \
+#             --build-arg DEMO_ACCOUNT_ADDRESS=${{ env.DEMO_ACCOUNT_ADDRESS }} \
+#             --build-arg DEMO_PRIVATE_KEY=${{ env.DEMO_PRIVATE_KEY }} \
+#             --build-arg NEXT_PUBLIC_RPC_URL_MAINNET=${{ env.NEXT_PUBLIC_RPC_URL_MAINNET }} \
+#             --build-arg NEXT_PUBLIC_RPC_URL_SEPOLIA=${{ env.NEXT_PUBLIC_RPC_URL_SEPOLIA }} \
+#             --build-arg NEXT_PUBLIC_WS_URL=${{ env.NEXT_PUBLIC_WS_URL }} \
+#             --build-arg FOSSIL_API_KEY=${{ env.FOSSIL_API_KEY }} \
+#             --build-arg FOSSIL_DB_URL=${{ env.FOSSIL_DB_URL }} \
+#             --build-arg NEXT_PUBLIC_FOSSIL_API_URL=${{ env.NEXT_PUBLIC_FOSSIL_API_URL }} \
+#             --build-arg NODE_ENV={{env.NODE_ENV}} \
+#             -f ./Dockerfile.nginx \
+#             -t $IMAGE_URI \
+#             ./
+#           docker push $IMAGE_URI
+
+#       - name: Download task definition
+#         env:
+#           TASK_NAME_MOCK: ${{ env.TASK_NAME_MOCK }}
+#         run: |
+#           echo "TASK_NAME_MOCK=$TASK_NAME_MOCK"
+#           aws ecs describe-task-definition --task-definition ${{ env.TASK_NAME_MOCK }} --query taskDefinition > task-definition-mock.json
+
+#       - name: Log task definition
+#         run: cat task-definition-mock.json
+
+#       - name: Fill in the new image ID in the Amazon ECS task definition
+#         id: task-def-mock
+#         uses: aws-actions/amazon-ecs-render-task-definition@v1
+#         with:
+#           task-definition: task-definition-mock.json
+#           container-name: ${{ env.CONTAINER_NAME_MOCK }}
+#           image: ${{ env.IMAGE_URI }}
+
+#       - name: Deploy Amazon ECS task definition
+#         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+#         with:
+#           task-definition: ${{ steps.task-def-mock.outputs.task-definition }}
+#           service: ${{ env.ECS_SERVICE_MOCK }}
+#           cluster: ${{ env.ECS_CLUSTER }}
+#           wait-for-service-stability: true
+
+#   deploy_rpc:
+#     runs-on: ubuntu-latest
+#     environment: staging
+
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v4
+
+#       - name: Check if Docker is installed
+#         run: |
+#           if ! command -v docker &> /dev/null
+#           then
+#             sudo apt-get update
+#             sudo apt-get install -y docker.io
+#             sudo apt-get install -y docker-compose
+#           fi
+
+#       - name: Configure AWS credentials
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           role-to-assume: arn:aws:iam::654654236251:role/terraform-20241003185909187100000001
+#           role-session-name: Github
+#           aws-region: ${{ env.AWS_REGION }}
+
+#       - name: Login to Amazon ECR
+#         id: login-ecr
+#         uses: aws-actions/amazon-ecr-login@v2
+#         with:
+#           mask-password: "true"
+
+#       - name: Install Apache2-utils (for htpasswd)
+#         run: sudo apt-get install -y apache2-utils
+
+#       - name: Create htpasswd file
+#         run: htpasswd -bc .htpasswd pitchlake ${{ secrets.APPLICATION_PASSWORD }}
+
+#       - name: Build, tag, and push image to Amazon ECR
+#         id: build-image-rpc
+#         env:
+#           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+#           ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
+#         run: |
+#           IMAGE_TAG=pitchlake-ui-rpc-${{ github.sha }}
+#           IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+#           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+#           docker buildx build \
+#             --platform=linux/amd64 \
+#             --build-arg PORT=${{ env.PORT }} \
+#             --build-arg NEXT_PUBLIC_VAULT_ADDRESSES=${{ env.NEXT_PUBLIC_VAULT_ADDRESSES }} \
+#             --build-arg NEXT_PUBLIC_ENVIRONMENT=${{ env.NEXT_PUBLIC_ENVIRONMENT_RPC }} \
+#             --build-arg NEXT_PUBLIC_RPC_URL_MAINNET=${{ env.NEXT_PUBLIC_RPC_URL_MAINNET }} \
+#             --build-arg NEXT_PUBLIC_RPC_URL_SEPOLIA=${{ env.NEXT_PUBLIC_RPC_URL_SEPOLIA }} \
+#             --build-arg NEXT_PUBLIC_WS_URL=${{ env.NEXT_PUBLIC_WS_URL }} \
+#             --build-arg FOSSIL_API_KEY=${{ env.FOSSIL_API_KEY }} \
+#             --build-arg FOSSIL_DB_URL=${{ env.FOSSIL_DB_URL }} \
+#             --build-arg NEXT_PUBLIC_FOSSIL_API_URL=${{ env.NEXT_PUBLIC_FOSSIL_API_URL }} \
+#             --build-arg NODE_ENV={{env.NODE_ENV}} \
+#             -f ./Dockerfile.nginx \
+#             -t $IMAGE_URI \
+#             ./
+#           docker push $IMAGE_URI
+
+#       - name: Download task definition
+#         env:
+#           TASK_NAME_RPC: ${{ env.TASK_NAME_RPC }}
+#         run: |
+#           echo "TASK_NAME_RPC=$TASK_NAME_RPC"
+#           aws ecs describe-task-definition --task-definition ${{ env.TASK_NAME_RPC }} --query taskDefinition > task-definition-rpc.json
+
+#       - name: Log task definition
+#         run: cat task-definition-rpc.json
+
+#       - name: Fill in the new image ID in the Amazon ECS task definition
+#         id: task-def-rpc
+#         uses: aws-actions/amazon-ecs-render-task-definition@v1
+#         with:
+#           task-definition: task-definition-rpc.json
+#           container-name: ${{ env.CONTAINER_NAME_RPC }}
+#           image: ${{ env.IMAGE_URI }}
+
+#       - name: Deploy Amazon ECS task definition
+#         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+#         with:
+#           task-definition: ${{ steps.task-def-rpc.outputs.task-definition }}
+#           service: ${{ env.ECS_SERVICE_RPC }}
+#           cluster: ${{ env.ECS_CLUSTER }}
+#           wait-for-service-stability: true
+
+#   deploy_ws:
+#     runs-on: ubuntu-latest
+#     environment: staging
+
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v4
+
+#       - name: Check if Docker is installed
+#         run: |
+#           if ! command -v docker &> /dev/null
+#           then
+#             sudo apt-get update
+#             sudo apt-get install -y docker.io
+#             sudo apt-get install -y docker-compose
+#           fi
+
+#       - name: Configure AWS credentials
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           role-to-assume: arn:aws:iam::654654236251:role/terraform-20241003185909187100000001
+#           role-session-name: Github
+#           aws-region: ${{ env.AWS_REGION }}
+
+#       - name: Login to Amazon ECR
+#         id: login-ecr
+#         uses: aws-actions/amazon-ecr-login@v2
+#         with:
+#           mask-password: "true"
+
+#       - name: Install Apache2-utils (for htpasswd)
+#         run: sudo apt-get install -y apache2-utils
+  
+#       - name: Create htpasswd file
+#         run: htpasswd -bc .htpasswd pitchlake ${{ secrets.APPLICATION_PASSWORD }}
+
+#       - name: Build, tag, and push image to Amazon ECR
+#         id: build-image-ws
+#         env:
+#           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+#           ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
+#         run: |
+#           IMAGE_TAG=pitchlake-ui-ws-${{ github.sha }}
+#           IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+#           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+#           docker buildx build \
+#             --platform=linux/amd64 \
+#             --build-arg PORT=${{ env.PORT }} \
+#             --build-arg NEXT_PUBLIC_VAULT_ADDRESSES=${{ env.NEXT_PUBLIC_VAULT_ADDRESSES }} \
+#             --build-arg NEXT_PUBLIC_ENVIRONMENT=${{ env.NEXT_PUBLIC_ENVIRONMENT_WS }} \
+#             --build-arg NEXT_PUBLIC_RPC_URL_MAINNET=${{ env.NEXT_PUBLIC_RPC_URL_MAINNET }} \
+#             --build-arg NEXT_PUBLIC_RPC_URL_SEPOLIA=${{ env.NEXT_PUBLIC_RPC_URL_SEPOLIA }} \
+#             --build-arg NEXT_PUBLIC_WS_URL=${{ env.NEXT_PUBLIC_WS_URL }} \
+#             --build-arg FOSSIL_API_KEY=${{ env.FOSSIL_API_KEY }} \
+#             --build-arg FOSSIL_DB_URL=${{ env.FOSSIL_DB_URL }} \
+#             --build-arg NEXT_PUBLIC_FOSSIL_API_URL=${{ env.NEXT_PUBLIC_FOSSIL_API_URL }} \
+#             --build-arg NODE_ENV={{env.NODE_ENV}} \
+#             -f ./Dockerfile.nginx \
+#             -t $IMAGE_URI \
+#             ./
+#           docker push $IMAGE_URI
+
+#       - name: Download task definition
+#         env:
+#           TASK_NAME_WS: ${{ env.TASK_NAME_WS }}
+#         run: |
+#           echo "TASK_NAME_WS=$TASK_NAME_WS"
+#           aws ecs describe-task-definition --task-definition ${{ env.TASK_NAME_WS }} --query taskDefinition > task-definition-ws.json
+
+#       - name: Log task definition
+#         run: cat task-definition-ws.json
+
+#       - name: Fill in the new image ID in the Amazon ECS task definition
+#         id: task-def-ws
+#         uses: aws-actions/amazon-ecs-render-task-definition@v1
+#         with:
+#           task-definition: task-definition-ws.json
+#           container-name: ${{ env.CONTAINER_NAME_WS }}
+#           image: ${{ env.IMAGE_URI }}
+
+#       - name: Deploy Amazon ECS task definition
+#         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+#         with:
+#           task-definition: ${{ steps.task-def-ws.outputs.task-definition }}
+#           service: ${{ env.ECS_SERVICE_WS }}
+#           cluster: ${{ env.ECS_CLUSTER }}
+#           wait-for-service-stability: true

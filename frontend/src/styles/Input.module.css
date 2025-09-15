@@ -1,0 +1,116 @@
+.input {
+  width: 100%;
+  border: 1px solid var(--main);
+  background-color: white;
+  text-transform: capitalize;
+  color:white !important;
+  font-size: 14px;
+  height: auto;
+  line-height: 1.5715;
+
+  border-radius: 10px;
+
+  
+}
+.input::-webkit-input-placeholder{
+    color: red !important;
+    opacity: 1; /* Firefox */
+  }
+.input:hover,
+.input:active,
+.input:focus {
+  background-color: var(--paleMain);
+  color:white !important;
+  border-color: var(--main);
+}
+
+/* Inputs group */
+.inputsGroup {
+  width: 100%;
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.inputsGroup > div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Radio.Group */
+
+.radioGroup {
+  margin: 8px 0;
+}
+
+.radioGroup :global .ant-radio-button-wrapper {
+  border: 1px solid var(--main);
+  background-color: transparent;
+  text-transform: capitalize;
+  color: var(--text);
+  font-size: 14px;
+  padding: 4px 27px;
+  height: auto;
+  line-height: 1.5715;
+}
+
+.radioGroup :global .ant-radio-button-wrapper:first-child {
+  border-radius: 20px 0 0 20px;
+}
+
+.radioGroup :global .ant-radio-button-wrapper:last-child {
+  border-radius: 0 20px 20px 0;
+}
+
+.radioGroup :global .ant-radio-button-wrapper:first-child:last-child {
+  border-radius: 20px;
+}
+
+.radioGroup :global .ant-radio-button-wrapper:hover,
+.radioGroup :global .ant-radio-button-wrapper:focus,
+.radioGroup :global .ant-radio-button-wrapper:active {
+  background-color: var(--paleMain);
+  color: var(--main);
+  box-shadow: none;
+}
+
+.radioGroup :global .ant-radio-button-wrapper-checked,
+.radioGroup :global .ant-radio-button-wrapper-checked:hover,
+.radioGroup :global .ant-radio-button-wrapper-checked:active,
+.radioGroup :global .ant-radio-button-wrapper-checked:focus {
+  color: black !important;
+  background-color: var(--main) !important;
+  border-color: var(--main) !important;
+}
+
+.radioGroup :global .ant-radio-button-wrapper-checked::before {
+  display: none;
+}
+
+.radioGroup :global .ant-radio-button-wrapper-disabled,
+.radioGroup :global .ant-radio-button-wrapper-disabled:hover,
+.radioGroup :global .ant-radio-button-wrapper-disabled:active,
+.radioGroup :global .ant-radio-button-wrapper-disabled:focus {
+  cursor: default;
+  background-color: transparent !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
+}
+
+/* Button inside radio */
+
+.radioWithButton :global .ant-radio-button-wrapper:hover {
+  background-color: var(--main);
+  color: black;
+  box-shadow: none;
+}
+
+.radioWithButton :global .ant-radio-button-wrapper,
+.radioWithButton :global .ant-radio-button-wrapper:active,
+.radioWithButton :global .ant-radio-button-wrapper:focus,
+.radioWithButton :global .ant-radio-button-wrapper:focus-within {
+  background-color: var(--paleMain);
+  color: var(--text);
+  box-shadow: none;
+}

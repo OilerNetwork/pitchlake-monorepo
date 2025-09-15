@@ -1,0 +1,16 @@
+#######
+Scarb
+#######
+
+target
+
+node_modules/
+
+out/
+
+.DS_Store
+.env
+scripts/simulationData/simulationOutput/simulationResults*.json
+scripts/simulationData/simulationSheet*.json
+
+.starknet_accounts/starknet_accounts.json

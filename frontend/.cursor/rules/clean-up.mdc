@@ -1,0 +1,62 @@
+---
+description: Rules for cleaning up test files while maintaining functionality
+globs: 
+---
+ ---
+description: Rules for cleaning up test files while maintaining functionality
+globs:
+  - "src/__tests__/**/*.test.tsx"
+  - "src/__tests__/**/*.test.ts"
+---
+# Test Clean-up Rules
+
+Core Rule: Clean up tests while maintaining their effectiveness and readability.
+
+## Component Mocking Rules
+
+1. Avoid Mocking Child Components Unless Necessary
+   - Only mock components that are complex or have external dependencies
+   - Test with actual components when possible for better integration testing
+   - Exception: Mock components that cause test instability or are irrelevant to the test
+
+2. Mock Management
+   - Keep all mocks in a centralized object/constant for easy maintenance
+   - Group related mocks together (e.g., all hook mocks in one object)
+   - Document mock values that represent specific states (e.g., "Future date", "Past date")
+
+## Element Selection Rules
+
+1. Prefer Semantic Queries
+   - Use `getByRole` for interactive elements (buttons, inputs)
+   - Use `getByText` for text content and error messages
+   - Use `getByLabelText` for form controls with labels
+   - Only use `getByTestId` as a last resort
+
+2. Type Safety
+   - Properly type HTML elements when accessing properties
+   - Use type assertions only when TypeScript can't infer the type
+   - Example: `(element as HTMLInputElement).value`
+
+
+## Test Organization Rules
+
+1. Setup Functions
+   - Create reusable setup functions for common test scenarios
+   - Allow overrides for test-specific requirements
+   - Document the purpose of setup function parameters
+
+2. Test Structure
+   - Group related tests together
+   - Use clear, descriptive test names
+   - Follow the Arrange-Act-Assert pattern
+
+
+## Post Cleanup
+1. Run tests
+   -Ensure that the tests are passing by running the tests after the cleanup and the cleanup doesnt leave the tests broken
+## Decision Process
+Before cleaning up tests, ask:
+1. "Will this change make the tests more maintainable?"
+2. "Does this preserve the test's original intent?"
+3. "Is the cleanup making the test more readable?"
+4. "Are we maintaining proper test coverage?"

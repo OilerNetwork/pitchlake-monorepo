@@ -1,0 +1,22 @@
+# Dockerfile used by the pitchlake-launcher 
+
+# Use Node.js v20 as the base image
+FROM node:20-alpine AS builder
+
+# Set the working directory
+WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Copy package files first
+COPY package.json pnpm-lock.yaml* ./
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy the rest of the application
+COPY . .
+
+# Define the command to run the app
+CMD ["pnpm", "run", "build", "&&", "pnpm", "start", "-p", "${PORT}"]

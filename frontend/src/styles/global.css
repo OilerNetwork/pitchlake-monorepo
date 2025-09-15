@@ -1,0 +1,330 @@
+:root {
+  /* Colors */
+
+  --red: rgb(243, 65, 32);
+  --deepRed: rgb(197, 30, 72);
+  --icon-gradient: radial-gradient(
+    50% 50% at 50% 50%,
+    #030303 0%,
+    #171717 100%
+  );
+  --greyscale-gradient: linear-gradient(
+    180deg,
+    rgba(89, 89, 89, 0.5) -28.5%,
+    rgba(0, 0, 0, 0) 95.56%
+  );
+  --success-gradient: linear-gradient(
+    180deg,
+    rgba(52, 121, 18, 0.5) -28.5%,
+    rgba(0, 0, 0, 0) 95.56%
+  );
+  --primary-50: #fefdf6;
+  --primary-100: #fcf9ea;
+  --primary-200: #faf5da;
+  --primary-300: #f7f0c9;
+  --primary-400: #f5ebb8;
+  --primary-500: #f3e7a9;
+  --primary-600: #cfc490;
+  --primary-700: #ada478;
+  --primary-800: #8b8460;
+  --primary-900: #6d684c;
+  --primary: var(--primary-400);
+  --secondary-50: #fbc99b;
+  --secondary-100: #f9ae6a;
+  --secondary-200: #f8a152;
+  --secondary-300: #f79439;
+  --secondary-400: #f3790a;
+  --secondary-500: #db6d07;
+  --secondary-600: #c36109;
+  --secondary-700: #aa5407;
+  --secondary-800: #924805;
+  --secondary-900: #793c05;
+  --secondary: var(--secondary-400);
+  --warning-50: #feece9;
+  --warning-100: #fcd1c9;
+  --warning-200: #faad9e;
+  --warning-300: #f78771;
+  --warning-400: #f56347;
+  --warning-500: #f3411e;
+  --warning-600: #cf371a;
+  --warning-700: #ad2e15;
+  --warning-800: #8b2511;
+  --warning-900: #6d1d0d;
+  --warning: var(--warning-400);
+  --success-50: #edf7e8;
+  --success-100: #d3ebc8;
+  --success-200: #b1da9c;
+  --success-300: #8cc96e;
+  --success-400: #6ab942;
+  --success-500: #49aa19;
+  --success-600: #3e9115;
+  --success-700: #347912;
+  --success-800: #2a610e;
+  --success-900: #214c0b;
+  --success: var(--success-400);
+  --error-50: #f9e8ed;
+  --error-100: #f1c9d3;
+  --error-200: #e69eb1;
+  --error-300: #da71bc;
+  --error-400: #cc455e;
+  --error-500: #c51d49;
+  --error-600: #a7193e;
+  --error-700: #8c1534;
+  --error-800: #70112a;
+  --error-900: #590d21;
+  --error: var(--error-400);
+  --greyscale-50: #fcfcfc;
+  --greyscale-100: #f5f5f5;
+  --greyscale-200: #f0f0f0;
+  --greyscale-300: #d9d9d9;
+  --greyscale-400: #bfbfbf;
+  --greyscale-500: #8c8c8c;
+  --greyscale-600: #595959;
+  --greyscale-700: #454545;
+  --greyscale-800: #262626;
+  --greyscale-900: #1f1f1f;
+  --greyscale: var(--greyscale-400);
+  --black: #111111;
+  --faded-black: #1a1a16;
+  --black-alt: #121212;
+  --faded-black-alt: #0d0d0d;
+  --white: #ffffff;
+  --white-alt: #fafafa;
+  --buttonwhite: var(--white-alt);
+  --buttongrey: var(--greyscale-400);
+
+  --green: #06d6a0;
+  --text: white;
+
+  /* Paddings/margins */
+  --padding: 80px;
+
+  --bg-color: #161616;
+  /* Font faces */
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.hover-zoom {
+  transition: transform 0.2s;
+  animation: fadeIn 0.1s;
+}
+.hover-zoom-small {
+  transition: transform 0.2s;
+  animation: fadeIn 0.1s;
+}
+.hover-zoom-tiny {
+  transition: transform 0.2s;
+  animation: fadeIn 0.1s;
+}
+
+.hover-zoom:hover {
+  transform: scale(1.1);
+}
+.hover-zoom-small:hover {
+  transform: scale(1.05);
+}
+.hover-zoom-tiny:hover {
+  transform: scale(1.005);
+}
+
+.loading-container {
+  padding: 1rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Define the gradient background if needed (similar to your bg-icon-gradient) */
+.bg-icon-gradient {
+  background: linear-gradient(45deg, #1a1a1a, #2d2d2d);
+}
+
+/* Spinner animation */
+.spinner {
+  border-style: solid;
+  animation: spin 1.5s linear infinite;
+  transform-origin: center;
+}
+
+/* Keyframes for slow-to-fast spinning */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+    animation-timing-function: ease-out;
+  }
+  /*
+  20% {
+    transform: rotate(90deg);
+    animation-timing-function: ease-in;
+  }
+  */
+  50% {
+    transform: rotate(180deg);
+    animation-timing-function: ease-out;
+  }
+  /*
+  80% {
+    transform: rotate(270deg);
+    animation-timing-function: ease-in;
+  }
+  */
+  100% {
+    transform: rotate(360deg);
+    animation-timing-function: ease-out;
+  }
+}
+
+/* Ensure proper border rendering */
+.spinner-wrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Define the fadeIn keyframes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* For WebKit browsers */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #444;
+  border-radius: 4px;
+  border: 2px solid transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #444;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background-color: #161616; /* Replace with your container's background color */
+}
+
+/* For Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #444 transparent;
+}
+
+html,
+*[class^="Mui"] {
+  font-family: var(--mainFont) !important;
+}
+
+strong {
+  color: var(--orange);
+}
+
+/* Tabs */
+
+.ant-popover-placement-bottomRight .ant-popover-arrow {
+  right: 4px;
+}
+
+.ant-tabs-tab.ant-tabs-tab-active > .ant-tabs-tab-btn,
+.ant-tabs-tab:hover {
+  color: var(--orange);
+}
+
+.ant-tabs-tab-disabled {
+  color: var(--paleMain) !important;
+}
+
+/* Table */
+
+.ant-tabs-ink-bar {
+  background-color: var(--orange);
+}
+
+.ant-table {
+  background: transparent;
+}
+
+.ant-table-thead > tr > th {
+  background: transparent;
+  font-size: 1.2em;
+}
+
+.ant-table-cell {
+  color: white !important;
+}
+
+.ant-table-tbody > tr > td:hover,
+.ant-table-cell-row-hover {
+  color: var(--orange) !important;
+  background-color: var(--paleMain) !important;
+}
+
+/* Pagination */
+
+.ant-pagination-item-link,
+.ant-pagination-item {
+  color: var(--orange) !important;
+  background-color: var(--paleMain) !important;
+  border-color: var(--paleMain) !important;
+}
+
+.ant-pagination-prev:hover .ant-pagination-item-link,
+.ant-pagination-next:hover .ant-pagination-item-link,
+.ant-pagination-item:hover {
+  border-color: var(--orange) !important;
+}
+
+.ant-pagination-disabled .ant-pagination-item-link,
+.ant-pagination-disabled:hover .ant-pagination-item-link {
+  opacity: 0.5;
+  border-color: transparent;
+}
+.ant-pagination-item-active {
+  border-color: var(--orange) !important;
+}
+
+.ant-pagination-item-active a,
+.ant-pagination-item:hover a {
+  color: var(--orange) !important;
+}
+
+.ant-pagination-item a {
+  color: white;
+}
+
+/* No data */
+
+.ant-empty-img-simple-g {
+  stroke: currentColor;
+}
+
+.ant-empty-img-simple-path,
+.ant-empty-img-simple-ellipse {
+  fill: currentColor;
+}
+
+.ant-empty-description,
+.ant-empty {
+  color: currentColor;
+}

@@ -1,0 +1,38 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  ci-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Setup pnpm
+        run: npm install -g pnpm@9.3.0
+
+      - name: Install dependencies with pnpm
+        run: pnpm install
+
+      - name: Lint code with ESLint
+        run: pnpm lint
+        env:
+          CI: true
+
+      - name: Build the project
+        run: pnpm build
+        env:
+          CI: true

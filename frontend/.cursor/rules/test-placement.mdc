@@ -1,0 +1,45 @@
+---
+description: Rules for determining which test file a test should belong to
+globs: 
+---
+---
+description: Rules for determining which test file a test should belong to
+globs:
+  - "src/__tests__/**/*.test.tsx"
+  - "src/__tests__/**/*.test.ts"
+---
+
+# Test Placement Rules
+
+Core Rule: Tests belong in the test file of the component that CONTROLS the behavior/logic, not necessarily where the rendered output appears.
+
+## Rules for Different Test Types
+
+1. Conditional Rendering Tests
+   - Identify which component contains the IF/ELSE or conditional logic
+   - Place the test in that component's test file, even if it's testing what appears/doesn't appear elsewhere
+   - Example: If App.tsx decides when to show MobileScreen, the test belongs in App.test.tsx
+
+2. Feature/Behavior Tests
+   - Place tests with the component that implements the behavior
+   - Example: If Header.tsx implements mobile hiding with !isMobile, the "doesn't show on mobile" test belongs in Header.test.tsx
+
+3. Integration/Flow Tests
+   - Place tests with the highest-level component that orchestrates the flow
+   - Example: If a page component controls the flow between different states/views, put the flow tests there
+
+4. Context/Provider Tests
+   - Tests for how context affects rendering belong with the component using the context
+   - Tests for context logic itself belong with the context provider tests
+
+5. External Dependencies
+   - DO NOT test the behavior of external library functions/hooks
+   - Focus on testing your code's interaction with these dependencies
+   - Mock only the minimum required response from external dependencies
+   - Example: For hooks like useContractRead from external libraries, don't test their internal behavior
+   - Exception: You may test your wrapper/adapter around external dependencies if you've created one
+
+## Decision Process
+Always ask: 
+1. "Which component is making the decision?" - That's where the test belongs
+2. "Is this testing our code or an external dependency?" - Focus on our code

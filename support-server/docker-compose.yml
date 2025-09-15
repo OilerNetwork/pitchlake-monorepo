@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  architecture-support-server:
+    build: .
+    container_name: architecture-support-server
+    restart: unless-stopped
+    environment:
+      # Database Connections
+      - FOSSIL_DB_URL=${FOSSIL_DB_URL}
+      - PITCHLAKE_DB_URL=${PITCHLAKE_DB_URL}
+      
+      # Ethereum Configuration
+      - MAINNET_RPC_URL=${MAINNET_RPC_URL}
+      
+      # StarkNet Configuration
+      - STARKNET_RPC=${STARKNET_RPC}
+      - STARKNET_PRIVATE_KEY=${STARKNET_PRIVATE_KEY}
+      - STARKNET_ACCOUNT_ADDRESS=${STARKNET_ACCOUNT_ADDRESS}
+      - VAULT_ADDRESSES=${VAULT_ADDRESSES}
+      
+      # Fossil API Configuration
+      - FOSSIL_API_KEY=${FOSSIL_API_KEY}
+      - FOSSIL_API_URL=${FOSSIL_API_URL}
+      
+      # Cron Schedules
+      - CRON_SCHEDULE=${CRON_SCHEDULE:-*/5 * * * * *}
+      - CRON_SCHEDULE_STATE=${CRON_SCHEDULE_STATE:-*/30 * * * * *}
+      
+      # Logging
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      
+      # Optional: Demo mode
+      - USE_DEMO_DATA=${USE_DEMO_DATA:-false}
+    
+    volumes:
+      - ./logs:/app/logs
+      - ./.env:/app/.env:ro
+    
+    networks:
+      - pitchlake-network
+    
+    depends_on:
+      - fossil-db
+      - pitchlake-db
+
+  fossil-db:
+    image: postgres:15-alpine
+    container_name: fossil-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=fossil
+      - POSTGRES_USER=${FOSSIL_DB_USER:-fossil_user}
+      - POSTGRES_PASSWORD=${FOSSIL_DB_PASSWORD:-fossil_password}
+    volumes:
+      - fossil_data:/var/lib/postgresql/data
+      - ./migrations/fossil:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - pitchlake-network
+
+  pitchlake-db:
+    image: postgres:15-alpine
+    container_name: pitchlake-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=pitchlake
+      - POSTGRES_USER=${PITCHLAKE_DB_USER:-pitchlake_user}
+      - POSTGRES_PASSWORD=${PITCHLAKE_DB_PASSWORD:-pitchlake_password}
+    volumes:
+      - pitchlake_data:/var/lib/postgresql/data
+      - ./migrations/pitchlake:/docker-entrypoint-initdb.d
+    ports:
+      - "5433:5432"
+    networks:
+      - pitchlake-network
+
+volumes:
+  fossil_data:
+  pitchlake_data:
+
+networks:
+  pitchlake-network:
+    external: true
+    driver: bridge 

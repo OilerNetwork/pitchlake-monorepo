@@ -1,0 +1,27 @@
+[
+  {
+    "timestamp": 1732151460,
+    "BASEFEE": 15,
+    "TWAP": 14.4
+  },
+  {
+    "timestamp": 1732151480,
+    "BASEFEE": 15.25,
+    "TWAP": 14.31
+  },
+  {
+    "timestamp": 1732151500,
+    "BASEFEE": 16.76,
+    "TWAP": 16.93
+  },
+  {
+    "timestamp": 1732151520,
+    "BASEFEE": 16.62,
+    "TWAP": 16.49
+  },
+  {
+    "timestamp": 1732151540,
+    "BASEFEE": 19.05,
+    "TWAP": 19.74
+  }
+]

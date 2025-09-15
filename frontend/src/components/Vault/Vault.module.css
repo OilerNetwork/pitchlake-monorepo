@@ -1,0 +1,114 @@
+.container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  
+    gap: 10px;
+  }
+  
+  .container > :first-child {
+    box-shadow: rgba(149, 157, 165, 0.05) 0px 4px 8px !important;
+  }
+  
+  .container > :last-child :global .ant-tabs-nav {
+    margin-bottom: 0px !important;
+  }
+  
+  .chartRow {
+    display: flex;
+    /* flex-direction: column; */
+    /* align-items: center;
+    justify-content: center; */
+    width: 100%;
+    /* height: 400px; */
+  
+    /* background-color: rgba(0, 0, 0, 0.2) !important;
+    border-radius: 30px 5px 30px 5px;
+    box-shadow: rgba(149, 157, 165, 0.05) 0px 4px 8px; */
+  
+    color: white;
+    gap: 10px;
+  }
+  
+  .chart {
+    width: 75%;
+    height: 100%;
+    max-height: 400px;
+    background-color: rgb(25, 25, 30);
+    border: 1px solid rgb(50, 50, 50);
+    border-radius: 20px;
+  }
+  
+  .chart > canvas {
+    width: 100% !important;
+    max-height: 100% !important;
+    height: 100% !important;
+  }
+  
+  /* .baseFee {
+    width: 20%;
+    height: 100%;
+  
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  } */
+  
+  /* .baseFee > p {
+    font-size: 1.4em;
+    margin-top: -20%;
+  } */
+  
+  .baseFee {
+    font-size: 1.6em;
+    margin: 0;
+    color: var(--orange);
+  }
+  
+  .actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-evenly;
+    width: 100%;
+    height: 360px;
+    padding: 16px;
+  }
+  
+  .actions > :last-child {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .container :global .ant-tabs,
+  .actions :global .ant-tabs {
+    color: white;
+  }
+  
+  .container :global .ant-tabs {
+    width: 100%;
+  }
+  
+  .actions :global .ant-tabs {
+    width: 30%;
+    min-width: 260px;
+    height: 100%;
+  }
+  
+  .tokens :global .ant-radio-button-wrapper-disabled,
+  .tokens :global .ant-radio-button-wrapper-disabled:hover,
+  .tokens :global .ant-radio-button-wrapper-disabled:active,
+  .tokens :global .ant-radio-button-wrapper-disabled:focus {
+    cursor: default;
+    background-color: transparent !important;
+    color: var(--text) !important;
+    box-shadow: none !important;
+  }
+  

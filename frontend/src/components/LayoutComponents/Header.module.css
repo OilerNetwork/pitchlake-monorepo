@@ -1,0 +1,91 @@
+.header {
+  background: #121212;
+  border-bottom: solid 1px #2e3033;
+  display: flex;
+  color: rgb(209, 206, 206);
+  height: 6rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: "Share Tech", sans-serif;
+  padding: 0 var(--padding);
+}
+
+.wallet {
+  display: flex;
+  align-items: center;
+}
+
+.wallet > :not(:last-child) {
+  margin-right: 16px;
+}
+
+.transactions {
+  cursor: pointer;
+}
+
+.logo {
+  display: flex;
+  height: min-content;
+  user-select: none;
+  cursor: pointer;
+}
+
+.logo > :first-child {
+  align-self: center;
+  line-height: 1em;
+  min-width: 140px;
+}
+
+.logo > span {
+  cursor: default;
+}
+
+.logo > :not(:first-child) {
+  align-self: flex-end;
+  line-height: 1em;
+  font-size: 2rem;
+  margin-bottom: -2px;
+  text-transform: uppercase;
+  color: var(--main);
+  text-decoration: none;
+}
+
+/* Popover and its content */
+.transactionsOverlay :global .ant-popover-inner {
+  background-color: rgba(18, 18, 25, 1);
+  border-radius: 16px 2px 16px 2px;
+  box-shadow: 0px 0px 16px var(--paleMain);
+  overflow: hidden;
+  padding: 0;
+}
+
+.transactionsOverlay :global .ant-popover-inner > * {
+  color: white;
+}
+
+.transactionsOverlay :global .ant-popover-inner > .ant-popover-title {
+  font-size: 1.2em;
+}
+
+.transactionsOverlay :global .ant-popover-inner-content strong {
+  color: var(--orange);
+}
+
+.transactionsOverlay :global .ant-popover-inner-content span {
+  cursor: pointer;
+}
+
+/* Popover arrow */
+.transactionsOverlay :global .ant-popover-arrow-content {
+  background-color: rgba(18, 18, 25, 1);
+}
+
+.transactionsOverlay :global .ant-popover-arrow-content::before {
+  background: linear-gradient(
+      to left,
+      rgba(18, 18, 25, 1) 50%,
+      rgba(18, 18, 25, 1) 50%
+    )
+    no-repeat -10px -10px;
+}

@@ -1,0 +1,61 @@
+---
+description: Rules for handling test changes and verifying test status
+globs: 
+---
+---
+description: Rules for handling test changes and verifying test status
+globs:
+  - "src/__tests__/**/*.test.tsx"
+  - "src/__tests__/**/*.test.ts"
+---
+
+# Test Changes Rules
+
+Core Rule: Never consider a prompt complete until all tests are passing and the test file is clean.
+
+## Test Verification Process
+
+1. After ANY edit to test files:
+   - Run the tests immediately
+   - If tests fail, analyze the failures and fix them
+   - Continue this process until all tests pass
+   - Only then move to the cleanup phase
+
+2. For Test Modifications:
+   - Run tests before making changes to establish baseline
+   - Make the necessary changes
+   - Run tests again to verify changes
+   - If tests fail, fix and repeat
+   - Once passing, perform cleanup
+   - Document any unexpected test behavior
+
+3. For New Tests:
+   - Add the test
+   - Run the full test suite
+   - Verify both new and existing tests pass
+   - Fix any failures before moving on
+   - Once passing, perform cleanup
+
+## Test Cleanup Process
+
+1. After Tests Pass:
+   - Review and apply clean-up rules from clean-up.mdc
+   - Focus on improving:
+     - Component mocking strategy
+     - Element selection methods
+     - Asynchronous testing patterns
+     - Test organization and structure
+   - Run tests again after cleanup to ensure no regressions
+
+2. Cleanup Priorities:
+   - Replace non-semantic selectors with semantic ones
+   - Consolidate and organize mocks
+   - Improve type safety
+   - Enhance test readability
+   - Remove redundant or unnecessary code
+   - Add missing documentation
+
+## Decision Process
+Always ask: 
+1. "Have I run the tests and confirmed they all pass?" before moving to cleanup
+2. "Have I followed all clean-up rules thoroughly?" before considering the task complete 
