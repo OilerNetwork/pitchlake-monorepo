@@ -23,11 +23,16 @@ const (
 
 func main() {
 	// Try to load .env from parent directory (contracts/)
+	// The program runs from deployment/ directory, so .env is in the parent
 	if err := godotenv.Load("../.env"); err != nil {
 		// Fallback to current directory
 		if err := godotenv.Load(); err != nil {
 			fmt.Println("⚠️  No .env file found, using environment variables")
+		} else {
+			fmt.Println("✅ Loaded .env from current directory")
 		}
+	} else {
+		fmt.Println("✅ Loaded .env from parent directory")
 	}
 
 	fmt.Println("🚀 PitchLake Vault Contract Deployment Script")
