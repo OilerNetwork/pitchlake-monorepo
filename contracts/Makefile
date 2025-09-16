@@ -6,6 +6,9 @@
 help:
 	@echo "Available targets:"
 	@echo "  build            - Build the contracts using Scarb"
+	@echo "  test-all         - Run all tests"
+	@echo "  test             - Run not ignored tests"
+	@echo "  test-ignored     - Run ignored tests"
 	@echo "  deploy-local     - Build contracts and deploy vault to local network"
 	@echo "  deploy-local-fast - Deploy vault to local network (assumes contracts are built)"
 	@echo "  clean            - Clean build artifacts"
@@ -16,6 +19,24 @@ build:
 	@echo "🔨 Building contracts..."
 	scarb build
 	@echo "✅ Build completed!"
+
+# Run all tests
+test-all: build
+	@echo "🧪 Running all tests..."
+	scarb test --include-ignored
+	@echo "✅ All tests completed!"
+
+# Run not ignored tests
+test: build
+	@echo "🧪 Running tests..."
+	scarb test
+	@echo "✅ Tests completed!"
+
+# Run ignored tests
+test-ignored: build
+	@echo "🧪 Running ignored tests..."
+	scarb test --ignored
+	@echo "✅ Ignored tests completed!"
 
 # Deploy vault contract locally
 deploy-local: build
