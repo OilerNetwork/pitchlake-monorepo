@@ -4,6 +4,7 @@ import { sepolia, mainnet, devnet, Chain } from "@starknet-react/chains";
 import {
   StarknetConfig,
   argent,
+  ready,
   braavos,
   useInjectedConnectors,
   voyager,
@@ -46,7 +47,7 @@ export const StarknetProvider = ({
 }) => {
   const { connectors } = useInjectedConnectors({
     // Show these connectors if the user has no connector installed.
-    recommended: [ braavos()],
+    recommended: [ braavos(),argent()],
     // Hide recommended connectors if the user has any connector installed.
     includeRecommended: "onlyIfNoConnectors",
     // Randomize the order of the connectors.
@@ -82,11 +83,12 @@ export const StarknetProvider = ({
   const provider = jsonRpcProvider({ rpc });
 
   const queryClient = useQueryClient();
-  const newDevnet = {...devnet, id: BigInt("0x4b4154414e41")}
+  const newDevnet = {...devnet, id: BigInt(stringToHexString("0x4b4154414e41"))}
   return (
     <StarknetConfig
-      chains={[  newDevnet,sepolia, juno, mainnet]}
+      chains={[  newDevnet,sepolia, juno, mainnet,]}
       provider={provider}
+      connectors={connectors}
       explorer={voyager}
       autoConnect={true}
       queryClient={queryClient}
