@@ -1,4 +1,3 @@
-use core::array::ArrayTrait;
 use core::poseidon::poseidon_hash_span;
 use pitch_lake::option_round::contract::OptionRound::Errors;
 use pitch_lake::tests::utils::facades::option_round_facade::OptionRoundFacadeTrait;
