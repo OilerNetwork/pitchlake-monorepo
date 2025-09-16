@@ -1,6 +1,6 @@
 # PitchLake Contracts Makefile
 
-.PHONY: help build deploy-local deploy-local-fast clean
+.PHONY: help build deploy-local deploy-local-no-build clean
 
 # Default target
 help:
@@ -10,7 +10,7 @@ help:
 	@echo "  test             - Run not ignored tests"
 	@echo "  test-ignored     - Run ignored tests"
 	@echo "  deploy-local     - Build contracts and deploy vault to local network"
-	@echo "  deploy-local-fast - Deploy vault to local network (assumes contracts are built)"
+	@echo "  deploy-local-no-build - Deploy vault to local network (assumes contracts are built)"
 	@echo "  clean            - Clean build artifacts"
 	@echo "  help             - Show this help message"
 
@@ -69,9 +69,9 @@ deploy-local: build
 	cd deployment && go run cmd/deploy/main.go
 	@echo "✅ Deployment completed!"
 
-# Deploy vault contract locally (fast - assumes contracts are built)
-deploy-local-fast:
-	@echo "🚀 Deploying vault contract locally (fast mode)..."
+# Deploy vault contract locally (skipping build)
+deploy-local-no-build:
+	@echo "🚀 Deploying vault contract locally (no-build)..."
 	@if [ ! -f ".env" ]; then \
 		echo "❌ .env file not found. Please create one with required environment variables."; \
 		echo "You can copy the example file: cp env.example .env"; \
