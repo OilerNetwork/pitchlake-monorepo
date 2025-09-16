@@ -7,43 +7,69 @@
 [tg-badge]: https://img.shields.io/endpoint?color=neon&logo=telegram&label=chat&style=flat-square&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Foiler_official
 [tg-url]: https://t.me/oiler_official
 
-## Running Tests
+## Testing the Contracts
 
-The original codebase uses [Scarb](https://docs.swmansion.com/scarb/) (2.8.2) to build and test the contracts. Be sure to setup [asdf](https://asdf-vm.com/) as well, to handle versioning.
+### Requires:
+
+- [asdf](https://asdf-vm.com/) (for version handling)
+- [scarb](https://docs.swmansion.com/scarb/) (2.12.1)
 
 To ensure you are setup, run the following command from the root of this directory and check the output matches:
 
 ```
 ❯ scarb --version
-scarb 2.8.2 (a37b4cbfc 2024-09-09)
-cairo: 2.8.2 (https://crates.io/crates/cairo-lang-compiler/2.8.2)
-sierra: 1.6.0
+scarb 2.12.1 (40d114d1e 2025-08-26)
+cairo: 2.12.1 (https://crates.io/crates/cairo-lang-compiler/2.12.1)
+sierra: 1.7.0
 ```
 
-Once Scarb is setup, you can run the full test suite via:
+Once scarb is setup, you can run the test suites via:
+
+```bash
+# Test all tests, including ignored tests
+make test-all
+
+# Test only non-ignored tests
+make test
+
+# Test only ignored tests
+make test-ignored
 
 ```
-scarb test
+
+## Deploying the Contracts
+
+The (deployment/)[./deployment/] directory contains Go code for deploying a PitchLake Vault contract to Starknet.
+
+### Requires
+
+- [golang](https://go.dev/) (1.23+)
+- [scarb](https://docs.swmansion.com/scarb/) (2.12.1)
+
+### Environment Variables
+
+Copy the contents of [`example.env`](./example.env) to a new `.env` file (in this directory). The `example.env` file contains the necessary variables for deploying a Vault to Katana. You can modify the values in your `.env` to use a different deployer account, change the parameters of the Vault, or deploy to a different network.
+
+### Usage
+
+From this directory, run:
+
+```bash
+make deploy-local
 ```
 
-To run specific tests, use the -f (filter) flag, followed by the string to match for. You can supply the file name, or specifc test names. The following command will run all the tests in the `vault_option_round_tests.cairo` file.
+This will:
 
+- Build the contracts
+- Declare the OptionRound & Vault contracts (if not already declared)
+- Deploy a Vault contract with the parameters specified in your `.env` file
+
+To skip building the contracts, you can run:
+
+```bash
+make deploy-local-no-build
 ```
-scarb test -f vault_option_round_tests
-```
 
-This command will run all tests that containing `auction` in their name:
+## Protocol Documentation
 
-```
-scarb test -f auction
-```
-
-## Deployment
-
-[Install starknet-foundry](https://foundry-rs.github.io/starknet-foundry/getting-started/installation.html) [0.30.0]
-
-Copy .starknet_accounts/ex.starknet_open_zeppelin_accounts.json into: .starknet_accounts/starknet_open_zeppelin_accounts.json (Can either go through the docs to setup an account or ping Matt for user1's credentials)
-
-## Crash Course
-
-The crash course is intended to catch devs up to speed on the technical aspects of the protocol, as well as help pre-prompt/train any LLMs for Pitchlake. This crash course can be found [here](documentation.md).
+The full protocol documentation can be found [here](<place holder>).
