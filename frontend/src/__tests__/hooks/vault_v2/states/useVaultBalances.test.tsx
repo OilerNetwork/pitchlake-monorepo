@@ -1,12 +1,12 @@
 import { renderHook } from "@testing-library/react";
 import useVaultBalances from "@/hooks/vault/state/useVaultBalances";
-import { useContractRead } from "@starknet-react/core";
+import { useReadContract } from "@starknet-react/core";
 import { BlockTag } from "starknet";
 import { vaultABI } from "@/lib/abi";
 
 // Mock dependencies
 jest.mock("@starknet-react/core", () => ({
-  useContractRead: jest.fn()
+  useReadContract: jest.fn()
 }));
 
 describe("useVaultBalances", () => {
@@ -36,7 +36,7 @@ describe("useVaultBalances", () => {
   describe("balance retrieval", () => {
     it("returns formatted balances when all values are available", () => {
       // Setup mocks for each balance in sequence
-      (useContractRead as jest.Mock)
+      (useReadContract as jest.Mock)
         .mockReturnValueOnce(mockContractRead({ data: mockBalances.lockedBalance }))
         .mockReturnValueOnce(mockContractRead({ data: mockBalances.unlockedBalance }))
         .mockReturnValueOnce(mockContractRead({ data: mockBalances.stashedBalance }));
@@ -52,7 +52,7 @@ describe("useVaultBalances", () => {
       });
 
       // Verify contract read parameters
-      expect(useContractRead).toHaveBeenNthCalledWith(1, {
+      expect(useReadContract).toHaveBeenNthCalledWith(1, {
         abi: vaultABI,
         address: mockAddress,
         
@@ -61,7 +61,7 @@ describe("useVaultBalances", () => {
         args: [],
       });
 
-      expect(useContractRead).toHaveBeenNthCalledWith(2, {
+      expect(useReadContract).toHaveBeenNthCalledWith(2, {
         abi: vaultABI,
         address: mockAddress,
         
@@ -70,7 +70,7 @@ describe("useVaultBalances", () => {
         args: [],
       });
 
-      expect(useContractRead).toHaveBeenNthCalledWith(3, {
+      expect(useReadContract).toHaveBeenNthCalledWith(3, {
         abi: vaultABI,
         address: mockAddress,
         
@@ -82,7 +82,7 @@ describe("useVaultBalances", () => {
 
     it("returns zero balances when contract reads return undefined", () => {
       // Setup mocks to return undefined
-      (useContractRead as jest.Mock).mockReturnValue(mockContractRead({ data: undefined }));
+      (useReadContract as jest.Mock).mockReturnValue(mockContractRead({ data: undefined }));
 
       // Execute
       const { result } = renderHook(() => useVaultBalances(mockAddress));
@@ -111,7 +111,7 @@ describe("useVaultBalances", () => {
   describe("watch configuration", () => {
     it("respects watch parameter for all contract reads", () => {
       // Setup
-      (useContractRead as jest.Mock)
+      (useReadContract as jest.Mock)
         .mockReturnValueOnce(mockContractRead({ data: mockBalances.lockedBalance, watch: true }))
         .mockReturnValueOnce(mockContractRead({ data: mockBalances.unlockedBalance, watch: true }))
         .mockReturnValueOnce(mockContractRead({ data: mockBalances.stashedBalance, watch: true }));
@@ -120,7 +120,7 @@ describe("useVaultBalances", () => {
       renderHook(() => useVaultBalances(mockAddress, { watch: true }));
 
       // Verify watch parameter for each call
-      const calls = (useContractRead as jest.Mock).mock.calls;
+      const calls = (useReadContract as jest.Mock).mock.calls;
       calls.forEach(call => {
         expect(call[0].watch).toBe(true);
       });

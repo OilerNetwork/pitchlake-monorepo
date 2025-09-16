@@ -8,7 +8,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import { useWaitForTransaction } from "@starknet-react/core";
+import { useTransactionReceipt } from "@starknet-react/core";
 import { StatusModalProps } from "@/lib/types";
 
 /*This is the bridge for any transactions to go through, it's disabled by isTxDisabled if there is data loading or if
@@ -44,7 +44,7 @@ export const TransactionContext = createContext<TransactionContextType>(
 const TransactionProvider = ({ children }: { children: ReactNode }) => {
   const [isTxDisabled, setIsTxDisabled] = useState<boolean>(false);
   const [pendingTx, setPendingTx] = useState<string | undefined>();
-  const { status } = useWaitForTransaction({ hash: pendingTx });
+  const { status } = useTransactionReceipt({ hash: pendingTx });
 
   const [statusModalProps, setStatusModalProps] = useState<StatusModalProps>({
     version: null,

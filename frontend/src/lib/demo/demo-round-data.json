@@ -1,0 +1,67 @@
+[
+  {
+    "roundId": 1,
+    "roundAddress": "0x91b44a9f1ffb7a5953c8808edf0b4ba427ef21c46b0eea00d4c721ae3faf4454",
+    "capLevel": "4500",
+    "strikePrice": "4690000000",
+    "deploymentDate": "1735711223",
+    "auctionStartDate": "1735711283",
+    "auctionEndDate": "1735711463",
+    "optionSettleDate": "1735711643",
+    "settlementPrice": "4480000000",
+    "reservePrice": "1000000000",
+    "volatility": "901"
+  },
+  {
+    "roundId": 2,
+    "roundAddress": "0x45f76d71f8850bd2a708bb70dcc8bd1fc0b085da11b855b1de2421c88d3323c5",
+    "capLevel": "4200",
+    "strikePrice": "4480000000",
+    "deploymentDate": "1735711673",
+    "auctionStartDate": "1735711733",
+    "auctionEndDate": "1735711913",
+    "optionSettleDate": "1735712093",
+    "settlementPrice": "5220000000",
+    "reservePrice": "700000000",
+    "volatility": "708"
+  },
+  {
+    "roundId": 3,
+    "roundAddress": "0x8074d62851820651b252351955d0ffd503bb318d8d32ca303cc1f15ad0d9b479",
+    "capLevel": "3300",
+    "strikePrice": "5220000000",
+    "deploymentDate": "1735712123",
+    "auctionStartDate": "1735712183",
+    "auctionEndDate": "1735712363",
+    "optionSettleDate": "1735712543",
+    "settlementPrice": "6210000000",
+    "reservePrice": "500000000",
+    "volatility": "321"
+  },
+  {
+    "roundId": 4,
+    "roundAddress": "0x57a71fccf1805ddae70c86263f5a6b730fc44d67f3560a73e1d47aad161d6d31",
+    "capLevel": "1500",
+    "strikePrice": "6210000000",
+    "deploymentDate": "1735712573",
+    "auctionStartDate": "1735712633",
+    "auctionEndDate": "1735712813",
+    "optionSettleDate": "1735712993",
+    "settlementPrice": "7300000000",
+    "reservePrice": "500000000",
+    "volatility": "536"
+  },
+  {
+    "roundId": 5,
+    "roundAddress": "0x38aed9d3c18f427efcb600734d8eb299dd891bb01e7b08061c99510cad450cb2",
+    "capLevel": "2500",
+    "strikePrice": "7300000000",
+    "deploymentDate": "1735713023",
+    "auctionStartDate": "1735713083",
+    "auctionEndDate": "1735713263",
+    "optionSettleDate": "1735713443",
+    "settlementPrice": "4690000000",
+    "reservePrice": "1000000000",
+    "volatility": "965"
+  }
+]

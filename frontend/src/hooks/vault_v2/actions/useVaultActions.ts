@@ -37,9 +37,9 @@ const useVaultActions = () => {
     return typedContract;
   }, [contract, account]);
 
-  //Maybe used later to rewrite calls as useMemos with and writeAsync
+  //Maybe used later to rewrite calls as useMemos with and sendAsync
   //May not be required if we watch our transactions off the plugin
-  // const { writeAsync } = useContractWrite({});
+  // const { sendAsync } = useSendTransaction({});
   // const contractData = {
   //   abi: vaultABI,
   //   address,

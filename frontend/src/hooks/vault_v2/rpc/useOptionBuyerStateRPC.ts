@@ -1,7 +1,7 @@
 import { useNewContext } from "@/context/NewProvider";
 import { optionRoundABI } from "@/lib/abi";
 import { OptionBuyerStateType } from "@/lib/types";
-import { useAccount, useContractRead } from "@starknet-react/core";
+import { useAccount, useReadContract } from "@starknet-react/core";
 import { useMemo } from "react";
 import { BlockTag } from "starknet";
 
@@ -13,28 +13,28 @@ const useOptionBuyerStateRPC = (address?: string) => {
   }, [conn, address]);
   const account = useAccount();
 
-  const { data: biddingNonce } = useContractRead({
+  const { data: biddingNonce } = useReadContract({
     ...contractData,
     
     watch: true,
     args: [account?.address as string],
     functionName: "get_account_bid_nonce",
   });
-  const { data: bids } = useContractRead({
+  const { data: bids } = useReadContract({
     ...contractData,
     
     watch: true,
     args: [account?.address as string],
     functionName: "get_account_bids",
   });
-  const { data: refundableBids } = useContractRead({
+  const { data: refundableBids } = useReadContract({
     ...contractData,
     
     watch: true,
     args: [account?.address as string],
     functionName: "get_account_refundable_balance",
   });
-  const { data: mintableOptions } = useContractRead({
+  const { data: mintableOptions } = useReadContract({
     ...contractData,
     
     watch: true,
@@ -42,14 +42,14 @@ const useOptionBuyerStateRPC = (address?: string) => {
     functionName: "get_account_mintable_options",
   });
 
-  const { data: totalOptions } = useContractRead({
+  const { data: totalOptions } = useReadContract({
     ...contractData,
     
     watch: true,
     args: [account?.address as string],
     functionName: "get_account_total_options",
   });
-  const { data: payoutBalance } = useContractRead({
+  const { data: payoutBalance } = useReadContract({
     ...contractData,
     
     watch: true,

@@ -1,4 +1,4 @@
-import { useAccount, useContractRead } from "@starknet-react/core";
+import { useAccount, useReadContract } from "@starknet-react/core";
 import { useMemo } from "react";
 import { erc20ABI } from "@/lib/abi";
 
@@ -8,7 +8,7 @@ const useErc20Allowance = (
 ) => {
   const { account } = useAccount();
 
-  const { data: allowanceRaw } = useContractRead({
+  const { data: allowanceRaw } = useReadContract({
     abi: erc20ABI,
     address: tokenAddress ? tokenAddress : undefined,
     functionName: "allowance",

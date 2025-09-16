@@ -24,7 +24,6 @@ import QuestionCircleIcon from "../Icons/QuestionCircleIcon";
 import Hoverable from "../BaseComponents/Hoverable";
 import { useUiContext } from "@/context/UiProvider";
 import { formatNumber } from "@/lib/utils";
-import useVaultState from "@/hooks/vault_v2/states/useVaultState";
 import useLPState from "@/hooks/vault_v2/states/useLPState";
 import { useNewContext } from "@/context/NewProvider";
 import { useTimeContext } from "@/context/TimeProvider";
@@ -111,6 +110,10 @@ export default function Header() {
         break;
       case "juno":
         chain = "0x534e5f4a554e4f5f53455155454e434552";
+        break;
+      case "devnet":
+        chain = "0x4b4154414e41";
+        break;
     }
     if (!chain) {
       return Error("Chain not found");
@@ -169,7 +172,6 @@ export default function Header() {
                 onClick={() => {
                   setIsDropdownChainOpen(true);
                 }}
-                disabled
               >
                 <GlobeIcon fill="none" />
                 <p className="pl-[0.5rem]">{`${chain.network.charAt(0).toUpperCase() + chain.network.slice(1)}`}</p>

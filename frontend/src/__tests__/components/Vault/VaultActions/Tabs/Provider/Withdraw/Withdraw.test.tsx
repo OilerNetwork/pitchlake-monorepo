@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import Withdraw from "@/components/Vault/VaultActions/Tabs/Provider/Withdraw/Withdraw";
 import { HelpProvider, useHelpContext } from "@/context/HelpProvider";
 import useRoundState from "@/hooks/vault_v2/states/useRoundState";
-import { useContractRead } from "@starknet-react/core";
+import { useReadContract } from "@starknet-react/core";
 
 // Group all mocks together
 const mockData = {
@@ -38,7 +38,7 @@ const mockData = {
 // Group all mock implementations
 const mockImplementations = {
   starknetReact: {
-    useContractRead: jest.fn(),
+    useReadContract: jest.fn(),
     useAccount: () => ({ account: { address: "0x123" } }),
     useContract: () => ({ contract: null }),
     useProvider: () => ({ provider: null }),
@@ -75,7 +75,7 @@ const mockImplementations = {
 // Mock external dependencies
 jest.mock("@starknet-react/core", () => ({
   __esModule: true,
-  useContractRead: () => mockImplementations.starknetReact.useContractRead(),
+  useReadContract: () => mockImplementations.starknetReact.useReadContract(),
   useAccount: () => mockImplementations.starknetReact.useAccount(),
   useContract: () => mockImplementations.starknetReact.useContract(),
   useProvider: () => mockImplementations.starknetReact.useProvider(),
@@ -139,7 +139,7 @@ describe("Withdraw Component", () => {
   // Reusable setup function
   const setup = (roundState: string) => {
     mockImplementations.useRoundState.mockReturnValue({ roundState });
-    mockImplementations.starknetReact.useContractRead.mockReturnValue({
+    mockImplementations.starknetReact.useReadContract.mockReturnValue({
       data: "1000",
       isLoading: false,
       error: null,

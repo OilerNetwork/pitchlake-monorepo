@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { parseUnits } from "ethers";
 import { num, Call } from "starknet";
-import { useContractWrite } from "@starknet-react/core";
+import { useSendTransaction } from "@starknet-react/core";
 import { isValidHex64 } from "@/lib/utils";
 import { useTransactionContext } from "@/context/TransactionProvider";
 import { useErc20Contract } from "@/hooks/contracts/useErc20Contract";
@@ -95,14 +95,14 @@ export default function usePlaceBidMulticall({
     roundAddress,
   ]);
 
-  const { writeAsync } = useContractWrite({ calls });
+  const { sendAsync } = useSendTransaction({ calls });
 
   const handleMulticall = async () => {
     if (!calls.length) {
       throw new Error("No calls to execute. Check your bid parameters.");
     }
 
-    const response = await writeAsync();
+    const response = await sendAsync();
     setPendingTx(response?.transaction_hash);
 
     localStorageToRemove.forEach((key) => {

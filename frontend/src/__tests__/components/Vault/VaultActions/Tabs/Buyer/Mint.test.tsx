@@ -113,7 +113,7 @@ jest.mock("@starknet-react/core", () => ({
       }),
     },
   })),
-  useContractRead: jest
+  useReadContract: jest
     .fn()
     .mockImplementation(
       ({ functionName }: { functionName: ContractFunctionName }) => {

@@ -210,7 +210,7 @@ const mockConfig = {
 jest.mock("@starknet-react/core", () => ({
   useExplorer: jest.fn(() => mockConfig.hooks.explorer),
   useAccount: jest.fn(() => mockConfig.hooks.account),
-  useContractRead: jest.fn(() => ({
+  useReadContract: jest.fn(() => ({
     data: "1000000000000000000", // 1 ETH in Wei
     isLoading: false,
     error: null,

@@ -4,7 +4,7 @@ import useErc20Allowance from "@/hooks/erc20/useErc20Allowance";
 import {
   useAccount,
   useContract,
-  useContractRead,
+  useReadContract,
   useProvider,
 } from "@starknet-react/core";
 import { useTransactionContext } from "@/context/TransactionProvider";
@@ -13,7 +13,7 @@ import { useTransactionContext } from "@/context/TransactionProvider";
 jest.mock("@starknet-react/core", () => ({
   useAccount: jest.fn(),
   useContract: jest.fn(),
-  useContractRead: jest.fn(),
+  useReadContract: jest.fn(),
   useProvider: jest.fn(),
 }));
 
@@ -64,8 +64,8 @@ describe("useErc20Allowance", () => {
       pendingTx: false,
     });
 
-    // Mock useContractRead for balance and allowance
-    (useContractRead as jest.Mock).mockImplementation(({ functionName }) => {
+    // Mock useReadContract for balance and allowance
+    (useReadContract as jest.Mock).mockImplementation(({ functionName }) => {
       if (functionName === "allowance") {
         return { data: BigInt(500) };
       }

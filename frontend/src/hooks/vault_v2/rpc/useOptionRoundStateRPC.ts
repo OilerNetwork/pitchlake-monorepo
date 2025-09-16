@@ -3,7 +3,7 @@ import { OptionRoundStateType } from "@/lib/types";
 import { useMemo } from "react";
 import { BlockTag, CairoCustomEnum, num } from "starknet";
 import { getPerformanceLP, getPerformanceOB } from "@/lib/utils";
-import { useContractRead } from "@starknet-react/core";
+import { useReadContract } from "@starknet-react/core";
 
 const useOptionRoundStateRPC = (conn: string, address: string | undefined) => {
   const contractData = useMemo(() => {
@@ -12,140 +12,140 @@ const useOptionRoundStateRPC = (conn: string, address: string | undefined) => {
   }, [conn, address]);
   //Read States
 
-  const { data: vaultAddress } = useContractRead({
+  const { data: vaultAddress } = useReadContract({
     ...contractData,
 
     functionName: "get_vault_address",
     args: [],
     watch: true,
   });
-  const { data: roundId } = useContractRead({
+  const { data: roundId } = useReadContract({
     ...contractData,
 
     functionName: "get_round_id",
     args: [],
     watch: true,
   });
-  const { data: roundState } = useContractRead({
+  const { data: roundState } = useReadContract({
     ...contractData,
 
     functionName: "get_state",
     args: [],
     watch: true,
   });
-  const { data: deploymentDate } = useContractRead({
+  const { data: deploymentDate } = useReadContract({
     ...contractData,
 
     functionName: "get_deployment_date",
     args: [],
     watch: true,
   });
-  const { data: auctionStartDate } = useContractRead({
+  const { data: auctionStartDate } = useReadContract({
     ...contractData,
 
     functionName: "get_auction_start_date",
     args: [],
     watch: true,
   });
-  const { data: auctionEndDate } = useContractRead({
+  const { data: auctionEndDate } = useReadContract({
     ...contractData,
 
     functionName: "get_auction_end_date",
     args: [],
     watch: true,
   });
-  const { data: optionSettleDate } = useContractRead({
+  const { data: optionSettleDate } = useReadContract({
     ...contractData,
 
     functionName: "get_option_settlement_date",
     args: [],
     watch: true,
   });
-  const { data: treeNonce } = useContractRead({
+  const { data: treeNonce } = useReadContract({
     ...contractData,
 
     functionName: "get_bid_tree_nonce",
     args: [],
     watch: true,
   });
-  const { data: startingLiquidity } = useContractRead({
+  const { data: startingLiquidity } = useReadContract({
     ...contractData,
 
     functionName: "get_starting_liquidity",
     args: [],
     watch: true,
   });
-  const { data: soldLiquidity } = useContractRead({
+  const { data: soldLiquidity } = useReadContract({
     ...contractData,
 
     functionName: "get_sold_liquidity",
     args: [],
     watch: true,
   });
-  const { data: unsoldLiquidity } = useContractRead({
+  const { data: unsoldLiquidity } = useReadContract({
     ...contractData,
 
     functionName: "get_unsold_liquidity",
     args: [],
     watch: true,
   });
-  const { data: reservePrice } = useContractRead({
+  const { data: reservePrice } = useReadContract({
     ...contractData,
 
     functionName: "get_reserve_price",
     args: [],
     watch: true,
   });
-  const { data: strikePrice } = useContractRead({
+  const { data: strikePrice } = useReadContract({
     ...contractData,
 
     functionName: "get_strike_price",
     args: [],
     watch: true,
   });
-  const { data: capLevel } = useContractRead({
+  const { data: capLevel } = useReadContract({
     ...contractData,
 
     functionName: "get_cap_level",
     args: [],
     watch: true,
   });
-  const { data: availableOptions } = useContractRead({
+  const { data: availableOptions } = useReadContract({
     ...contractData,
 
     functionName: "get_options_available",
     args: [],
     watch: true,
   });
-  const { data: optionsSold } = useContractRead({
+  const { data: optionsSold } = useReadContract({
     ...contractData,
 
     functionName: "get_options_sold",
     args: [],
     watch: true,
   });
-  const { data: clearingPrice } = useContractRead({
+  const { data: clearingPrice } = useReadContract({
     ...contractData,
 
     functionName: "get_clearing_price",
     args: [],
     watch: true,
   });
-  const { data: premiums } = useContractRead({
+  const { data: premiums } = useReadContract({
     ...contractData,
 
     functionName: "get_total_premium",
     args: [],
     watch: true,
   });
-  const { data: totalPayout } = useContractRead({
+  const { data: totalPayout } = useReadContract({
     ...contractData,
 
     functionName: "get_total_payout",
     args: [],
     watch: true,
   });
-  const { data: settlementPrice } = useContractRead({
+  const { data: settlementPrice } = useReadContract({
     ...contractData,
 
     functionName: "get_settlement_price",

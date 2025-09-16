@@ -1,4 +1,4 @@
-import { useContractRead } from "@starknet-react/core";
+import { useReadContract } from "@starknet-react/core";
 import { optionRoundABI, vaultABI } from "@/lib/abi";
 import { VaultStateType } from "@/lib/types";
 import { stringToHex } from "@/lib/utils";
@@ -23,62 +23,62 @@ const useVaultStateRPC = ({
   //Read States
 
   //States without a param
-  const { data: alpha } = useContractRead({
+  const { data: alpha } = useReadContract({
     ...contractData,
-
     functionName: "get_alpha",
     args: [],
     watch: true,
   });
-  const { data: strikeLevel } = useContractRead({
+  console.log("alpha", alpha);
+  const { data: strikeLevel } = useReadContract({
     ...contractData,
 
     functionName: "get_strike_level",
     args: [],
     watch: true,
   });
-  const { data: ethAddress } = useContractRead({
+  const { data: ethAddress } = useReadContract({
     ...contractData,
 
     functionName: "get_eth_address",
     args: [],
     watch: true,
   });
-  const { data: l1DataProcessorAddress } = useContractRead({
-    ...contractData,
+  // const { data: l1DataProcessorAddress } = useReadContract({
+  //   ...contractData,
 
-    functionName: "get_l1_data_processor_address",
-    args: [],
-    watch: true,
-  });
-  const { data: currentRoundId } = useContractRead({
+  //   functionName: "get_l1_data_processor_address",
+  //   args: [],
+  //   watch: true,
+  // });
+  const { data: currentRoundId } = useReadContract({
     ...contractData,
 
     functionName: "get_current_round_id",
     args: [],
     watch: true,
   });
-  const { data: lockedBalance } = useContractRead({
+  const { data: lockedBalance } = useReadContract({
     ...contractData,
     functionName: "get_vault_locked_balance",
     args: [],
     watch: true,
   });
-  const { data: unlockedBalance } = useContractRead({
+  const { data: unlockedBalance } = useReadContract({
     ...contractData,
 
     functionName: "get_vault_unlocked_balance",
     args: [],
     watch: true,
   });
-  const { data: stashedBalance } = useContractRead({
+  const { data: stashedBalance } = useReadContract({
     ...contractData,
 
     functionName: "get_vault_stashed_balance",
     args: [],
     watch: true,
   });
-  const { data: queuedBps } = useContractRead({
+  const { data: queuedBps } = useReadContract({
     ...contractData,
 
     functionName: "get_vault_queued_bps",
@@ -86,7 +86,7 @@ const useVaultStateRPC = ({
     watch: true,
   });
 
-  const { data: round1Address } = useContractRead({
+  const { data: round1Address } = useReadContract({
     ...contractData,
 
     functionName: "get_round_address",
@@ -94,16 +94,16 @@ const useVaultStateRPC = ({
     watch: false,
   });
 
-  const { data: deploymentDate } = useContractRead({
+  const { data: deploymentDate } = useReadContract({
     ...contractData,
-    address: round1Address?.toString(),
+    address: round1Address?.toString()as `0x${string}`,
 
     abi: optionRoundABI,
     functionName: "get_deployment_date",
     args: [],
     watch: true,
   });
-  const { data: selectedRoundAddress } = useContractRead({
+  const { data: selectedRoundAddress } = useReadContract({
     ...contractData,
 
     functionName: "get_round_address",
@@ -113,11 +113,11 @@ const useVaultStateRPC = ({
         : undefined,
     watch: true,
   });
-  const { data: currentRoundAddress } = useContractRead({
+  const { data: currentRoundAddress } = useReadContract({
     ...contractData,
 
     functionName: "get_round_address",
-    args: currentRoundId ? [currentRoundId?.toString()] : [],
+    args: currentRoundId ? [BigInt(currentRoundId?.toString())] : [1],
     watch: true,
   });
   const usableStringSelectedRoundAddress = useMemo(() => {
@@ -142,9 +142,7 @@ const useVaultStateRPC = ({
       alpha: alpha ? alpha.toString() : 0,
       strikeLevel: strikeLevel ? strikeLevel.toString() : 0,
       ethAddress: ethAddress ? stringToHex(ethAddress?.toString()) : "",
-      l1DataProcessorAddress: l1DataProcessorAddress
-        ? stringToHex(l1DataProcessorAddress.toString())
-        : "",
+      l1DataProcessorAddress: "",
       currentRoundId: currentRoundId ? currentRoundId.toString() : 0,
       lockedBalance: lockedBalance ? lockedBalance.toString() : 0,
       unlockedBalance: unlockedBalance ? unlockedBalance.toString() : 0,

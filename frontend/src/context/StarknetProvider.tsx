@@ -24,6 +24,11 @@ export const juno = {
     decimals: 18,
   },
   testnet: true,
+  paymasterRpcUrls: {
+    default: {
+      http: ["http://localhost:6060"],
+    },
+  },
   rpcUrls: {
     default: {
       http: [],
@@ -41,7 +46,7 @@ export const StarknetProvider = ({
 }) => {
   const { connectors } = useInjectedConnectors({
     // Show these connectors if the user has no connector installed.
-    recommended: [argent(), braavos()],
+    recommended: [ braavos()],
     // Hide recommended connectors if the user has any connector installed.
     includeRecommended: "onlyIfNoConnectors",
     // Randomize the order of the connectors.
@@ -77,12 +82,11 @@ export const StarknetProvider = ({
   const provider = jsonRpcProvider({ rpc });
 
   const queryClient = useQueryClient();
-  const newDevnet = {...devnet, id: BigInt(stringToHexString("SN_KATANA"))}
+  const newDevnet = {...devnet, id: BigInt("0x4b4154414e41")}
   return (
     <StarknetConfig
-      chains={[sepolia, newDevnet, juno, mainnet]}
+      chains={[  newDevnet,sepolia, juno, mainnet]}
       provider={provider}
-      connectors={connectors}
       explorer={voyager}
       autoConnect={true}
       queryClient={queryClient}

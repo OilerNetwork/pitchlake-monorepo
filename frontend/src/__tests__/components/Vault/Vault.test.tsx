@@ -64,7 +64,7 @@ jest.mock("../../../components/BaseComponents/MobileScreen", () => ({
 
 jest.mock("@starknet-react/core", () => ({
   useNetwork: jest.fn(),
-  useContractRead: () => ({
+  useReadContract: () => ({
     data: "1000000000000000000",
     isError: false,
     isLoading: false,

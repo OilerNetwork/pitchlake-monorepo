@@ -1,5 +1,5 @@
 import { vaultABI } from "@/lib/abi";
-import { useContractRead } from "@starknet-react/core";
+import { useReadContract } from "@starknet-react/core";
 import { useMemo } from "react";
 import { BlockTag } from "starknet";
 
@@ -10,7 +10,7 @@ const useVaultBalances = (address: string | undefined, args?: { watch?: boolean 
     return { abi: vaultABI, address:address as `0x${string}` };
   }, [address]);
 
-  const { data: lockedBalance } = useContractRead({
+  const { data: lockedBalance } = useReadContract({
     ...contractData,
 
     watch,
@@ -18,7 +18,7 @@ const useVaultBalances = (address: string | undefined, args?: { watch?: boolean 
     args:[],
     
   })
-  const { data: unlockedBalance } = useContractRead({
+  const { data: unlockedBalance } = useReadContract({
     ...contractData,
 
     watch,
@@ -26,7 +26,7 @@ const useVaultBalances = (address: string | undefined, args?: { watch?: boolean 
     args:[],
     
   })
-  const { data: stashedBalance } = useContractRead({
+  const { data: stashedBalance } = useReadContract({
     ...contractData,
 
     watch,

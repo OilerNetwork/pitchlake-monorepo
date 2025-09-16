@@ -21,7 +21,7 @@ jest.mock("@starknet-react/core", () => ({
       address: "0x123",
     },
   }),
-  useContractRead: () => ({
+  useReadContract: () => ({
     data: "1000000000000000000",
     isError: false,
     isLoading: false,

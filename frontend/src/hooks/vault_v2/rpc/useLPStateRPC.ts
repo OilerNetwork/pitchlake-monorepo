@@ -1,7 +1,7 @@
 import { useNewContext } from "@/context/NewProvider";
 import { vaultABI } from "@/lib/abi";
 import { LiquidityProviderStateType } from "@/lib/types";
-import { useAccount, useContractRead } from "@starknet-react/core";
+import { useAccount, useReadContract } from "@starknet-react/core";
 import { useMemo } from "react";
 import { BlockTag } from "starknet";
 
@@ -16,25 +16,25 @@ const useLPStateRPC = ({vaultAddress}:{vaultAddress?:string}) => {
 
   const { account } = useAccount();
 
-  const { data: lockedBalance } = useContractRead({
+  const { data: lockedBalance } = useReadContract({
     ...contractData,
     watch: true,
     functionName: "get_account_locked_balance",
     args: [account?.address as string],
   });
-  const { data: unlockedBalance } = useContractRead({
+  const { data: unlockedBalance } = useReadContract({
     ...contractData,
     watch: true,
     functionName: "get_account_unlocked_balance",
     args: [account?.address as string],
   });
-  const { data: stashedBalance } = useContractRead({
+  const { data: stashedBalance } = useReadContract({
     ...contractData,
     watch: true,
     functionName: "get_account_stashed_balance",
     args: [account?.address as string],
   });
-  const { data: queuedBps } = useContractRead({
+  const { data: queuedBps } = useReadContract({
     ...contractData,
     watch: true,
     functionName: "get_account_queued_bps",

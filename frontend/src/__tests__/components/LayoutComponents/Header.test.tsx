@@ -54,7 +54,7 @@ jest.mock("@starknet-react/core", () => ({
       { id: "SN_MAIN", network: "mainnet" },
     ],
   }),
-  useContractRead: jest.fn().mockReturnValue({
+  useReadContract: jest.fn().mockReturnValue({
     data: "0",
     isError: false,
     isLoading: false,
