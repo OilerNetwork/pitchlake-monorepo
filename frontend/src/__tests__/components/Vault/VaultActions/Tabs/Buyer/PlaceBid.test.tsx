@@ -142,7 +142,7 @@ jest.mock("@starknet-react/core", () => ({
   useContract: jest.fn().mockReturnValue({
     contract: null,
   }),
-  useContractRead: jest
+  useReadContract: jest
     .fn()
     .mockImplementation(({ functionName }: { functionName: string }) => {
       const mockData: Record<string, string> = {

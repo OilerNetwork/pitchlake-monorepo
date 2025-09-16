@@ -13,7 +13,7 @@ jest.mock("@starknet-react/core", () => ({
   useAccount: () => ({
     account: {}
   }),
-  useContractRead: () => ({
+  useReadContract: () => ({
     data: {}
   })
 }));

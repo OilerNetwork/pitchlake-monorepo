@@ -13,6 +13,7 @@ import StateTransition from "./StateTransition/StateTransition";
 const PanelLeft = ({ userType }: { userType: string }) => {
   const { conn } = useNewContext();
   const { vaultState, selectedRoundAddress } = useVaultState();
+  console.log("vaultState", vaultState);
   const selectedRoundState = useRoundState(selectedRoundAddress);
   const [vaultIsOpen, setVaultIsOpen] = useState<boolean>(false);
   const [optionRoundIsOpen, setOptionRoundIsOpen] = useState<boolean>(false);

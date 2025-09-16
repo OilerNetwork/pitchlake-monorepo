@@ -1,0 +1,52 @@
+[
+  {
+    "roundId": 1,
+    "deploymentDate": "1735711223",
+    "auctionStartDate": "1735711283",
+    "auctionEndDate": "1735711463",
+    "optionSettleDate": "1735711643",
+    "twap": "4480000000",
+    "reservePrice": "750000000",
+    "volatility": "901"
+  },
+  {
+    "roundId": 2,
+    "deploymentDate": "1735711673",
+    "auctionStartDate": "1735711733",
+    "auctionEndDate": "1735711913",
+    "optionSettleDate": "1735712093",
+    "twap": "5220000000",
+    "reservePrice": "700000000",
+    "volatility": "708"
+  },
+  {
+    "roundId": 3,
+    "deploymentDate": "1735712123",
+    "auctionStartDate": "1735712183",
+    "auctionEndDate": "1735712363",
+    "optionSettleDate": "1735712543",
+    "twap": "6210000000",
+    "reservePrice": "500000000",
+    "volatility": "321"
+  },
+  {
+    "roundId": 4,
+    "deploymentDate": "1735712573",
+    "auctionStartDate": "1735712633",
+    "auctionEndDate": "1735712813",
+    "optionSettleDate": "1735712993",
+    "twap": "7300000000",
+    "reservePrice": "500000000",
+    "volatility": "536"
+  },
+  {
+    "roundId": 5,
+    "deploymentDate": "1735713023",
+    "auctionStartDate": "1735713083",
+    "auctionEndDate": "1735713263",
+    "optionSettleDate": "1735713443",
+    "twap": "4690000000",
+    "reservePrice": "1000000000",
+    "volatility": "965"
+  }
+]

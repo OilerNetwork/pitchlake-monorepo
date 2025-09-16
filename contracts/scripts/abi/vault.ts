@@ -5,24 +5,6 @@ export const ABI = [
     "interface_name": "pitch_lake::vault::interface::IVault"
   },
   {
-    "type": "enum",
-    "name": "pitch_lake::vault::interface::VaultType",
-    "variants": [
-      {
-        "name": "InTheMoney",
-        "type": "()"
-      },
-      {
-        "name": "AtTheMoney",
-        "type": "()"
-      },
-      {
-        "name": "OutOfMoney",
-        "type": "()"
-      }
-    ]
-  },
-  {
     "type": "struct",
     "name": "core::integer::u256",
     "members": [
@@ -47,38 +29,9 @@ export const ABI = [
     ]
   },
   {
-    "type": "struct",
-    "name": "pitch_lake::fossil_client::interface::L1Data",
-    "members": [
-      {
-        "name": "twap",
-        "type": "core::integer::u256"
-      },
-      {
-        "name": "volatility",
-        "type": "core::integer::u128"
-      },
-      {
-        "name": "reserve_price",
-        "type": "core::integer::u256"
-      }
-    ]
-  },
-  {
     "type": "interface",
     "name": "pitch_lake::vault::interface::IVault",
     "items": [
-      {
-        "type": "function",
-        "name": "get_vault_type",
-        "inputs": [],
-        "outputs": [
-          {
-            "type": "pitch_lake::vault::interface::VaultType"
-          }
-        ],
-        "state_mutability": "view"
-      },
       {
         "type": "function",
         "name": "get_alpha",
@@ -114,11 +67,22 @@ export const ABI = [
       },
       {
         "type": "function",
-        "name": "get_fossil_client_address",
+        "name": "get_verifier_address",
         "inputs": [],
         "outputs": [
           {
             "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_deployment_block",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::integer::u64"
           }
         ],
         "state_mutability": "view"
@@ -179,6 +143,28 @@ export const ABI = [
         "outputs": [
           {
             "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_program_id",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::felt252"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_proving_delay",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::integer::u64"
           }
         ],
         "state_mutability": "view"
@@ -320,7 +306,7 @@ export const ABI = [
       },
       {
         "type": "function",
-        "name": "get_request_to_settle_round",
+        "name": "get_request_to_start_first_round",
         "inputs": [],
         "outputs": [
           {
@@ -331,7 +317,7 @@ export const ABI = [
       },
       {
         "type": "function",
-        "name": "get_request_to_start_first_round",
+        "name": "get_request_to_settle_round",
         "inputs": [],
         "outputs": [
           {
@@ -406,22 +392,6 @@ export const ABI = [
       },
       {
         "type": "function",
-        "name": "fossil_client_callback",
-        "inputs": [
-          {
-            "name": "l1_data",
-            "type": "pitch_lake::fossil_client::interface::L1Data"
-          },
-          {
-            "name": "timestamp",
-            "type": "core::integer::u64"
-          }
-        ],
-        "outputs": [],
-        "state_mutability": "external"
-      },
-      {
-        "type": "function",
         "name": "start_auction",
         "inputs": [],
         "outputs": [
@@ -444,8 +414,17 @@ export const ABI = [
       },
       {
         "type": "function",
-        "name": "settle_round",
-        "inputs": [],
+        "name": "fossil_callback",
+        "inputs": [
+          {
+            "name": "job_request",
+            "type": "core::array::Span::<core::felt252>"
+          },
+          {
+            "name": "result",
+            "type": "core::array::Span::<core::felt252>"
+          }
+        ],
         "outputs": [
           {
             "type": "core::integer::u256"
@@ -460,7 +439,7 @@ export const ABI = [
     "name": "pitch_lake::vault::interface::ConstructorArgs",
     "members": [
       {
-        "name": "fossil_client_address",
+        "name": "verifier_address",
         "type": "core::starknet::contract_address::ContractAddress"
       },
       {
@@ -489,6 +468,14 @@ export const ABI = [
       },
       {
         "name": "round_duration",
+        "type": "core::integer::u64"
+      },
+      {
+        "name": "program_id",
+        "type": "core::felt252"
+      },
+      {
+        "name": "proving_delay",
         "type": "core::integer::u64"
       }
     ]
@@ -672,19 +659,37 @@ export const ABI = [
     ]
   },
   {
+    "type": "struct",
+    "name": "pitch_lake::vault::interface::L1Data",
+    "members": [
+      {
+        "name": "twap",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "max_return",
+        "type": "core::integer::u128"
+      },
+      {
+        "name": "reserve_price",
+        "type": "core::integer::u256"
+      }
+    ]
+  },
+  {
     "type": "event",
-    "name": "pitch_lake::vault::contract::Vault::L1RequestFulfilled",
+    "name": "pitch_lake::vault::contract::Vault::FossilCallbackSuccess",
     "kind": "struct",
     "members": [
       {
-        "name": "id",
-        "type": "core::felt252",
-        "kind": "key"
+        "name": "l1_data",
+        "type": "pitch_lake::vault::interface::L1Data",
+        "kind": "data"
       },
       {
-        "name": "caller",
-        "type": "core::starknet::contract_address::ContractAddress",
-        "kind": "key"
+        "name": "timestamp",
+        "type": "core::integer::u64",
+        "kind": "data"
       }
     ]
   },
@@ -719,8 +724,8 @@ export const ABI = [
         "kind": "nested"
       },
       {
-        "name": "L1RequestFulfilled",
-        "type": "pitch_lake::vault::contract::Vault::L1RequestFulfilled",
+        "name": "FossilCallbackSuccess",
+        "type": "pitch_lake::vault::contract::Vault::FossilCallbackSuccess",
         "kind": "nested"
       }
     ]

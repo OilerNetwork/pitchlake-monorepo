@@ -15,7 +15,7 @@ jest.mock("../../../context/TransactionProvider", () => ({
 jest.mock("@starknet-react/core", () => ({
   __esModule: true,
   useAccount: jest.fn(),
-  useContractRead: jest.fn().mockReturnValue({
+  useReadContract: jest.fn().mockReturnValue({
     data: "1000000000000000000",
     isError: false,
     isLoading: false,

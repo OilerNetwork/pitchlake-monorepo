@@ -41,7 +41,7 @@ jest.mock("@starknet-react/core", () => ({
     error: null,
     isPending: false,
   }),
-  useContractRead: jest.fn().mockReturnValue({
+  useReadContract: jest.fn().mockReturnValue({
     data: "1000000000000000000",
     isError: false,
     isLoading: false,
