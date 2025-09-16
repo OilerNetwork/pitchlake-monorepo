@@ -66,9 +66,9 @@ func (d *Deployer) DeployVault(vaultSierraPath, vaultCasmPath, optionRoundSierra
 	}
 	fmt.Printf("✅ OptionRound declaration completed! Class Hash: %s\n", optionRoundClassHash)
 
-	// Wait 15 seconds before next step
-	fmt.Println("⏳ Waiting 15 seconds before next step...")
-	time.Sleep(15 * time.Second)
+	// Wait 5 seconds before next step
+	fmt.Println("⏳ Waiting 5 seconds before next step...")
+	time.Sleep(5 * time.Second)
 
 	// Update the vault config with the declared OptionRound class hash
 	vaultConfig.OptionRoundClassHash = optionRoundClassHash
@@ -81,9 +81,9 @@ func (d *Deployer) DeployVault(vaultSierraPath, vaultCasmPath, optionRoundSierra
 	}
 	fmt.Printf("✅ Vault declaration completed! Class Hash: %s\n", vaultClassHash)
 
-	// Wait 15 seconds before next step
-	fmt.Println("⏳ Waiting 15 seconds before next step...")
-	time.Sleep(15 * time.Second)
+	// Wait 5 seconds before next step
+	fmt.Println("⏳ Waiting 5 seconds before next step...")
+	time.Sleep(5 * time.Second)
 
 	// Step 3: Deploy the Vault contract
 	fmt.Println("\n📋 Step 3: Deploying Vault contract...")
