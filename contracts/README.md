@@ -34,7 +34,6 @@ make test
 
 # Test only ignored tests
 make test-ignored
-
 ```
 
 ## Deploying the Contracts
