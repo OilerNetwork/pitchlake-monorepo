@@ -39,7 +39,7 @@ make test-ignored
 
 ## Deploying the Contracts
 
-The (deployment/)[./deployment/] directory contains Go code for deploying a PitchLake Vault contract to Starknet.
+The [deployment/](./deployment/) directory contains Go code for deploying a PitchLake Vault contract to Starknet.
 
 ### Requires
 
