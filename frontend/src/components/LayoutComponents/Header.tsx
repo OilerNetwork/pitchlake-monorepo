@@ -9,7 +9,7 @@ import argent from "@/../public/argent.svg";
 import keplr from "@/../public/keplr.svg";
 import avatar from "@/../public/avatar.svg";
 import { toast } from "react-toastify";
-import { useNetwork } from "@starknet-react/core";
+import { useNetwork, useSwitchChain } from "@starknet-react/core";
 import { useAccount, useConnect, useDisconnect } from "@starknet-react/core";
 import ProfileDropdown from "../BaseComponents/ProfileDropdown";
 import { useRouter, usePathname } from "next/navigation";
@@ -37,6 +37,14 @@ export default function Header() {
   const [isDropdownChainOpen, setIsDropdownChainOpen] = useState(false);
   const isDropdownChainOpenRef = useRef(isDropdownChainOpen);
   const { isMobile } = useIsMobile();
+  const {switchChain} = useSwitchChain({
+    onSuccess: () => {
+      toast("Chain switched successfully", { type: "success" });
+    },
+    onError: () => {
+      toast("Failed to switch chain", { type: "error" });
+    },
+  });
   const { isHelpBoxOpen, toggleHelpBoxOpen } = useHelpContext();
   const {
     isWalletLoginOpen,
@@ -101,6 +109,7 @@ export default function Header() {
 
   const handleSwitchChain = async (chainId: string) => {
     let chain: string | undefined = undefined;
+    console.log("chainId", chainId);
     switch (chainId) {
       case "sepolia":
         chain = constants.StarknetChainId.SN_SEPOLIA;
@@ -114,7 +123,13 @@ export default function Header() {
       case "devnet":
         chain = "0x4b4154414e41";
         break;
+      default:
+        chain = constants.StarknetChainId.SN_SEPOLIA;
+        break;
     }
+    switchChain({chainId: chain});
+    console.log(" switched chain", chain);
+    setIsDropdownChainOpen(false);
     if (!chain) {
       return Error("Chain not found");
     }
@@ -185,7 +200,7 @@ export default function Header() {
                     <div
                       key={index}
                       onClick={() => {
-                        handleSwitchChain(chain.network);
+                        handleSwitchChain(c.network);
                       }}
                       className={`p-2 flex flex-row  ${chain.network === c.network ? "bg-[#262626]" : ""} ${c.network === "mainnet" ? "" : "hover:bg-[#262626]"}`}
                     >

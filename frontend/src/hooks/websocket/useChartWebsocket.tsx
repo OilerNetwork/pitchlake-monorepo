@@ -152,8 +152,8 @@ const useWebsocketChart = ({
     );
   }, [lowerTimestamp, upperTimestamp, roundDuration, isConnected]);
 
-  console.log("confirmedGasData", confirmedGasData);
-  console.log("unconfirmedGasData", unconfirmedGasData);
+  console.log("confirmedGasDataws", confirmedGasData);
+  console.log("unconfirmedGasDataws", unconfirmedGasData);
   return {
     confirmedGasData: confirmedGasData,
     unconfirmedGasData: unconfirmedGasData,

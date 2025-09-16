@@ -12,7 +12,8 @@ const useChartData = (activeLines: any, vaultAddress?: string) => {
   const { conn, selectedRound } = useNewContext();
   // Chart context
   const { isExpandedView, setIsExpandedView, xMax, xMin } = useChartContext();
-  const { gasData } = useGasData();
+  const gasData: FormattedBlockData[] = [];
+  //const { gasData } = useGasData();
   // Help context
 
   // Strike and cap for all possibly displayed rounds

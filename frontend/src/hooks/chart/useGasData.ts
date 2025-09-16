@@ -38,7 +38,6 @@ export const useGasData = () => {
   });
 
   const { combinedGasData } = useMemo(() => {
-    console.log("acbs3", confirmedGasData);
     if ((!confirmedGasData && !unconfirmedGasData) || conn === "demo")
       return { combinedGasData: [] };
 
@@ -85,7 +84,6 @@ export const useGasData = () => {
           )
         : []),
     ];
-    console.log("allData", allGasData);
 
     if (allGasData[allGasData.length - 1]?.timestamp < xMax)
       allGasData.push({
@@ -159,7 +157,6 @@ export const useGasData = () => {
     }
   }, [combinedGasData, selectedRound, demoNow]);
 
-  console.log("11gasData", gasData);
   return { gasData };
 };
 

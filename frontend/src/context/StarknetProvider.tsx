@@ -47,9 +47,9 @@ export const StarknetProvider = ({
 }) => {
   const { connectors } = useInjectedConnectors({
     // Show these connectors if the user has no connector installed.
-    recommended: [ braavos(),argent()],
+    recommended: [ braavos(),ready()],
     // Hide recommended connectors if the user has any connector installed.
-    includeRecommended: "onlyIfNoConnectors",
+    includeRecommended: "always",
     // Randomize the order of the connectors.
     order: "alphabetical",
   });
