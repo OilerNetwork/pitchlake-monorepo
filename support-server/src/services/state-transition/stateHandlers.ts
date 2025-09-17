@@ -44,7 +44,7 @@ export class StateHandlers {
           this.logger.info(
             `Fossil blocks haven't reached the request timestamp yet`
           );
-          return;
+          //return;
         }
 
         // Initialize first round
@@ -84,6 +84,7 @@ export class StateHandlers {
           calldata: [],
         });
 
+        console.log("ARE WE HERE")
       const { transaction_hash } = await vaultContract.start_auction({
         maxFee: estimatedMaxFee * 2n,
       });
