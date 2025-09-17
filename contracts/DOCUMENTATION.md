@@ -1,5 +1,29 @@
 # Pitchlake Contracts Documentation
 
+1. [Vault Contract](#vault-contract)
+
+   - [Events](#events)
+   - [Interface](#interface)
+     - [Write Functions](#write-functions)
+     - [Read Functions](#read-functions)
+   - [Technical Details](#technical-details)
+     - [Available Actions](#available-actions)
+     - [Liquidity](#liquidity)
+       - [Flow](#flow)
+       - [Position Management](#position-management)
+     - [More](#more)
+
+2. [Option Round Contract](#option-round-contract)
+   - [Events](#eventss)
+   - [Interface](#interfacee)
+   - [Technical Details](#technical-detailss)
+     - [Round Life Cycle](#round-life-cycle)
+     - [Available Actions](#available-actionss)
+     - [Auction](#auction)
+     - [Red-Black Tree Component](#red-black-tree-component)
+     - [Tokenizing Options](#tokenizing-options)
+     - [More](#moree)
+
 ## Vault Contract
 
 ### Events
