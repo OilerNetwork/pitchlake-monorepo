@@ -2,31 +2,31 @@
 
 1. [Vault Contract](#vault-contract)
 
-   - [Events](#events)
-   - [Interface](#interface)
-     - [Write Functions](#write-functions)
-     - [Read Functions](#read-functions)
-   - [Technical Details](#technical-details)
-     - [Available Actions](#available-actions)
+   - [Events](#vault-events)
+   - [Interface](#vault-interface)
+     - [Write Functions](#vault-write-functions)
+     - [Read Functions](#vault-read-functions)
+   - [Technical Details](#vault-technical-details)
+     - [Available Actions](#vault-available-actions)
      - [Liquidity](#liquidity)
        - [Flow](#flow)
        - [Position Management](#position-management)
-     - [More](#more)
+     - [Further](#vault-further)
 
 2. [Option Round Contract](#option-round-contract)
-   - [Events](#eventss)
-   - [Interface](#interfacee)
-   - [Technical Details](#technical-detailss)
+   - [Events](#option-round-events)
+   - [Interface](#option-round-interface)
+   - [Technical Details](#option-round-technical-details)
      - [Round Life Cycle](#round-life-cycle)
-     - [Available Actions](#available-actionss)
+     - [Available Actions](#option-round-available-actionss)
      - [Auction](#auction)
      - [Red-Black Tree Component](#red-black-tree-component)
      - [Tokenizing Options](#tokenizing-options)
-     - [More](#moree)
+     - [Further](#option-round-further)
 
 ## Vault Contract
 
-### Events
+### Vault Events
 
 ```rust
 // Emitted when an account makes a deposit to a vault
@@ -112,9 +112,9 @@ struct FossilCallbackSuccess {
 }
 ```
 
-### Interface
+### Vault Interface
 
-#### Write Functions
+#### Vault Write Functions
 
 ```rust
 /// Account Functions
@@ -165,7 +165,7 @@ fn end_auction(ref self: TContractState) -> (u256, u256);
 fn fossil_callback(ref self: TContractState, job_request: Span<felt252>, result: Span<felt252>) -> u256;
 ```
 
-#### Read Functions
+#### Vault Read Functions
 
 ```rust
 /// Vault Parameters
@@ -255,9 +255,9 @@ fn get_request_to_start_first_round(self: @TContractState) -> Span<felt252>;
 fn get_request_to_settle_round(self: @TContractState) -> Span<felt252>;
 ```
 
-### Technical Details
+### Vault Technical Details
 
-#### Available Actions
+#### Vault Available Actions
 
 #### Liquidity
 
@@ -265,19 +265,19 @@ fn get_request_to_settle_round(self: @TContractState) -> Span<felt252>;
 
 ##### Position Management
 
-#### More
+#### Vault Further
 
 ## Option Round Contract
 
-### Eventss
+### Option Round Events
 
-### Interfacee
+### Option Round Interface
 
-### Technical Detailss
+### Option Round Technical Details
 
 #### Round Life Cycle
 
-#### Available Actionss
+#### Option Round Available Actions
 
 #### Auction
 
@@ -285,7 +285,7 @@ fn get_request_to_settle_round(self: @TContractState) -> Span<felt252>;
 
 #### Tokenizing Options
 
-#### Moree
+#### Option Round Further
 
 ###### Extras
 
