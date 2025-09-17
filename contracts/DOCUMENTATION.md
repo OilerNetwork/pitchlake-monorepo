@@ -4,8 +4,6 @@
 
    - [Events](#vault-events)
    - [Interface](#vault-interface)
-     - [Write Functions](#vault-write-functions)
-     - [Read Functions](#vault-read-functions)
    - [Technical Details](#vault-technical-details)
      - [Available Actions](#vault-available-actions)
      - [Liquidity](#liquidity)
@@ -114,7 +112,7 @@ struct FossilCallbackSuccess {
 
 ### Vault Interface
 
-#### Vault Write Functions
+#### Vault Functions
 
 ```rust
 /// Account Functions
@@ -165,7 +163,7 @@ fn end_auction(ref self: TContractState) -> (u256, u256);
 fn fossil_callback(ref self: TContractState, job_request: Span<felt252>, result: Span<felt252>) -> u256;
 ```
 
-#### Vault Read Functions
+#### Read Functions
 
 ```rust
 /// Vault Parameters
@@ -272,6 +270,10 @@ fn get_request_to_settle_round(self: @TContractState) -> Span<felt252>;
 ### Option Round Events
 
 ### Option Round Interface
+
+#### Read Functions
+
+#### Write Functions
 
 ### Option Round Technical Details
 
