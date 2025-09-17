@@ -90,7 +90,7 @@ struct FossilCallbackSuccess {
 
 ### Interface
 
-#### Writes
+#### Write Functions
 
 ```rust
 /// Account functions
@@ -139,7 +139,7 @@ fn end_auction(ref self: TContractState) -> (u256, u256);
 fn fossil_callback(ref self: TContractState, job_request: Span<felt252>, result: Span<felt252>) -> u256;
 ```
 
-#### Reads
+#### Read Functions
 
 ```rust
 /// Vault Parameters
