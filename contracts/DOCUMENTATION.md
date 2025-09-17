@@ -119,7 +119,7 @@ fn queue_withdrawal(ref self: TContractState, bps: u128);
 // @return The amount withdrawn
 fn withdraw_stash(ref self: TContractState, account: ContractAddress) -> u256;
 
-/// State transitions
+/// State functions
 
 // @dev Start the current round's auction
 // @dev Callable by anyone as long as now >= auction_start_date
@@ -219,7 +219,7 @@ fn get_account_stashed_balance(self: @TContractState, account: ContractAddress) 
 // @dev The account's % (bps) queued for withdrawal once the current round settles
 fn get_account_queued_bps(self: @TContractState, account: ContractAddress) -> u128;
 
-/// L1 Data
+/// Verifier Integration
 
 // @dev Gets the (serialized) job request required to initialize round 1
 // @dev This job's result is only used once
