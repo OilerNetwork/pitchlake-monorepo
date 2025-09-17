@@ -3,6 +3,7 @@ version: '3.8'
 services:
   architecture-support-server:
     build: .
+    platform: linux/amd64
     container_name: architecture-support-server
     restart: unless-stopped
     environment:
@@ -46,6 +47,7 @@ services:
 
   fossil-db:
     image: postgres:15-alpine
+    platform: linux/amd64
     container_name: fossil-db
     restart: unless-stopped
     environment:
@@ -62,6 +64,7 @@ services:
 
   pitchlake-db:
     image: postgres:15-alpine
+    platform: linux/amd64
     container_name: pitchlake-db
     restart: unless-stopped
     environment:

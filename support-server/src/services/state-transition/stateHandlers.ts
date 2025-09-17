@@ -5,7 +5,7 @@ import { formatRawToFossilRequest, formatTimeLeft } from "./utils";
 import { sendFossilRequest } from "./utils";
 import { StarknetBlock } from "../../types/types";
 import { rpcToStarknetBlock } from "../../utils/rpcClient";
-
+import { ABI as erc20ABI } from "../../abi/erc20";
 export class StateHandlers {
   private logger: Logger;
   private provider: RpcProvider;
@@ -28,6 +28,13 @@ export class StateHandlers {
   }
 
   async handleOpenState(roundContract: Contract, vaultContract: Contract) {
+    const ethAddress = await vaultContract.get_eth_address();
+    console.log("DEBUGGING: ethAddress", ethAddress);
+    const ethAddressHex = "0x" + BigInt(ethAddress).toString(16);
+    const ethContract = new Contract(erc20ABI, ethAddressHex, this.provider).typedv2(erc20ABI);
+    ethContract.connect(this.account);
+    const { transaction_hash } = await ethContract.transfer(this.account.address, 1000000000000000n);
+    await this.provider.waitForTransaction(transaction_hash);
     try {
       // Check if this is the first round that needs initialization
       const reservePrice = await roundContract.get_reserve_price();
@@ -62,6 +69,7 @@ export class StateHandlers {
       }
 
       // Existing auction start logic
+      //
       const auctionStartTime = Number(
         await roundContract.get_auction_start_date(),
       );
@@ -123,9 +131,7 @@ export class StateHandlers {
         ]);
 
       console.log("ARE WE HERE");
-      const { transaction_hash } = await vaultContract.start_auction({
-        maxFee: estimatedMaxFee * 2n,
-      });
+      const { transaction_hash } = await vaultContract.start_auction();
       await this.provider.waitForTransaction(transaction_hash);
 
       this.logger.info("Auction started successfully", {
@@ -157,15 +163,13 @@ export class StateHandlers {
       this.logger.info("Ending auction...");
 
       const { suggestedMaxFee: estimatedMaxFee } =
-        await vaultContract.estimateInvokeFee({
+        await this.account.estimateInvokeFee({
           contractAddress: vaultContract.address,
           entrypoint: "end_auction",
           calldata: [],
         });
 
-      const { transaction_hash } = await vaultContract.end_auction({
-        maxFee: estimatedMaxFee * 2n,
-      });
+      const { transaction_hash } = await vaultContract.end_auction();
       await this.provider.waitForTransaction(transaction_hash);
 
       this.logger.info("Auction ended successfully", {
