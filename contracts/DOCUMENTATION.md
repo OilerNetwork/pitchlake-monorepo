@@ -118,14 +118,16 @@ fn queue_withdrawal(ref self: TContractState, bps: u128);
 // @emit: StashWithdrawn event
 // @return The amount withdrawn
 fn withdraw_stash(ref self: TContractState, account: ContractAddress) -> u256;
+
 /// State transitions
 
-
 // @dev Start the current round's auction
+// @dev Callable by anyone as long as now >= auction_start_date
 // @return The total options available in the auction
 fn start_auction(ref self: TContractState) -> u256;
 
 // @dev Ends the current round's auction
+// @dev Callable by anyone as long as now >= auction_end_date
 // @return The clearing price and total options sold
 fn end_auction(ref self: TContractState) -> (u256, u256);
 
