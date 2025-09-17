@@ -93,7 +93,7 @@ struct FossilCallbackSuccess {
 #### Write Functions
 
 ```rust
-/// Account functions
+/// Account Functions
 
 // @dev The caller adds liquidity for an account's upcoming round deposit (unlocked balance)
 // @param amount: The amount of liquidity to deposit
@@ -119,7 +119,7 @@ fn queue_withdrawal(ref self: TContractState, bps: u128);
 // @return The amount withdrawn
 fn withdraw_stash(ref self: TContractState, account: ContractAddress) -> u256;
 
-/// State functions
+/// State Transition Functions
 
 // @dev Start the current round's auction
 // @dev Callable by anyone as long as now >= auction_start_date
