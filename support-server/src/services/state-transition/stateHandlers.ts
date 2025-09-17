@@ -4,6 +4,7 @@ import { Logger } from "winston";
 import { formatRawToFossilRequest, formatTimeLeft } from "./utils";
 import { sendFossilRequest } from "./utils";
 import { StarknetBlock } from "../../types/types";
+import { rpcToStarknetBlock } from "../../utils/rpcClient";
 
 export class StateHandlers {
   private logger: Logger;
@@ -17,7 +18,7 @@ export class StateHandlers {
     provider: RpcProvider,
     account: Account,
     latesFossilBlock: FormattedBlockData,
-    latestStarknetBlock: StarknetBlock
+    latestStarknetBlock: StarknetBlock,
   ) {
     this.logger = logger;
     this.provider = provider;
@@ -39,20 +40,20 @@ export class StateHandlers {
         // Format request data for timestamp check
         const requestTimestamp = Number(requestData[1]);
 
-        // Check if Fossil has required blocks before proceeding
-        if (this.latestFossilBlock.timestamp < requestTimestamp) {
-          this.logger.info(
-            `Fossil blocks haven't reached the request timestamp yet`
-          );
-          //return;
-        }
+        //// Check if Fossil has required blocks before proceeding
+        //if (this.latestFossilBlock.timestamp < requestTimestamp) {
+        //  this.logger.info(
+        //    `Fossil blocks haven't reached the request timestamp yet`
+        //  );
+        //  //return;
+        //}
 
         // Initialize first round
         await sendFossilRequest(
           formatRawToFossilRequest(requestData),
           vaultContract.address,
           vaultContract,
-          this.logger
+          this.logger,
         );
 
         // The fossil request takes some time to process, so we'll exit here
@@ -62,29 +63,66 @@ export class StateHandlers {
 
       // Existing auction start logic
       const auctionStartTime = Number(
-        await roundContract.get_auction_start_date()
+        await roundContract.get_auction_start_date(),
       );
 
-      if (this.latestFossilBlock.timestamp < auctionStartTime) {
-        this.logger.info(
-          `Waiting for auction start time. Time left: ${formatTimeLeft(
-            this.latestFossilBlock.timestamp,
-            auctionStartTime
-          )}`
-        );
+      console.log("DEBUGGING: auctionStartTime", auctionStartTime);
+      console.log(
+        "DEBUGGING: latest starknet block timestamp" +
+          this.latestStarknetBlock.timestamp,
+      );
+      console.log("DEBUGGING: now unix" + new Date().getTime() / 1000);
+
+      const latestBlockStarknet = await this.provider.getBlock("latest");
+      if (!latestBlockStarknet) {
+        console.error("No latest block found");
         return;
       }
+      const latestBlockStarknetFormatted =
+        rpcToStarknetBlock(latestBlockStarknet);
+
+      console.log(
+        "DEBUGGING: updated latestBlockStarknet",
+        latestBlockStarknetFormatted.timestamp,
+      );
+
+      const w = Number(await roundContract.get_round_id());
+      const x = Number(await vaultContract.get_round_transition_duration());
+      const y = Number(await vaultContract.get_auction_duration());
+      const z = Number(await vaultContract.get_round_duration());
+
+      console.log("DEBUGGING: round id", w);
+      console.log("DEBUGGING: durations", { x, y, z });
+      console.log("DEGGUGGING: durations in hours", {
+        x: (x / 3600).toFixed(2),
+        y: (y / 3600).toFixed(2),
+        z: (z / 3600).toFixed(2),
+      });
+
+      // get the vault.get_round_tr
+
+      //if (this.latestFossilBlock.timestamp < auctionStartTime) {
+      //  this.logger.info(
+      //    `Waiting for auction start time. Time left: ${formatTimeLeft(
+      //      this.latestFossilBlock.timestamp,
+      //      auctionStartTime,
+      //    )}`,
+      //  );
+      //  return;
+      //}
 
       this.logger.info("Starting auction...");
 
       const { suggestedMaxFee: estimatedMaxFee } =
-        await vaultContract.estimateInvokeFee({
-          contractAddress: vaultContract.address,
-          entrypoint: "start_auction",
-          calldata: [],
-        });
+        await this.account.estimateInvokeFee([
+          {
+            contractAddress: vaultContract.address,
+            entrypoint: "start_auction",
+            calldata: [],
+          },
+        ]);
 
-        console.log("ARE WE HERE")
+      console.log("ARE WE HERE");
       const { transaction_hash } = await vaultContract.start_auction({
         maxFee: estimatedMaxFee * 2n,
       });
@@ -101,7 +139,7 @@ export class StateHandlers {
 
   async handleAuctioningState(
     roundContract: Contract,
-    vaultContract: Contract
+    vaultContract: Contract,
   ) {
     try {
       const auctionEndTime = Number(await roundContract.get_auction_end_date());
@@ -110,8 +148,8 @@ export class StateHandlers {
         this.logger.info(
           `Waiting for auction end time. Time left: ${formatTimeLeft(
             this.latestStarknetBlock.timestamp,
-            auctionEndTime
-          )}`
+            auctionEndTime,
+          )}`,
         );
         return;
       }
@@ -141,19 +179,19 @@ export class StateHandlers {
 
   async handleRunningState(
     roundContract: Contract,
-    vaultContract: Contract
+    vaultContract: Contract,
   ): Promise<void> {
     try {
       const settlementTime = Number(
-        await roundContract.get_option_settlement_date()
+        await roundContract.get_option_settlement_date(),
       );
 
       if (this.latestStarknetBlock.timestamp < settlementTime) {
         this.logger.info(
           `Waiting for settlement time. Time left: ${formatTimeLeft(
             this.latestStarknetBlock.timestamp,
-            settlementTime
-          )}`
+            settlementTime,
+          )}`,
         );
         return;
       }
@@ -163,19 +201,19 @@ export class StateHandlers {
       const rawRequestData = await vaultContract.get_request_to_settle_round();
       const requestData = formatRawToFossilRequest(rawRequestData);
 
-      // Check if Fossil has required blocks before proceeding
-      if (this.latestFossilBlock.timestamp < Number(requestData.timestamp)) {
-        this.logger.info(
-          `Fossil blocks haven't reached the request timestamp yet`
-        );
-        return;
-      }
+      //// Check if Fossil has required blocks before proceeding
+      //if (this.latestFossilBlock.timestamp < Number(requestData.timestamp)) {
+      //  this.logger.info(
+      //    `Fossil blocks haven't reached the request timestamp yet`
+      //  );
+      //  return;
+      //}
 
       await sendFossilRequest(
         requestData,
         vaultContract.address,
         vaultContract,
-        this.logger
+        this.logger,
       );
     } catch (error) {
       this.logger.error("Error handling Running state:", error);

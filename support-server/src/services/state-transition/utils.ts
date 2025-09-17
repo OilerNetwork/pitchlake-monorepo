@@ -49,7 +49,7 @@ export const sendFossilRequest = async (
     identifiers: [identifier],
     params: {
       twap: [requestTimestamp - twapWindow, requestTimestamp],
-      max_return: [requestTimestamp - maxReturnWindow, requestTimestamp],
+      volatility: [requestTimestamp - maxReturnWindow, requestTimestamp],
       reserve_price: [requestTimestamp - reservePriceWindow, requestTimestamp],
     },
     client_info: {
