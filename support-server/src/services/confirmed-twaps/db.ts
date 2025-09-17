@@ -14,17 +14,32 @@ export class DatabaseService {
 
   constructor() {
     this.fossilClient = new Client({
-      connectionString: process.env.FOSSIL_DB_CONNECTION_STRING,
+      connectionString: process.env.FOSSIL_DB_URL,
     });
     this.pitchlakeClient = new Client({
-      connectionString: process.env.PITCHLAKE_DB_CONNECTION_STRING,
+      connectionString: process.env.PITCHLAKE_DB_URL,
     });
   }
 
-  async connect() {
+ async connect() {
+  try {
+    console.log("Connecting to Fossil database...");
     await this.fossilClient?.connect();
-    await this.pitchlakeClient?.connect();
+    console.log("Successfully connected to Fossil database");
+  } catch (error) {
+    console.error("Failed to connect to Fossil database:", error);
+    throw new Error(`Fossil database connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
+
+  try {
+    console.log("Connecting to Pitchlake database...");
+    await this.pitchlakeClient?.connect();
+    console.log("Successfully connected to Pitchlake database");
+  } catch (error) {
+    console.error("Failed to connect to Pitchlake database:", error);
+    throw new Error(`Pitchlake database connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
   async getTWAPState(windowType: TWAPWindowType): Promise<TWAPState | null> {
     if (process.env.USE_DEMO_DATA === "true") {
       return null;

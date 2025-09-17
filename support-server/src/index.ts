@@ -29,7 +29,8 @@ class ArchitectureSupportServer {
 
       // Start all services, if a scheduled job should auto run on startup, add it here
       await Promise.all([
-        runner.initialize()
+        runner.initialize(),
+        runTWAPUpdate()
       ]);
 
       logger.info('All services started successfully');

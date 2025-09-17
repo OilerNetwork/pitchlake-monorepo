@@ -19,17 +19,17 @@ export function loadConfirmedTWAPsConfig(): ConfirmedTWAPsConfig {
   const useDemoData = process.env.USE_DEMO_DATA === 'true';
   
   if (!useDemoData) {
-    if (!process.env.FOSSIL_DB_CONNECTION_STRING) {
-      throw new Error("FOSSIL_DB_CONNECTION_STRING is required in production mode");
+    if (!process.env.FOSSIL_DB_URL) {
+      throw new Error("FOSSIL_DB_URL is required in production mode");
     }
-    if (!process.env.PITCHLAKE_DB_CONNECTION_STRING) {
-      throw new Error("PITCHLAKE_DB_CONNECTION_STRING is required in production mode");
+    if (!process.env.PITCHLAKE_DB_URL) {
+      throw new Error("PITCHLAKE_DB_URL is required in production mode");
     }
   }
 
   return {
-    fossilDbConnectionString: process.env.FOSSIL_DB_CONNECTION_STRING || '',
-    pitchlakeDbConnectionString: process.env.PITCHLAKE_DB_CONNECTION_STRING || '',
+    fossilDbConnectionString: process.env.FOSSIL_DB_URL || '',
+    pitchlakeDbConnectionString: process.env.PITCHLAKE_DB_URL || '',
     useDemoData,
     twapRanges: TWAP_RANGES
   };
