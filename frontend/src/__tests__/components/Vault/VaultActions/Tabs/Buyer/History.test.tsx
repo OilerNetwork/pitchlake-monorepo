@@ -7,16 +7,16 @@ import TransactionProvider from "@/context/TransactionProvider";
 import { useHelpContext } from "@/context/HelpProvider";
 import { HelpProvider } from "@/context/HelpProvider";
 import { formatUnits } from "ethers";
-import useOptionBuyerStateRPC from "@/hooks/vault_v2/rpc/useOptionBuyerStateRPC";
-import useVaultActions from "@/hooks/vault_v2/actions/useVaultActions";
+import useOptionBuyerStateRPC from "@/hooks/vault/rpc/useOptionBuyerStateRPC";
+import useVaultActions from "@/hooks/vault/actions/useVaultActions";
 import { useNewContext } from "@/context/NewProvider";
-import useRoundState from "@/hooks/vault_v2/states/useRoundState";
-import useVaultState from "@/hooks/vault_v2/states/useVaultState";
+import useRoundState from "@/hooks/vault/states/useRoundState";
+import useVaultState from "@/hooks/vault/states/useVaultState";
 import { useTimeContext } from "@/context/TimeProvider";
 import useErc20Balance from "@/hooks/erc20/useErc20Balance";
 import useErc20Allowance from "@/hooks/erc20/useErc20Allowance";
 import useEditBidMulticall from "@/hooks/txn/useEditBidMulticall";
-import useOBState from "@/hooks/vault_v2/states/useOBState";
+import useOBState from "@/hooks/vault/states/useOBState";
 import {
   VaultStateType,
   VaultActionsType,

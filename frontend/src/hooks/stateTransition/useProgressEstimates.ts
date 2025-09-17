@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useNewContext } from "@/context/NewProvider";
-import useVaultState from "../vault_v2/states/useVaultState";
-import useRoundState from "../vault_v2/states/useRoundState";
+import useVaultState from "../vault/states/useVaultState";
+import useRoundState from "../vault/states/useRoundState";
 
 export const useProgressEstimates = () => {
   const { conn } = useNewContext();

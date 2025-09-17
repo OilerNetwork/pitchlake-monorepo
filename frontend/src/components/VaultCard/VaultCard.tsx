@@ -16,9 +16,9 @@ import {
 import { num } from "starknet";
 import { formatEther, formatUnits } from "ethers";
 import { useNewContext } from "@/context/NewProvider";
-import useVaultStateRPC from "@/hooks/vault_v2/rpc/useVaultStateRPC";
+import useVaultStateRPC from "@/hooks/vault/rpc/useVaultStateRPC";
 import { useMemo } from "react";
-import useOptionRoundStateRPC from "@/hooks/vault_v2/rpc/useOptionRoundStateRPC";
+import useOptionRoundStateRPC from "@/hooks/vault/rpc/useOptionRoundStateRPC";
 import { useDemoTime } from "@/lib/demo/useDemoTime";
 export default function VaultCard({ vaultAddress }: { vaultAddress: string }) {
   const { conn } = useNewContext();

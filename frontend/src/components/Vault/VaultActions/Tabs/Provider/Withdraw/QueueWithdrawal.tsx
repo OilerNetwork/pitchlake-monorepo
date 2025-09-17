@@ -5,8 +5,8 @@ import { useAccount } from "@starknet-react/core";
 import { formatEther } from "ethers";
 import Hoverable from "@/components/BaseComponents/Hoverable";
 import { formatNumber } from "@/lib/utils";
-import useLPState from "@/hooks/vault_v2/states/useLPState";
-import useVaultActions from "@/hooks/vault_v2/actions/useVaultActions";
+import useLPState from "@/hooks/vault/states/useLPState";
+import useVaultActions from "@/hooks/vault/actions/useVaultActions";
 
 interface WithdrawQueueProps {
   showConfirmation: (

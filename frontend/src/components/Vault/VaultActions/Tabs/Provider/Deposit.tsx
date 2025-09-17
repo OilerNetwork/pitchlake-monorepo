@@ -10,8 +10,8 @@ import useErc20Balance from "@/hooks/erc20/useErc20Balance";
 import useErc20Allowance from "@/hooks/erc20/useErc20Allowance";
 import { shortenString, isValidHex64, formatNumber } from "@/lib/utils";
 import Hoverable from "@/components/BaseComponents/Hoverable";
-import useVaultState from "@/hooks/vault_v2/states/useVaultState";
-import useLPState from "@/hooks/vault_v2/states/useLPState";
+import useVaultState from "@/hooks/vault/states/useVaultState";
+import useLPState from "@/hooks/vault/states/useLPState";
 import useDepositMulticall from "@/hooks/txn/useDepositMulticall";
 
 const DEPOSIT_AMOUNT_KEY = "depositAmount";

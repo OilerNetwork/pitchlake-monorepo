@@ -5,10 +5,10 @@ import { useAccount } from "@starknet-react/core";
 import { useTransactionContext } from "@/context/TransactionProvider";
 import useErc20Balance from "@/hooks/erc20/useErc20Balance";
 import useErc20Allowance from "@/hooks/erc20/useErc20Allowance";
-import useVaultState from "@/hooks/vault_v2/states/useVaultState";
-import useRoundState from "@/hooks/vault_v2/states/useRoundState";
-import useOBState from "@/hooks/vault_v2/states/useOBState";
-import useVaultActions from "@/hooks/vault_v2/actions/useVaultActions";
+import useVaultState from "@/hooks/vault/states/useVaultState";
+import useRoundState from "@/hooks/vault/states/useRoundState";
+import useOBState from "@/hooks/vault/states/useOBState";
+import useVaultActions from "@/hooks/vault/actions/useVaultActions";
 import { HelpProvider } from "@/context/HelpProvider";
 
 // Mock the new context

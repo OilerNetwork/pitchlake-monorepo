@@ -3,9 +3,9 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import Refund from "@/components/Vault/VaultActions/Tabs/Buyer/Refund";
 import { useAccount } from "@starknet-react/core";
 import { useTransactionContext } from "@/context/TransactionProvider";
-import useVaultState from "@/hooks/vault_v2/states/useVaultState";
-import useOBState from "@/hooks/vault_v2/states/useOBState";
-import useVaultActions from "@/hooks/vault_v2/actions/useVaultActions";
+import useVaultState from "@/hooks/vault/states/useVaultState";
+import useOBState from "@/hooks/vault/states/useOBState";
+import useVaultActions from "@/hooks/vault/actions/useVaultActions";
 import { useNewContext } from "@/context/NewProvider";
 import { useHelpContext } from "@/context/HelpProvider";
 

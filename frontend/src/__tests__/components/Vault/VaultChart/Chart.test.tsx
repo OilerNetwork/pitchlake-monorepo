@@ -3,11 +3,11 @@ import { render, screen, fireEvent, within } from "@testing-library/react";
 import RoundPerformanceChart from "@/components/Vault/VaultChart/Chart";
 import { useNewContext } from "@/context/NewProvider";
 import { useHistoricalRoundParams } from "@/hooks/chart/useHistoricalRoundParams";
-import useRoundState from "@/hooks/vault_v2/states/useRoundState";
+import useRoundState from "@/hooks/vault/states/useRoundState";
 import { ChartProvider } from "@/context/ChartProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useChartContext } from "@/context/ChartProvider";
-import useVaultState from "@/hooks/vault_v2/states/useVaultState";
+import useVaultState from "@/hooks/vault/states/useVaultState";
 import { useHelpContext } from "@/context/HelpProvider";
 
 // Mock modules
