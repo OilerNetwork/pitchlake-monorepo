@@ -56,7 +56,7 @@ services:
       - fossil_data:/var/lib/postgresql/data
       - ./migrations/fossil:/docker-entrypoint-initdb.d
     ports:
-      - "5432:5432"
+      - "5436:5432"
     networks:
       - pitchlake-network
 
@@ -72,7 +72,7 @@ services:
       - pitchlake_data:/var/lib/postgresql/data
       - ./migrations/pitchlake:/docker-entrypoint-initdb.d
     ports:
-      - "5433:5432"
+      - "5437:5432"
     networks:
       - pitchlake-network
 
