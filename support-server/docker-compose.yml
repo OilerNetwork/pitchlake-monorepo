@@ -3,6 +3,7 @@ version: '3.8'
 services:
   architecture-support-server:
     build: .
+    platform: linux/amd64
     container_name: architecture-support-server
     restart: unless-stopped
     environment:
@@ -46,6 +47,7 @@ services:
 
   fossil-db:
     image: postgres:15-alpine
+    platform: linux/amd64
     container_name: fossil-db
     restart: unless-stopped
     environment:
@@ -56,12 +58,13 @@ services:
       - fossil_data:/var/lib/postgresql/data
       - ./migrations/fossil:/docker-entrypoint-initdb.d
     ports:
-      - "5432:5432"
+      - "5436:5432"
     networks:
       - pitchlake-network
 
   pitchlake-db:
     image: postgres:15-alpine
+    platform: linux/amd64
     container_name: pitchlake-db
     restart: unless-stopped
     environment:
@@ -72,7 +75,7 @@ services:
       - pitchlake_data:/var/lib/postgresql/data
       - ./migrations/pitchlake:/docker-entrypoint-initdb.d
     ports:
-      - "5433:5432"
+      - "5437:5432"
     networks:
       - pitchlake-network
 
