@@ -13,7 +13,7 @@ export const useVaultContract = ({
 
   const { contract: vaultContractRaw } = useContract({
     abi: vaultABI,
-    address: vaultAddress || ("0x0" as `0x${string}`),
+    address: vaultAddress ? (vaultAddress as `0x${string}`) : ("0x0" as `0x${string}`),
   });
 
   const vaultContract = useMemo(() => {

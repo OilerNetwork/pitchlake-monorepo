@@ -1,0 +1,124 @@
+version: '3.8'
+
+services:
+
+  #Mock blockheaders database
+  fossil-db:
+    image: postgres:16
+    platform: linux/amd64
+    container_name: fossil-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=fossil
+      - POSTGRES_USER=fossil_user
+      - POSTGRES_PASSWORD=fossil_password
+    volumes:
+      - fossil_data:/var/lib/postgresql/data
+      - ./migrations/fossil:/docker-entrypoint-initdb.d
+    ports:
+      - "5436:5432"
+    networks:
+      - local-network
+
+
+  pitchlake-db:
+    image: postgres:16
+    platform: linux/amd64
+    container_name: pitchlake-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=pitchlake
+      - POSTGRES_USER=pitchlake_user
+      - POSTGRES_PASSWORD=pitchlake_password
+    volumes:
+      - pitchlake_data:/var/lib/postgresql/data
+      - ./migrations/pitchlake:/docker-entrypoint-initdb.d
+    ports:
+      - "5437:5432"
+    networks:
+      - local-network
+
+  frontend:
+    build: frontend/.
+    platform: linux/amd64
+    container_name: frontend
+    restart: unless-stopped
+    environment:
+      - NEXT_PUBLIC_ENVIRONMENT=rpc
+      - NEXT_PUBLIC_RPC_URL_MAINNET=https://starknet-mainnet.public.blastapi.io/rpc/v0_7
+      - NEXT_PUBLIC_RPC_URL_SEPOLIA=http://katana:5050
+      - NEXT_PUBLIC_RPC_URL_DEVNET=http://katana:5050
+      - NEXT_PUBLIC_VAULT_ADDRESSES=0x059d69fc91d54ce1c5fda268a9a02ddff51509e092c0920570fd0a7e70413f68
+      - FOSSIL_API_KEY=
+      - NEXT_PUBLIC_FOSSIL_API_URL=http://offchain-processor:3000
+      - FOSSIL_DB_URL=
+      - PORT=3003
+    ports:
+      - "3003:3003"
+    networks:
+      - local-network
+    depends_on:
+      - backend
+      - support-server
+  backend:
+    build: backend/.
+    platform: linux/amd64
+    container_name: backend
+    restart: unless-stopped
+    environment:
+      - DB_URL=postgres://pitchlake_user:pitchlake_password@pitchlake-db:5432/pitchlake?sslmode=disable
+      - APP_URL=
+
+  support-server:
+    build: support-server/.
+    platform: linux/amd64
+    container_name: support-server
+    restart: unless-stopped
+    environment:
+      # Database Connections
+      - FOSSIL_DB_URL=${FOSSIL_DB_URL}
+      - PITCHLAKE_DB_URL=${PITCHLAKE_DB_URL}
+      
+      # Ethereum Configuration
+      - MAINNET_RPC_URL=${MAINNET_RPC_URL}
+      
+      # StarkNet Configuration
+      - STARKNET_RPC=${STARKNET_RPC}
+      - STARKNET_PRIVATE_KEY=${STARKNET_PRIVATE_KEY}
+      - STARKNET_ACCOUNT_ADDRESS=${STARKNET_ACCOUNT_ADDRESS}
+      - VAULT_ADDRESSES=${VAULT_ADDRESSES}
+      
+      # Fossil API Configuration
+      - FOSSIL_API_KEY=${FOSSIL_API_KEY}
+      - FOSSIL_API_URL=${FOSSIL_API_URL}
+      
+      # Cron Schedules
+      - CRON_SCHEDULE=${CRON_SCHEDULE:-*/5 * * * * *}
+      - CRON_SCHEDULE_STATE=${CRON_SCHEDULE_STATE:-*/30 * * * * *}
+      
+      # Logging
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      
+      # Optional: Demo mode
+      - USE_DEMO_DATA=${USE_DEMO_DATA:-false}
+    
+    volumes:
+      - ./logs:/app/logs
+      - ./.env:/app/.env:ro
+    
+    networks:
+      - local-network
+    
+    depends_on:
+      - fossil-db
+      - pitchlake-db
+
+  
+volumes:
+  fossil_data:
+  pitchlake_data:
+
+networks:
+  local-network:
+    external: true
+    name: local-network 

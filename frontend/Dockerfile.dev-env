@@ -1,7 +1,7 @@
 # Dockerfile used by the pitchlake-launcher 
 
 # Use Node.js v20 as the base image
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 # Set the working directory
 WORKDIR /app

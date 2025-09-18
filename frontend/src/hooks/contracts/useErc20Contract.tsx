@@ -12,7 +12,7 @@ export const useErc20Contract = ({
 
   const { contract: erc20ContractRaw } = useContract({
     abi: erc20ABI,
-    address: tokenAddress || ("0x0" as `0x${string}`),
+    address: tokenAddress ? (tokenAddress as `0x${string}`) : ("0x0" as `0x${string}`),
   });
 
   const erc20Contract = useMemo(() => {

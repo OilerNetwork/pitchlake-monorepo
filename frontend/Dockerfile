@@ -1,5 +1,5 @@
 # Use Node.js v20 as the base image
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 ARG NEXT_PUBLIC_VAULT_ADDRESSES
 ARG NEXT_PUBLIC_ENVIRONMENT
@@ -44,7 +44,7 @@ COPY . .
 RUN pnpm run build
 
 # Production image
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 
 WORKDIR /app
 
