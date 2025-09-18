@@ -1,8 +1,8 @@
 "use client";
 
 import React, { createContext, useContext, useMemo, useState } from "react";
-import useVaultState from "@/hooks/vault_v2/states/useVaultState";
-import useRoundState from "@/hooks/vault_v2/states/useRoundState";
+import useVaultState from "@/hooks/vault/states/useVaultState";
+import useRoundState from "@/hooks/vault/states/useRoundState";
 interface ChartContextProps {
   isExpandedView: boolean;
   setIsExpandedView: (b: boolean) => void;

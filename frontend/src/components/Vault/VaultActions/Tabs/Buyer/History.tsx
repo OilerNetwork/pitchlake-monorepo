@@ -3,12 +3,12 @@ import { SquarePen } from "lucide-react";
 import { formatNumber, formatNumberText } from "@/lib/utils";
 import { formatUnits } from "ethers";
 import Hoverable from "@/components/BaseComponents/Hoverable";
-import useVaultState from "@/hooks/vault_v2/states/useVaultState";
-import useRoundState from "@/hooks/vault_v2/states/useRoundState";
+import useVaultState from "@/hooks/vault/states/useVaultState";
+import useRoundState from "@/hooks/vault/states/useRoundState";
 import { ExclamationIcon } from "@/components/Icons";
 import { useTimeContext } from "@/context/TimeProvider";
 import EditBid from "./EditBid";
-import useOBState from "@/hooks/vault_v2/states/useOBState";
+import useOBState from "@/hooks/vault/states/useOBState";
 
 interface HistoryProps {
   showConfirmation: (

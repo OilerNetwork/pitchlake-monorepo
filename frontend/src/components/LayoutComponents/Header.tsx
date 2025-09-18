@@ -24,7 +24,7 @@ import QuestionCircleIcon from "../Icons/QuestionCircleIcon";
 import Hoverable from "../BaseComponents/Hoverable";
 import { useUiContext } from "@/context/UiProvider";
 import { formatNumber } from "@/lib/utils";
-import useLPState from "@/hooks/vault_v2/states/useLPState";
+import useLPState from "@/hooks/vault/states/useLPState";
 import { useNewContext } from "@/context/NewProvider";
 import { useTimeContext } from "@/context/TimeProvider";
 

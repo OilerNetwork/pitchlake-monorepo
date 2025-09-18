@@ -4,8 +4,8 @@ import PanelRight from "../../../components/Vault/PanelRight";
 import { useTransactionContext } from "../../../context/TransactionProvider";
 import { useAccount } from "@starknet-react/core";
 import { useTabContent } from "../../../hooks/vault/useTabContent";
-import useVaultState from "@/hooks/vault_v2/states/useVaultState";
-import useRoundState from "@/hooks/vault_v2/states/useRoundState";
+import useVaultState from "@/hooks/vault/states/useVaultState";
+import useRoundState from "@/hooks/vault/states/useRoundState";
 
 jest.mock("../../../context/TransactionProvider", () => ({
   __esModule: true,

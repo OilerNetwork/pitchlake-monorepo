@@ -5,9 +5,9 @@ import { useTransactionContext } from "@/context/TransactionProvider";
 import { useAccount } from "@starknet-react/core";
 import { parseEther } from "ethers";
 import { useNewContext } from "@/context/NewProvider";
-import useLPState from "@/hooks/vault_v2/states/useLPState";
+import useLPState from "@/hooks/vault/states/useLPState";
 import { useHelpContext } from "@/context/HelpProvider";
-import useVaultActions from "@/hooks/vault_v2/actions/useVaultActions";
+import useVaultActions from "@/hooks/vault/actions/useVaultActions";
 import { useUiContext } from "@/context/UiProvider";
 
 // Define types for our mocks

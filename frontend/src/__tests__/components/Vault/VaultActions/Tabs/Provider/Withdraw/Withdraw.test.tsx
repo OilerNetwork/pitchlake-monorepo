@@ -2,7 +2,7 @@ import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import Withdraw from "@/components/Vault/VaultActions/Tabs/Provider/Withdraw/Withdraw";
 import { HelpProvider, useHelpContext } from "@/context/HelpProvider";
-import useRoundState from "@/hooks/vault_v2/states/useRoundState";
+import useRoundState from "@/hooks/vault/states/useRoundState";
 import { useReadContract } from "@starknet-react/core";
 
 // Group all mocks together

@@ -1,7 +1,7 @@
 import { renderHook } from "@testing-library/react";
-import useLPState from "@/hooks/vault_v2/states/useLPState";
+import useLPState from "@/hooks/vault/states/useLPState";
 import { useNewContext } from "@/context/NewProvider";
-import useLPStateRPC from "@/hooks/vault_v2/rpc/useLPStateRPC";
+import useLPStateRPC from "@/hooks/vault/rpc/useLPStateRPC";
 import { LiquidityProviderStateType } from "@/lib/types";
 
 // Mock dependencies

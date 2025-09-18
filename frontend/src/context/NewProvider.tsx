@@ -1,6 +1,6 @@
 "use client";
-import useMockVault from "@/hooks/vault_v2/mock/useMockVault";
-import useWebSocketVault from "@/hooks/vault_v2/websocket/useWebSocketVault";
+import useMockVault from "@/hooks/vault/mock/useMockVault";
+import useWebSocketVault from "@/hooks/vault/websocket/useWebSocketVault";
 import { MockData, WebSocketData } from "@/lib/types";
 import {
   Dispatch,

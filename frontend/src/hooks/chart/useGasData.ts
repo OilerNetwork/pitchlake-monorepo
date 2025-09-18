@@ -2,8 +2,8 @@
 import { useMemo} from "react";
 import { FormattedBlockData } from "@/lib/types";
 import { getTWAPs, scaleInRange } from "@/lib/utils";
-import useVaultState from "@/hooks/vault_v2/states/useVaultState";
-import useRoundState from "@/hooks/vault_v2/states/useRoundState";
+import useVaultState from "@/hooks/vault/states/useVaultState";
+import useRoundState from "@/hooks/vault/states/useRoundState";
 import { useChartContext } from "@/context/ChartProvider";
 import { useNewContext } from "@/context/NewProvider";
 import { useDemoTime } from "@/lib/demo/useDemoTime";

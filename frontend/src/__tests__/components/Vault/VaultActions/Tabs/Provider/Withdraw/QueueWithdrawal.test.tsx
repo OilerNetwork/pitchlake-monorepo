@@ -3,8 +3,8 @@ import QueueWithdrawal from "@/components/Vault/VaultActions/Tabs/Provider/Withd
 import { useAccount } from "@starknet-react/core";
 import { useTransactionContext } from "@/context/TransactionProvider";
 import { useHelpContext } from "@/context/HelpProvider";
-import useVaultActions from "@/hooks/vault_v2/actions/useVaultActions";
-import useLPState from "@/hooks/vault_v2/states/useLPState";
+import useVaultActions from "@/hooks/vault/actions/useVaultActions";
+import useLPState from "@/hooks/vault/states/useLPState";
 import { parseEther } from "ethers";
 
 // Mock the hooks

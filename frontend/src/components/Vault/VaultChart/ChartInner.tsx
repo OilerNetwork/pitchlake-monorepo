@@ -13,8 +13,8 @@ import {
 } from "recharts";
 import { useChartContext } from "@/context/ChartProvider";
 import { useNewContext } from "@/context/NewProvider";
-import useRoundState from "@/hooks/vault_v2/states/useRoundState";
-import useVaultState from "@/hooks/vault_v2/states/useVaultState";
+import useRoundState from "@/hooks/vault/states/useRoundState";
+import useVaultState from "@/hooks/vault/states/useVaultState";
 import { getDemoRoundId } from "@/lib/demo/utils";
 import useChartData from "@/hooks/chart/useChartData";
 
