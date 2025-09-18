@@ -3,9 +3,9 @@ import { useMemo, useState, useCallback, useEffect } from "react";
 import { useTransactionContext } from "@/context/TransactionProvider";
 import { getIconByRoundState } from "@/hooks/stateTransition/getIconByRoundState";
 import Hoverable from "@/components/BaseComponents/Hoverable";
-import useVaultState from "@/hooks/vault_v2/states/useVaultState";
-import useRoundState from "@/hooks/vault_v2/states/useRoundState";
-import useVaultActions from "@/hooks/vault_v2/actions/useVaultActions";
+import useVaultState from "@/hooks/vault/states/useVaultState";
+import useRoundState from "@/hooks/vault/states/useRoundState";
+import useVaultActions from "@/hooks/vault/actions/useVaultActions";
 import { useTimeContext } from "@/context/TimeProvider";
 import { useNewContext } from "@/context/NewProvider";
 

@@ -4,8 +4,8 @@ import {
   getDurationForRound,
   getTargetTimestampForRound,
 } from "@/lib/utils";
-import useVaultState from "../vault_v2/states/useVaultState";
-import useRoundState from "../vault_v2/states/useRoundState";
+import useVaultState from "../vault/states/useVaultState";
+import useRoundState from "../vault/states/useRoundState";
 import { useNewContext } from "@/context/NewProvider";
 
 export interface StatusData {

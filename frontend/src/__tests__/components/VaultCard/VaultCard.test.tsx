@@ -3,8 +3,8 @@ import VaultCard from "@/components/VaultCard/VaultCard";
 import { useRouter } from "next/navigation";
 import { useNewContext } from "@/context/NewProvider";
 import { useTimeContext } from "@/context/TimeProvider";
-import useVaultStateRPC from "@/hooks/vault_v2/rpc/useVaultStateRPC";
-import useOptionRoundStateRPC from "@/hooks/vault_v2/rpc/useOptionRoundStateRPC";
+import useVaultStateRPC from "@/hooks/vault/rpc/useVaultStateRPC";
+import useOptionRoundStateRPC from "@/hooks/vault/rpc/useOptionRoundStateRPC";
 
 jest.mock("@starknet-react/core", () => ({
   useProvider: () => ({

@@ -2,9 +2,9 @@ import React from "react";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import Mint from "@/components/Vault/VaultActions/Tabs/Buyer/Mint";
 import { TestWrapper } from "../../../../../utils/TestWrapper";
-import useVaultActions from "@/hooks/vault_v2/actions/useVaultActions";
-import useOptionBuyerStateRPC from "@/hooks/vault_v2/rpc/useOptionBuyerStateRPC";
-import useOBState from "@/hooks/vault_v2/states/useOBState";
+import useVaultActions from "@/hooks/vault/actions/useVaultActions";
+import useOptionBuyerStateRPC from "@/hooks/vault/rpc/useOptionBuyerStateRPC";
+import useOBState from "@/hooks/vault/states/useOBState";
 import { useHelpContext } from "@/context/HelpProvider";
 
 // Mock the hooks

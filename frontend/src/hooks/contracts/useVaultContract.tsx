@@ -1,7 +1,7 @@
 import { useAccount } from "@starknet-react/core";
 import { vaultABI } from "@/lib/abi";
 import { useContract } from "@starknet-react/core";
-import useVaultState from "@/hooks/vault_v2/states/useVaultState";
+import useVaultState from "@/hooks/vault/states/useVaultState";
 import { useMemo } from "react";
 
 export const useVaultContract = ({

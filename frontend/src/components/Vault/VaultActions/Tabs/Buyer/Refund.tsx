@@ -6,9 +6,9 @@ import { formatNumber } from "@/lib/utils";
 import { formatEther } from "ethers";
 import { useTransactionContext } from "@/context/TransactionProvider";
 import Hoverable from "@/components/BaseComponents/Hoverable";
-import useVaultState from "@/hooks/vault_v2/states/useVaultState";
-import useOBState from "@/hooks/vault_v2/states/useOBState";
-import useVaultActions from "@/hooks/vault_v2/actions/useVaultActions";
+import useVaultState from "@/hooks/vault/states/useVaultState";
+import useOBState from "@/hooks/vault/states/useOBState";
+import useVaultActions from "@/hooks/vault/actions/useVaultActions";
 import { useNewContext } from "@/context/NewProvider";
 
 interface RefundProps {
