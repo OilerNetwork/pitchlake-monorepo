@@ -52,7 +52,7 @@ build:
 
 run: build
 	@echo "Starting server..."
-	@export DB_URL="postgres://pitchlake:pitchlake@localhost:5433/pitchlake?sslmode=disable" && ./pitchlake-backend
+	@export PITCHLAKE_DB_URL="postgres://pitchlake:pitchlake@localhost:5433/pitchlake?sslmode=disable" && ./pitchlake-backend
 
 clean:
 	@echo "Cleaning build artifacts..."

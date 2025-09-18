@@ -1,41 +1,5 @@
 .DEFAULT_GOAL := help
 
-##@ Infrastructure Setup
-
-.PHONY: setup-infra
-setup-infra: ## Set up the complete infrastructure stack for Pitchlake
-	@echo "🚀 Setting up Pitchlake Infrastructure Stack..."
-	@echo ""
-	@echo "📋 Step 1: Checking prerequisites..."
-	@$(MAKE) check-prerequisites
-	@echo ""
-	@echo "📋 Step 2: Setting up Fossil Monorepo..."
-	@cd fossil-monorepo && $(MAKE) setup
-	@echo ""
-	@echo "📋 Step 3: Creating shared network..."
-	@$(MAKE) create-network
-	@echo ""
-	@echo "📋 Step 4: Building Docker images..."
-	@$(MAKE) build-all
-	@echo ""
-	@echo "✅ Infrastructure setup complete!"
-	@echo ""
-	@echo "🌐 Available services (when started):"
-	@echo "  📡 Katana (StarkNet): http://localhost:5050"
-	@echo "  📊 Fossil Offchain Processor: http://localhost:3000"
-	@echo "  🔧 Fossil Proving Service API: http://localhost:3001"
-	@echo "  🗄️  Fossil DB: localhost:5435"
-	@echo "  🗄️  Offchain Processor DB: localhost:5434"
-	@echo "  🗄️  Support Server Fossil DB: localhost:5436"
-	@echo "  🗄️  Support Server Pitchlake DB: localhost:5437"
-	@echo "  🛠️  Support Server: http://localhost:3002"
-	@echo "  🌐 Backend API: http://localhost:8080"
-	@echo "  🎨 Frontend: http://localhost:3003"
-	@echo ""
-	@echo "💡 Next steps:"
-	@echo "  make start-all     - Start all services"
-	@echo "  make stop-all      - Stop all services"
-	@echo "  make logs          - View logs from all services"
 
 .PHONY: check-prerequisites
 check-prerequisites: ## Check if Docker and required tools are installed
@@ -62,13 +26,15 @@ check-prerequisites: ## Check if Docker and required tools are installed
 		echo "   ✅ Docker Compose is available"; \
 	fi
 
-.PHONY: create-network
+
+##Creates a seperate network, to be used for when fossil is mocked in local
+.PHONY: create-network-pitchlake
 create-network: ## Create the local-network for Fossil services
 	@echo "🌐 Creating local-network..."
-	@if docker network ls | grep -q "local-network"; then \
+	@if docker network ls | grep -q "pitchlake-monorepo_local-network"; then \
 		echo "   ✅ local-network already exists"; \
 	else \
-		docker network create local-network; \
+		docker network create pitchlake-monorepo_local-network; \
 		echo "   ✅ Created local-network"; \
 	fi
 
@@ -85,12 +51,19 @@ build-all: ## Build all Docker images
 
 ##@ Service Management
 
+.PHONY: sync-addresses
+sync-addresses: ## Sync contract addresses from Fossil to Pitchlake
+	@echo "🔄 Syncing contract addresses from Fossil to Pitchlake..."
+	@./scripts/sync-env-fossil.sh
+
 .PHONY: start-all
 start-all: ## Start all services (Fossil first, then Pitchlake services)
 	@echo "🚀 Starting all services..."
 	@echo "📋 Step 1: Starting Fossil services (primary chain)..."
 	@cd fossil-monorepo && $(MAKE) dev-up
-	@echo "📋 Step 2: Starting Pitchlake services..."
+	@echo "📋 Step 2: Syncing contract addresses to Pitchlake..."
+	@$(MAKE) sync-addresses
+	@echo "📋 Step 3: Starting Pitchlake services..."
 	@docker-compose up -d
 	@echo "⏳ Waiting for services to be healthy..."
 	@sleep 10
@@ -121,14 +94,47 @@ dev: setup-infra start-all ## Complete development setup (setup + start all serv
 	@echo "🎉 Development environment ready!"
 	@echo "All services are running and ready for development."
 
+.PHONY: rebuild-all
+rebuild-all: ## Rebuild all containers from scratch
+	@echo "🔨 Rebuilding all containers from scratch..."
+	@echo "📋 Step 1: Stopping all services..."
+	@$(MAKE) stop-all
+	@echo "📋 Step 2: Removing all containers and images..."
+	@docker-compose down --rmi all --volumes --remove-orphans
+	@echo "📋 Step 3: Building all images fresh..."
+	@$(MAKE) build-all
+	@echo "📋 Step 4: Starting all services with fresh containers..."
+	@$(MAKE) start-all
+	@echo "✅ All containers rebuilt and started!"
+
 .PHONY: restart
-restart: stop-all start-all ## Restart all services
+restart: rebuild-all ## Restart all services (rebuilds containers)
+
+.PHONY: force-rebuild
+force-rebuild: ## Force rebuild all containers (cleans Docker system)
+	@echo "🧹 Force rebuilding all containers with system cleanup..."
+	@echo "📋 Step 1: Stopping all services..."
+	@$(MAKE) stop-all
+	@echo "📋 Step 2: Cleaning Docker system..."
+	@docker system prune -f
+	@docker volume prune -f
+	@echo "📋 Step 3: Removing all containers and images..."
+	@docker-compose down --rmi all --volumes --remove-orphans
+	@echo "📋 Step 4: Building all images fresh..."
+	@$(MAKE) build-all
+	@echo "📋 Step 5: Starting all services with fresh containers..."
+	@$(MAKE) start-all
+	@echo "✅ All containers force rebuilt and started!"
 
 .PHONY: restart-pitchlake
 restart-pitchlake: ## Restart only Pitchlake services (keeps Fossil running)
 	@echo "🔄 Restarting Pitchlake services..."
+	@echo "📋 Step 1: Syncing contract addresses to Pitchlake..."
+	@$(MAKE) sync-addresses
+	@echo "📋 Step 2: Stopping Pitchlake services..."
 	@docker-compose down
-	@docker-compose up -d
+	@echo "📋 Step 3: Starting Pitchlake services..."
+	@docker-compose --env-file .env.docker up -d
 	@echo "✅ Pitchlake services restarted!"
 
 ##@ Monitoring & Debugging

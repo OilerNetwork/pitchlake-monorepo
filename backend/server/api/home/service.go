@@ -21,7 +21,7 @@ func (router *HomeRouter) SubscribeHome(ctx context.Context, w http.ResponseWrit
 	var c *websocket.Conn
 	var closed bool
 
-	//allowedOrigin := os.Getenv("APP_URL")
+	//allowedOrigin := os.Getenv("FRONTEND_URL")
 	// Accept the WebSocket connection
 	c2, err := websocket.Accept(w, r, &websocket.AcceptOptions{
 		InsecureSkipVerify: true,

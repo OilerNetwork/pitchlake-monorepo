@@ -5,7 +5,7 @@ import { erc20ABI } from "@/lib/abi";
 const useErc20Balance = (tokenAddress: `0x${string}` | undefined) => {
   const { account } = useAccount();
 
-  console.log("erc20ABI", erc20ABI);
+  console.log("erc20ABI123", erc20ABI);
   const { data: balanceRaw } = useReadContract({
     abi: [{
       "type": "function",

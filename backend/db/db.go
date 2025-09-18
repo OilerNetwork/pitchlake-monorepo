@@ -17,9 +17,9 @@ type DB struct {
 
 // NewDB creates a new database connection
 func NewDB() (*DB, error) {
-	connStr := os.Getenv("DB_URL")
+	connStr := os.Getenv("PITCHLAKE_DB_URL")
 	if connStr == "" {
-		return nil, fmt.Errorf("DB_URL environment variable not set")
+		return nil, fmt.Errorf("PITCHLAKE_DB_URL environment variable not set")
 	}
 
 	config, err := pgxpool.ParseConfig(connStr)

@@ -18,7 +18,7 @@ services:
     ports:
       - "5436:5432"
     networks:
-      - local-network
+      - fossil-monorepo_local-network
 
 
   pitchlake-db:
@@ -36,10 +36,10 @@ services:
     ports:
       - "5437:5432"
     networks:
-      - local-network
+      - fossil-monorepo_local-network
 
   frontend:
-    build: frontend/.
+    build: frontend/Dockerfile.dev-env
     platform: linux/amd64
     container_name: frontend
     restart: unless-stopped
@@ -48,15 +48,15 @@ services:
       - NEXT_PUBLIC_RPC_URL_MAINNET=https://starknet-mainnet.public.blastapi.io/rpc/v0_7
       - NEXT_PUBLIC_RPC_URL_SEPOLIA=http://katana:5050
       - NEXT_PUBLIC_RPC_URL_DEVNET=http://katana:5050
-      - NEXT_PUBLIC_VAULT_ADDRESSES=0x059d69fc91d54ce1c5fda268a9a02ddff51509e092c0920570fd0a7e70413f68
-      - FOSSIL_API_KEY=
-      - NEXT_PUBLIC_FOSSIL_API_URL=http://offchain-processor:3000
-      - FOSSIL_DB_URL=
+      - NEXT_PUBLIC_VAULT_ADDRESSES=${VAULT_ADDRESSES}
+      - FOSSIL_API_KEY=${FOSSIL_API_KEY}
+      - NEXT_PUBLIC_FOSSIL_API_URL=${FOSSIL_API_URL}
+      - FOSSIL_DB_URL=postgresql://fossil_user:fossil_password@fossil-db:5432/fossil
       - PORT=3003
     ports:
       - "3003:3003"
     networks:
-      - local-network
+      - fossil-monorepo_local-network
     depends_on:
       - backend
       - support-server
@@ -66,8 +66,8 @@ services:
     container_name: backend
     restart: unless-stopped
     environment:
-      - DB_URL=postgres://pitchlake_user:pitchlake_password@pitchlake-db:5432/pitchlake?sslmode=disable
-      - APP_URL=
+      - PITCHLAKE_DB_URL=postgres://pitchlake_user:pitchlake_password@pitchlake-db:5432/pitchlake?sslmode=disable
+      - FRONTEND_URL=http://frontend:3003
 
   support-server:
     build: support-server/.
@@ -76,14 +76,14 @@ services:
     restart: unless-stopped
     environment:
       # Database Connections
-      - FOSSIL_DB_URL=${FOSSIL_DB_URL}
-      - PITCHLAKE_DB_URL=${PITCHLAKE_DB_URL}
+      - FOSSIL_DB_URL=postgresql://fossil_user:fossil_password@fossil-db:5432/fossil
+      - PITCHLAKE_DB_URL=postgres://pitchlake_user:pitchlake_password@pitchlake-db:5432/pitchlake?sslmode=disable
       
       # Ethereum Configuration
       - MAINNET_RPC_URL=${MAINNET_RPC_URL}
       
       # StarkNet Configuration
-      - STARKNET_RPC=${STARKNET_RPC}
+      - STARKNET_RPC=http://katana:5050
       - STARKNET_PRIVATE_KEY=${STARKNET_PRIVATE_KEY}
       - STARKNET_ACCOUNT_ADDRESS=${STARKNET_ACCOUNT_ADDRESS}
       - VAULT_ADDRESSES=${VAULT_ADDRESSES}
@@ -104,10 +104,9 @@ services:
     
     volumes:
       - ./logs:/app/logs
-      - ./.env:/app/.env:ro
     
     networks:
-      - local-network
+      - fossil-monorepo_local-network
     
     depends_on:
       - fossil-db
@@ -119,6 +118,6 @@ volumes:
   pitchlake_data:
 
 networks:
-  local-network:
+  fossil-monorepo_local-network:
     external: true
-    name: local-network 
+    name: fossil-monorepo_local-network 

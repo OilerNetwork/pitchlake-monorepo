@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
-     APP_URL: ${APP_URL}
-     DB_URL: ${DB_URL}
+     FRONTEND_URL: ${FRONTEND_URL}
+     PITCHLAKE_DB_URL: ${PITCHLAKE_DB_URL}
     ports:
       - "8080:8080" # Adjust this port if needed
