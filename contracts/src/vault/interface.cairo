@@ -117,14 +117,14 @@ pub trait IVault<TContractState> {
     // L1 data to the vault. This function is responsible for routing the data accordingly (either
     // to initialize round 1, or to settle the current round and initialize the next round).
 
-    // @dev Gets the job request required to initialize round 1 (serialized)
+    // @dev Gets the job request required to initialize round 1
     // @dev This job's result is only used once
-    fn get_request_to_start_first_round(self: @TContractState) -> Span<felt252>;
+    fn get_request_to_start_first_round(self: @TContractState) -> OffchainJobRequest;
 
     // @dev Gets the job request required to settle the current round (serialized)
     // @dev This job's result is used for each round's settlement. It is also used to initialize the
     // next round.
-    fn get_request_to_settle_round(self: @TContractState) -> Span<felt252>;
+    fn get_request_to_settle_round(self: @TContractState) -> OffchainJobRequest;
 
     /// Writes ///
 
@@ -169,6 +169,22 @@ pub trait IVault<TContractState> {
     fn fossil_callback(
         ref self: TContractState, job_request: Span<felt252>, result: Span<felt252>,
     ) -> u256;
+}
+
+// Off-chain job request that is sent to Fossil (to be calculated then verified by the Pitchlake
+// Verifier)
+#[derive(Copy, Drop, PartialEq, Serde)]
+pub struct OffchainJobRequest {
+    pub program_id: felt252,
+    pub vault_address: ContractAddress,
+    pub params: Params,
+}
+
+#[derive(Copy, Drop, PartialEq, Serde)]
+pub struct Params {
+    pub twap: (u64, u64),
+    pub max_return: (u64, u64),
+    pub reserve_price: (u64, u64),
 }
 
 /// Verifier/Fossil Integration

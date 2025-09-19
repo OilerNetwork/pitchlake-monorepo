@@ -10,7 +10,9 @@ pub mod Vault {
         ConstructorArgs as OptionRoundConstructorArgs, IOptionRoundDispatcher,
         IOptionRoundDispatcherTrait, OptionRoundState, PricingData,
     };
-    use pitch_lake::vault::interface::{ConstructorArgs, IVault, JobRequest, L1Data, VerifierData};
+    use pitch_lake::vault::interface::{
+        ConstructorArgs, IVault, JobRequest, L1Data, OffchainJobRequest, Params, VerifierData,
+    };
     use starknet::storage::{
         Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
@@ -18,7 +20,6 @@ pub mod Vault {
     use starknet::{
         ClassHash, ContractAddress, get_block_timestamp, get_caller_address, get_contract_address,
     };
-
 
     // *************************************************************************
     //                              STORAGE
@@ -396,7 +397,7 @@ pub mod Vault {
 
         /// L1 Data
 
-        fn get_request_to_settle_round(self: @ContractState) -> Span<felt252> {
+        fn get_request_to_settle_round(self: @ContractState) -> OffchainJobRequest {
             // @dev Get the current round's settlement date
             let settlement_date = self
                 .get_round_dispatcher(self.current_round_id.read())
@@ -405,7 +406,7 @@ pub mod Vault {
             self.generate_job_request(settlement_date)
         }
 
-        fn get_request_to_start_first_round(self: @ContractState) -> Span<felt252> {
+        fn get_request_to_start_first_round(self: @ContractState) -> OffchainJobRequest {
             // @dev Get the current round's deployment date
             let deployment_date = self.get_round_dispatcher(1).get_deployment_date();
 
@@ -1005,15 +1006,20 @@ pub mod Vault {
         }
 
         // @dev Generate a JobRequest for a specific timestamp
-        fn generate_job_request(self: @ContractState, timestamp: u64) -> Span<felt252> {
-            let mut serialized_request = array![];
-            JobRequest {
+        fn generate_job_request(self: @ContractState, upper_bound: u64) -> OffchainJobRequest {
+            let twap_lower_bound = upper_bound - self.get_round_duration();
+            let max_return_lower_bound = upper_bound - (3 * self.get_round_duration());
+            let reserve_price_lower_bound = max_return_lower_bound;
+
+            OffchainJobRequest {
                 program_id: self.program_id.read(),
                 vault_address: get_contract_address(),
-                timestamp,
+                params: Params {
+                    twap: (twap_lower_bound, upper_bound),
+                    max_return: (max_return_lower_bound, upper_bound),
+                    reserve_price: (reserve_price_lower_bound, upper_bound),
+                },
             }
-                .serialize(ref serialized_request);
-            serialized_request.span()
         }
 
         // Interpret l1 data to useful types
