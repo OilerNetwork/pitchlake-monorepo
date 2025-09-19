@@ -11,54 +11,30 @@ export const formatTimeLeft = (current: number, target: number) => {
   return `${secondsLeft} seconds (${hoursLeft.toFixed(2)} hrs)`;
 };
 
-export const formatRawToFossilRequest = (rawData: any) => {
+export const formatRawFossilRequest = (rawData: any): FossilRequest => {
   return {
-    vaultAddress: "0x" + rawData[0].toString(16),
-    timestamp: Number(rawData[1]),
-    identifier: "0x" + rawData[2].toString(16),
+    program_id: rawData.program_id.toString(16),
+    vault_address: rawData.vault_address.toString(16),
+    params: {
+      twap: [Number(rawData.params.twap[0]), Number(rawData.params.twap[1])],
+      max_return: [
+        Number(rawData.params.max_return[0]),
+        Number(rawData.params.max_return[1]),
+      ],
+      reserve_price: [
+        Number(rawData.params.reserve_price[0]),
+        Number(rawData.params.reserve_price[1]),
+      ],
+    },
   };
 };
 
 export const sendFossilRequest = async (
-  requestData: FossilRequest,
-  clientAddress: string,
+  fossilRequest: FossilRequest,
+  //  clientAddress: string,
   vaultContract: Contract,
   logger: Logger,
 ) => {
-  // Format request data
-  const vaultAddress = requestData.vaultAddress;
-  const requestTimestamp = Number(requestData.timestamp);
-  const identifier = requestData.identifier;
-
-  // Get round duration from vault contract
-  const roundDuration = Number(await vaultContract.get_round_duration());
-
-  // Calculate windows for each metric
-  const twapWindow = roundDuration;
-  const maxReturnWindow = roundDuration * 3;
-  const reservePriceWindow = roundDuration * 3;
-
-  logger.debug("Calculation windows:", {
-    roundDuration,
-    twapWindow,
-    maxReturnWindow,
-    reservePriceWindow,
-  });
-
-  const fossilRequest = {
-    identifiers: [identifier],
-    params: {
-      twap: [requestTimestamp - twapWindow, requestTimestamp],
-      volatility: [requestTimestamp - maxReturnWindow, requestTimestamp],
-      reserve_price: [requestTimestamp - reservePriceWindow, requestTimestamp],
-    },
-    client_info: {
-      client_address: clientAddress,
-      vault_address: vaultAddress,
-      timestamp: requestTimestamp,
-    },
-  };
-
   logger.info("Sending request to Fossil API");
   logger.debug({ request: fossilRequest });
 
