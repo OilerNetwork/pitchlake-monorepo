@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { OptionBuyerStateType, OptionRoundStateType } from "@/lib/types";
 import { useAccount } from "@starknet-react/core";
 
 const useMockOptionRounds = () => {
   const { address } = useAccount();
-  const date = Date.now();
+  const [date, setDate] = useState(0);
+  useEffect(() => {
+    setDate(Date.now());
+  }, []);
   const [rounds, setRounds] = useState<OptionRoundStateType[]>(
     // Initial mock data for option round states
     [

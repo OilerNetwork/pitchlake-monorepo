@@ -1,7 +1,7 @@
 # Dockerfile used by the pitchlake-launcher 
 
 # Use Node.js v20 as the base image
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 # Set the working directory
 WORKDIR /app
@@ -18,5 +18,8 @@ RUN pnpm install --frozen-lockfile
 # Copy the rest of the application
 COPY . .
 
+# Build the Next.js application
+RUN pnpm run build
+
 # Define the command to run the app
-CMD ["pnpm", "run", "build", "&&", "pnpm", "start", "-p", "${PORT}"]
+CMD ["sh", "-c", "pnpm start -p ${PORT}"]

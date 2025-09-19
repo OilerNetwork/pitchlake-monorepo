@@ -5,6 +5,7 @@ const useIsMobile = () => {
   const [isMobile, setIsMobile] = useState(false);
   const targetWidth = 834; // Adjust this breakpoint as needed
   useEffect(() => {
+    if (typeof window === "undefined") return;
     function handleResize() {
       setIsMobile(window.innerWidth < targetWidth);
     }

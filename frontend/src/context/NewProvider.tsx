@@ -9,6 +9,7 @@ import {
   createContext,
   useContext,
   useState,
+  useEffect,
 } from "react";
 
 export type NewContextType = {
@@ -24,9 +25,14 @@ export type NewContextType = {
 export const NewContext = createContext<NewContextType>({} as NewContextType);
 const NewContextProvider = ({ children }: { children: ReactNode }) => {
   const [vaultAddress, setVaultAddress] = useState<string | undefined>();
-  const conn = process.env.NEXT_PUBLIC_ENVIRONMENT || "rpc";
+  const [conn, setConn] = useState<string>("rpc"); // Default value for SSR
 
   const [selectedRound, setSelectedRound] = useState<number>(0);
+
+  // Set connection type after hydration to prevent mismatch
+  useEffect(() => {
+    setConn(process.env.NEXT_PUBLIC_ENVIRONMENT || "rpc");
+  }, []);
 
   const wsData = useWebSocketVault(conn, vaultAddress);
   const mockData = useMockVault({
@@ -37,7 +43,7 @@ const NewContextProvider = ({ children }: { children: ReactNode }) => {
     vaultAddress,
     setVaultAddress,
     selectedRound,
-    setSelectedRound, //: setRound,
+    setSelectedRound,
     wsData,
     mockData,
   };

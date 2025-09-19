@@ -23,7 +23,7 @@ func (router *VaultRouter) subscribeVault(ctx context.Context, w http.ResponseWr
 	var closed bool
 	//Extract address from the request and add here
 
-	//allowedOrigin := os.Getenv("APP_URL")
+	//allowedOrigin := os.Getenv("FRONTEND_URL")
 	c2, err := websocket.Accept(w, r, &websocket.AcceptOptions{
 		InsecureSkipVerify: true,
 	})
@@ -49,7 +49,7 @@ func (router *VaultRouter) subscribeVault(ctx context.Context, w http.ResponseWr
 		log.Printf("Invalid subscription message: %v", err)
 		// Send error response to client
 		errorResponse := map[string]string{
-			"error": "Invalid subscription message",
+			"error":   "Invalid subscription message",
 			"details": err.Error(),
 		}
 		errorJson, _ := json.Marshal(errorResponse)
@@ -154,7 +154,7 @@ func (router *VaultRouter) subscribeVault(ctx context.Context, w http.ResponseWr
 				log.Printf("Invalid vault request: %v", err)
 				// Send error response to client
 				errorResponse := map[string]string{
-					"error": "Invalid vault request",
+					"error":   "Invalid vault request",
 					"details": err.Error(),
 				}
 				errorJson, _ := json.Marshal(errorResponse)
