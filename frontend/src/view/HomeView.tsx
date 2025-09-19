@@ -11,17 +11,23 @@ export const HomeView = () => {
   const { vaults: wsVaults } = useWebSocketHome();
   const { chain } = useNetwork();
   const [vaults, setVaults] = useState<string[] | undefined>(undefined);
-  const [isHydrated, setIsHydrated] = useState(false);
+  const [mode, setMode] = useState<string>("");
   
-  console.log("vaults", vaults);
+
+  useEffect(() => {
+    console.log("HERE")
+    if(process.env.NEXT_PUBLIC_ENVIRONMENT){  
+      console.log("HEREEREREERE")
+    const environment = process.env.NEXT_PUBLIC_ENVIRONMENT;
+    setMode(environment);
+    }
+  }, []);
   // Handle vault addresses after hydration to prevent mismatch
   useEffect(() => {
-    setIsHydrated(true);
-    const environment = process.env.NEXT_PUBLIC_ENVIRONMENT;
     
-    if (environment === "demo") {
+    if (mode === "demo") {
       setVaults(["0x0677ead18a571524525eb1d5fbb18431efe869f07d700f03aa66ad0abb5de01d"]);
-    } else if (environment === "ws") {
+    } else if (mode === "ws") {
       const wsVaultList = [
         "0x2e0f81a9f5179c2be73cabeb92e8a6e526add4bab32e4855aa5522690c78217",
         "0x7edaf2d262f347619f24eaa11cdc7ae125e373843d5248368887fea4aa8ee7d",
@@ -29,8 +35,14 @@ export const HomeView = () => {
       ].filter((addr) => wsVaults?.includes(addr));
       setVaults(wsVaultList);
     } else {
+      console.log("process.env", process.env.NEXT_PUBLIC_ENVIRONMENT, process.env.NEXT_PUBLIC_RPC_URL_DEVNET);
+      console.log("process.env.NEXT_PUBLIC_VAULT_ADDRESSES", process.env.NEXT_PUBLIC_VAULT_ADDRESSES);
       setVaults(process.env.NEXT_PUBLIC_VAULT_ADDRESSES?.split(","));
     }
+  }, [mode]);
+
+  useEffect(() => {
+    console.log("vaults123", vaults);
   }, [wsVaults]);
 
   const { isMobile } = useIsMobile();
@@ -38,7 +50,7 @@ export const HomeView = () => {
   if (isMobile) return <MobileScreen />;
 
   // Don't render vaults until hydrated to prevent mismatch
-  if (!isHydrated) {
+  if (!mode) {
     return (
       <div className="flex flex-grow flex-col px-8 pt-[84px] py-4 w-full bg-faded-black-alt">
         <div className="flex items-center justify-center h-64">

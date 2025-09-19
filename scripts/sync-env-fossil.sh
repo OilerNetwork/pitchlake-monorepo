@@ -23,7 +23,7 @@ FOSSIL_ENV_LOCAL="$PROJECT_ROOT/fossil-monorepo/.env.local"
 FOSSIL_ENV_DOCKER="$PROJECT_ROOT/fossil-monorepo/.env.docker"
 PITCHLAKE_ENV_EXAMPLE="$PROJECT_ROOT/.env.example"
 PITCHLAKE_ENV_LOCAL="$PROJECT_ROOT/.env.local"
-PITCHLAKE_ENV_DOCKER="$PROJECT_ROOT/.env.docker"
+PITCHLAKE_ENV_DOCKER="$PROJECT_ROOT/.env"
 
 echo -e "${BLUE}🔄 Syncing Fossil contract addresses to Pitchlake...${NC}"
 
@@ -59,6 +59,10 @@ VAULT_1M=$(grep "^PITCHLAKE_VAULT_1M=" "$FOSSIL_ENV_LOCAL" | cut -d'=' -f2 | tr 
 # Extract StarkNet RPC URLs from both fossil files
 STARKNET_RPC_LOCAL=$(grep "^STARKNET_RPC_URL=" "$FOSSIL_ENV_LOCAL" | cut -d'=' -f2 | tr -d ' ')
 STARKNET_RPC_DOCKER=$(grep "^STARKNET_RPC_URL=" "$FOSSIL_ENV_DOCKER" | cut -d'=' -f2 | tr -d ' ')
+
+#Extract Starknet Account Address and key
+STARKNET_ACCOUNT_ADDRESS=$(grep "^STARKNET_ACCOUNT_ADDRESS=" "$FOSSIL_ENV_LOCAL" | cut -d'=' -f2 | tr -d ' ')
+STARKNET_PRIVATE_KEY=$(grep "^STARKNET_PRIVATE_KEY=" "$FOSSIL_ENV_LOCAL" | cut -d'=' -f2 | tr -d ' ')
 
 # Hardcode offchain processor URLs for both environments
 OFFCHAIN_PROCESSOR_URL_LOCAL="http://localhost:3000"
@@ -142,7 +146,10 @@ update_env_var() {
 # Update vault addresses in both files
 update_env_var "VAULT_ADDRESSES" "${VAULT_12MIN},${VAULT_3H},${VAULT_1M}" "$PITCHLAKE_ENV_LOCAL"
 update_env_var "VAULT_ADDRESSES" "${VAULT_12MIN},${VAULT_3H},${VAULT_1M}" "$PITCHLAKE_ENV_DOCKER"
-
+update_env_var "STARKNET_ACCOUNT_ADDRESS" "$STARKNET_ACCOUNT_ADDRESS" "$PITCHLAKE_ENV_LOCAL"
+update_env_var "STARKNET_ACCOUNT_ADDRESS" "$STARKNET_ACCOUNT_ADDRESS" "$PITCHLAKE_ENV_DOCKER"
+update_env_var "STARKNET_PRIVATE_KEY" "$STARKNET_PRIVATE_KEY" "$PITCHLAKE_ENV_LOCAL"
+update_env_var "STARKNET_PRIVATE_KEY" "$STARKNET_PRIVATE_KEY" "$PITCHLAKE_ENV_DOCKER"
 # Update RPC URLs - local for .env.local, docker for .env.docker
 update_env_var "STARKNET_RPC" "$STARKNET_RPC_LOCAL" "$PITCHLAKE_ENV_LOCAL"
 update_env_var "STARKNET_RPC" "$STARKNET_RPC_DOCKER" "$PITCHLAKE_ENV_DOCKER"

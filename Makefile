@@ -1,6 +1,5 @@
 .DEFAULT_GOAL := help
 
-
 .PHONY: check-prerequisites
 check-prerequisites: ## Check if Docker and required tools are installed
 	@echo "🔍 Checking prerequisites..."
@@ -41,12 +40,7 @@ create-network: ## Create the local-network for Fossil services
 .PHONY: build-all
 build-all: ## Build all Docker images
 	@echo "🔨 Building all Docker images..."
-	@echo "   📋 Building Support Server..."
-	@cd support-server && docker build -t pitchlake-support-server .
-	@echo "   📋 Building Backend..."
-	@cd backend && docker build -t pitchlake-backend .
-	@echo "   📋 Building Frontend..."
-	@cd frontend && docker build -t pitchlake-frontend .
+	@docker-compose build
 	@echo "   ✅ All images built successfully!"
 
 ##@ Service Management
@@ -63,7 +57,9 @@ start-all: ## Start all services (Fossil first, then Pitchlake services)
 	@cd fossil-monorepo && $(MAKE) dev-up
 	@echo "📋 Step 2: Syncing contract addresses to Pitchlake..."
 	@$(MAKE) sync-addresses
-	@echo "📋 Step 3: Starting Pitchlake services..."
+	@echo "📋 Step 3: Rebuilding Pitchlake services with updated env..."
+	@$(MAKE) build-all
+	@echo "📋 Step 4: Starting Pitchlake services..."
 	@docker-compose up -d
 	@echo "⏳ Waiting for services to be healthy..."
 	@sleep 10
@@ -95,35 +91,39 @@ dev: setup-infra start-all ## Complete development setup (setup + start all serv
 	@echo "All services are running and ready for development."
 
 .PHONY: rebuild-all
-rebuild-all: ## Rebuild all containers from scratch
-	@echo "🔨 Rebuilding all containers from scratch..."
-	@echo "📋 Step 1: Stopping all services..."
-	@$(MAKE) stop-all
-	@echo "📋 Step 2: Removing all containers and images..."
-	@docker-compose down --rmi all --volumes --remove-orphans
-	@echo "📋 Step 3: Building all images fresh..."
+rebuild-all: ## Rebuild all Pitchlake containers from scratch
+	@echo "🔨 Rebuilding all Pitchlake containers from scratch..."
+	@echo "📋 Step 1: Stopping services..."
+	@docker-compose down
+## @echo "📋 Step 2: Removing containers and images..."
+##	@docker-compose down --volumes --remove-orphans
+##	@docker rmi pitchlake-frontend pitchlake-backend pitchlake-support-server 2>/dev/null || true
+	@echo "📋 Step 3: Syncing contract addresses to Pitchlake..."
+	@$(MAKE) sync-addresses
+	@echo "📋 Step 4: Building Pitchlake images fresh..."
 	@$(MAKE) build-all
-	@echo "📋 Step 4: Starting all services with fresh containers..."
-	@$(MAKE) start-all
-	@echo "✅ All containers rebuilt and started!"
+	@echo "📋 Step 5: Starting services with fresh containers..."
+	@docker-compose up -d
+	@echo "✅ All Pitchlake containers rebuilt and started!"
 
 .PHONY: restart
-restart: rebuild-all ## Restart all services (rebuilds containers)
+restart: rebuild-all ## Restart Pitchlake services (rebuilds containers)
 
 .PHONY: force-rebuild
-force-rebuild: ## Force rebuild all containers (cleans Docker system)
-	@echo "🧹 Force rebuilding all containers with system cleanup..."
-	@echo "📋 Step 1: Stopping all services..."
-	@$(MAKE) stop-all
-	@echo "📋 Step 2: Cleaning Docker system..."
-	@docker system prune -f
-	@docker volume prune -f
-	@echo "📋 Step 3: Removing all containers and images..."
-	@docker-compose down --rmi all --volumes --remove-orphans
-	@echo "📋 Step 4: Building all images fresh..."
+force-rebuild: ## Force rebuild all containers in docker-compose.yml (excludes fossil-monorepo)
+	@echo "🧹 Force rebuilding all containers with cleanup..."
+	@echo "📋 Step 1: Stopping services..."
+	@docker-compose down
+	@echo "📋 Step 2: Removing containers and volumes..."
+	@docker-compose down --volumes --remove-orphans
+	@echo "📋 Step 3: Removing Pitchlake images..."
+	@docker rmi pitchlake-frontend pitchlake-backend pitchlake-support-server 2>/dev/null || true
+	@echo "📋 Step 4: Building Pitchlake images fresh..."
 	@$(MAKE) build-all
-	@echo "📋 Step 5: Starting all services with fresh containers..."
-	@$(MAKE) start-all
+	@echo "📋 Step 5: Syncing contract addresses to Pitchlake..."
+	@$(MAKE) sync-addresses
+	@echo "📋 Step 6: Starting services with fresh containers..."
+	@docker-compose up -d
 	@echo "✅ All containers force rebuilt and started!"
 
 .PHONY: restart-pitchlake
