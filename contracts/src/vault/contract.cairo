@@ -645,189 +645,34 @@ pub mod Vault {
         fn fossil_callback(
             ref self: ContractState, mut job_request: Span<felt252>, mut result: Span<felt252>,
         ) -> u256 {
-            // @dev This function is used to either start round 1's auction (Open -> Auctioning), or
-            // to settle each round (Running -> Settled), otherwise data is not being accepted at
-            // this time
-            let current_round_id = self.current_round_id.read();
-            let current_round = self.get_round_dispatcher(current_round_id);
-            let state = current_round.get_state();
-
-            assert(
-                (current_round_id == 1 && state == OptionRoundState::Open)
-                    || state == OptionRoundState::Running,
-                Errors::L1DataNotAcceptedNow,
-            );
-
-            /// @dev Validate the request/result (see @proposal for simplification details)
-
-            // @dev Deserialize the job_request and result
-            let req: JobRequest = Serde::deserialize(ref job_request)
-                .expect(Errors::FailedToDeserializeJobRequest);
-            // @dev Deserialize the verifier data
-            let res: VerifierData = Serde::deserialize(ref result)
-                .expect(Errors::FailedToDeserializeVerifierData);
-
-            // @dev Extract the L1 data we need (could just use res if @proposal is used)
-            let l1_data = self.interpret_verifier_data(res);
-
             // @dev Only the Pitchlake Verifier can call this function
             self.assert_caller_is_verifier();
 
-            // @dev Validate request program ID and vault address
-            assert!(
-                req.vault_address == get_contract_address(),
-                "Invalid Request: vault address expected: {:?}, got: {:?}",
-                get_contract_address(),
-                req.vault_address,
-            );
-            assert!(
-                req.program_id == self.program_id.read(),
-                "Invalid Request: program ID expected: {}, got: {}",
-                self.program_id.read(),
-                req.program_id,
-            );
-
-            //// @dev Validate request timestamp is not before block headers are provable
-            //let now = get_block_timestamp();
-            //let max_provable_timestamp = now - self.proving_delay.read();
-            //assert!(
-            //    req.timestamp <= max_provable_timestamp,
-            //    "Invalid Request: timestamp expected: {}, got: {}",
-            //    max_provable_timestamp,
-            //    req.timestamp,
-            //);
-
-            // @dev Validate bounds for each parameter
-            // - If this is the first (special/initialization) callback, the upper bound is the
-            // first round's deployment date.
-            // - If all other callbacks, the upper bound is the current round's settlement date
-            // @dev In either case, the lower bound for the TWAP is the upper bound minus the
-            // round_duration, and the reserve price & max return lower bounds are both the upper
-            // bound minus (3 x the round_duration)
-            let round_duration = self.round_duration.read();
-            let upper_bound = if state == OptionRoundState::Running {
-                current_round.get_option_settlement_date()
-            } else {
-                current_round.get_deployment_date()
-            };
-
-            let twap_lower_bound = upper_bound - round_duration;
-            let reserve_price_lower_bound = upper_bound - (3 * round_duration);
-            let max_return_lower_bound = reserve_price_lower_bound;
-
-            // @dev Allow tolerance for timestamp validation to account for proving time variations
-            // Tolerance of 60 seconds on either side to handle timing between proof generation and
-            // validation
-            let tolerance = 60;
-
-            // Check TWAP timestamps with tolerance
-            let twap_start_diff = if res.twap_start_timestamp >= twap_lower_bound {
-                res.twap_start_timestamp - twap_lower_bound
-            } else {
-                twap_lower_bound - res.twap_start_timestamp
-            };
-            assert!(
-                twap_start_diff <= tolerance,
-                "Invalid L1 Data: twap_start_timestamp expected: {}, got: {}",
-                twap_lower_bound,
-                res.twap_start_timestamp,
-            );
-
-            // Check reserve price start timestamp with tolerance
-            let reserve_price_start_diff = if res
-                .reserve_price_start_timestamp >= reserve_price_lower_bound {
-                res.reserve_price_start_timestamp - reserve_price_lower_bound
-            } else {
-                reserve_price_lower_bound - res.reserve_price_start_timestamp
-            };
-            assert!(
-                reserve_price_start_diff <= tolerance,
-                "Invalid L1 Data: reserve_price_start_timestamp expected: {}, got: {}",
-                reserve_price_lower_bound,
-                res.reserve_price_start_timestamp,
-            );
-
-            // Check max return start timestamp with tolerance
-            let max_return_start_diff = if res
-                .max_return_start_timestamp >= max_return_lower_bound {
-                res.max_return_start_timestamp - max_return_lower_bound
-            } else {
-                max_return_lower_bound - res.max_return_start_timestamp
-            };
-            assert!(
-                max_return_start_diff <= tolerance,
-                "Invalid L1 Data: max_return_start_timestamp expected: {}, got: {}",
-                max_return_lower_bound,
-                res.max_return_start_timestamp,
-            );
-
-            // Check TWAP end timestamp with tolerance
-            let twap_end_diff = if res.twap_end_timestamp >= upper_bound {
-                res.twap_end_timestamp - upper_bound
-            } else {
-                upper_bound - res.twap_end_timestamp
-            };
-            assert!(
-                twap_end_diff <= tolerance,
-                "Invalid L1 Data: twap_end_timestamp expected: {}, got: {}",
-                upper_bound,
-                res.twap_end_timestamp,
-            );
-
-            // Check reserve price end timestamp with tolerance
-            let reserve_price_end_diff = if res.reserve_price_end_timestamp >= upper_bound {
-                res.reserve_price_end_timestamp - upper_bound
-            } else {
-                upper_bound - res.reserve_price_end_timestamp
-            };
-            assert!(
-                reserve_price_end_diff <= tolerance,
-                "Invalid L1 Data: reserve_price_end_timestamp expected: {}, got: {}",
-                upper_bound,
-                res.reserve_price_end_timestamp,
-            );
-
-            // Check max return end timestamp with tolerance
-            let max_return_end_diff = if res.max_return_end_timestamp >= upper_bound {
-                res.max_return_end_timestamp - upper_bound
-            } else {
-                upper_bound - res.max_return_end_timestamp
-            };
-            assert!(
-                max_return_end_diff <= tolerance,
-                "Invalid L1 Data: max_return_end_timestamp expected: {}, got: {}",
-                upper_bound,
-                res.max_return_end_timestamp,
-            );
-
-            // @dev Assert the L1 data is valid
-            assert!(
-                res.twap_result.is_non_zero(),
-                "Invalid L1 Data: twap_result expected: non-zero, got: {}",
-                res.twap_result,
-            );
-            assert!(
-                res.reserve_price.is_non_zero(),
-                "Invalid L1 Data: reserve_price expected: non-zero, got: {}",
-                res.reserve_price,
-            );
-
-            // @dev If the current round is 1 and Open, the L1 data is being used
-            // to initialize it, so we send it directly to the round
-            if current_round_id == 1 && state == OptionRoundState::Open {
-                current_round.set_pricing_data(self.convert_l1_data_to_round_data(l1_data));
+            /// @dev Validate the request/result
+            let (
+                current_round, round_id, round_state, l1_data, job_timestamp,
+            ): (IOptionRoundDispatcher, u64, OptionRoundState, L1Data, u64) =
                 self
-                    .emit(
-                        Event::FossilCallbackSuccess(
-                            FossilCallbackSuccess { l1_data, timestamp: req.timestamp },
-                        ),
-                    );
+                .verify_job(job_request, result);
 
-                0
-            } // @dev If the current round is Running, the L1 data is being used to settle it
+            // @dev If the current round is Running, the L1 data is being used to settle it
+            let total_payout = if round_state == OptionRoundState::Running {
+                self.settle_round(current_round, round_id, l1_data)
+            } // @dev Otherwise, this is the first callback to start round 1's auction
             else {
-                self.settle_round(current_round_id, current_round, l1_data, req.timestamp)
-            }
+                current_round.set_pricing_data(self.convert_l1_data_to_round_data(l1_data));
+                0
+            };
+
+            // @dev Emit fossil callback success event
+            self
+                .emit(
+                    Event::FossilCallbackSuccess(
+                        FossilCallbackSuccess { l1_data, timestamp: job_timestamp },
+                    ),
+                );
+
+            total_payout
         }
     }
 
@@ -882,10 +727,9 @@ pub mod Vault {
         // @dev Settle the current round and Open the next
         fn settle_round(
             ref self: ContractState,
-            current_round_id: u64,
             current_round: IOptionRoundDispatcher,
+            current_round_id: u64,
             l1_data: L1Data,
-            job_request_timestamp: u64,
         ) -> u256 {
             // @dev Settle the current round and return the total payout
             let total_payout = current_round.settle_round(l1_data.twap);
@@ -926,14 +770,6 @@ pub mod Vault {
 
             // @dev Deploy the next option round contract & update the current round id
             self.deploy_next_round(l1_data, current_round_id + 1);
-
-            // @dev Emit fossil callback success event
-            self
-                .emit(
-                    Event::FossilCallbackSuccess(
-                        FossilCallbackSuccess { l1_data, timestamp: job_request_timestamp },
-                    ),
-                );
 
             // @dev Return the total payout of the settled round
             total_payout
@@ -1001,10 +837,6 @@ pub mod Vault {
 
         /// Verifier Integration
 
-        fn assert_caller_is_verifier(self: @ContractState) {
-            assert(get_caller_address() == self.verifier_address.read(), Errors::CallerNotVerifier);
-        }
-
         // @dev Generate a JobRequest for a specific timestamp
         fn generate_job_request(self: @ContractState, upper_bound: u64) -> OffchainJobRequest {
             let twap_lower_bound = upper_bound - self.get_round_duration();
@@ -1022,8 +854,143 @@ pub mod Vault {
             }
         }
 
-        // Interpret l1 data to useful types
-        fn interpret_verifier_data(self: @ContractState, raw_l1_data: VerifierData) -> L1Data {
+        fn assert_caller_is_verifier(ref self: ContractState) {
+            assert(get_caller_address() == self.verifier_address.read(), Errors::CallerNotVerifier);
+        }
+
+        fn assert_request_bounds_are_in_range(
+            ref self: ContractState,
+            bounds: (u64, u64),
+            expected_bounds: (u64, u64),
+            param_name: ByteArray,
+        ) {
+            // @dev Allow tolerance for timestamp validation to account for proving time variations
+            // Tolerance of 60 seconds on either side to handle timing between proof generation and
+            // validation
+            let tolerance = 60;
+            let (lower_bound, upper_bound) = bounds;
+            let (expected_lower_bound, expected_upper_bound) = expected_bounds;
+
+            // @dev Check lower and upper bounds with tolerance
+            let lower_diff = if lower_bound >= expected_lower_bound {
+                lower_bound - expected_lower_bound
+            } else {
+                expected_lower_bound - lower_bound
+            };
+            let upper_diff = if upper_bound >= expected_upper_bound {
+                upper_bound - expected_upper_bound
+            } else {
+                expected_upper_bound - upper_bound
+            };
+
+            assert!(
+                lower_diff <= tolerance,
+                "Invalid L1 Data: {param_name}_start_timestamp expected: {}, got: {}",
+                expected_lower_bound,
+                lower_bound,
+            );
+            assert!(
+                upper_diff <= tolerance,
+                "Invalid L1 Data: {param_name}_end_timestamp expected: {}, got: {}",
+                expected_upper_bound,
+                upper_bound,
+            );
+        }
+
+        fn verify_job(
+            ref self: ContractState, mut job_request: Span<felt252>, mut job_result: Span<felt252>,
+        ) -> (IOptionRoundDispatcher, u64, OptionRoundState, L1Data, u64) {
+            // @dev Deserialize the job_request and result
+            let req: JobRequest = Serde::deserialize(ref job_request)
+                .expect(Errors::FailedToDeserializeJobRequest);
+            let res: VerifierData = Serde::deserialize(ref job_result)
+                .expect(Errors::FailedToDeserializeVerifierData);
+
+            // @dev Validate job request program ID and vault address align with this contract; the
+            // job request's timestamp is validated further into this function
+            assert!(
+                req.program_id == self.program_id.read(),
+                "Invalid Request: program ID expected: {}, got: {}",
+                self.program_id.read(),
+                req.program_id,
+            );
+            assert!(
+                req.vault_address == get_contract_address(),
+                "Invalid Request: vault address expected: {:?}, got: {:?}",
+                get_contract_address(),
+                req.vault_address,
+            );
+
+            // @dev This function is used to either start round 1's auction (Open -> Auctioning), or
+            // to settle each round (Running -> Settled), otherwise data is not being accepted at
+            // this time
+            let current_round_id = self.current_round_id.read();
+            let current_round = self.get_round_dispatcher(current_round_id);
+            let state = current_round.get_state();
+            assert(
+                (current_round_id == 1 && state == OptionRoundState::Open)
+                    || state == OptionRoundState::Running,
+                Errors::L1DataNotAcceptedNow,
+            );
+
+            // @dev The upper bound is the current round's settlement date if settling, or
+            // the first round's deployment date if initializing the first round's pricing data
+            let expected_upper_bound = if state == OptionRoundState::Running {
+                current_round.get_option_settlement_date()
+            } else {
+                current_round.get_deployment_date()
+            };
+
+            // @dev Validate bounds for each parameter are within expected ranges
+            // @dev The lower bound for the TWAP is the upper bound minus the round_duration, and
+            // the reserve price & max return lower bounds are both the upper bound minus (3 * the
+            // round_duration)
+            let round_duration = self.round_duration.read();
+            let expected_twap_bounds = (
+                expected_upper_bound - round_duration, expected_upper_bound,
+            );
+            let expected_max_return_bounds = (
+                expected_upper_bound - (3 * round_duration), expected_upper_bound,
+            );
+            let expected_reserve_price_bounds = expected_max_return_bounds;
+            self
+                .assert_request_bounds_are_in_range(
+                    (res.twap_start_timestamp, res.twap_end_timestamp),
+                    expected_twap_bounds,
+                    "twap",
+                );
+            self
+                .assert_request_bounds_are_in_range(
+                    (res.max_return_start_timestamp, res.max_return_end_timestamp),
+                    expected_max_return_bounds,
+                    "max_return",
+                );
+            self
+                .assert_request_bounds_are_in_range(
+                    (res.reserve_price_start_timestamp, res.reserve_price_end_timestamp),
+                    expected_reserve_price_bounds,
+                    "reserve_price",
+                );
+
+            // @dev Validate that the job request was sent to Fossil only after the L1 block at the
+            // upper bound becomes provable
+            let minimum_job_timestamp = expected_upper_bound + self.proving_delay.read();
+            assert!(
+                req.timestamp >= minimum_job_timestamp,
+                "Invalid Request: timestamp expected: >= {}, got: {}",
+                minimum_job_timestamp,
+                req.timestamp,
+            );
+
+            // @dev Extract the L1 data from the job result
+            let l1_data: L1Data = self.interpret_verifier_data(res);
+
+            // @dev Return the current round dispatcher, current round id, current round
+            // state, and the timestamp of the job request
+            (current_round, current_round_id, state, l1_data, req.timestamp)
+        }
+
+        fn interpret_verifier_data(self: @ContractState, job_result: VerifierData) -> L1Data {
             let VerifierData {
                 reserve_price_start_timestamp: _,
                 reserve_price_end_timestamp: _,
@@ -1034,24 +1001,40 @@ pub mod Vault {
                 max_return_start_timestamp: _,
                 max_return_end_timestamp: _,
                 max_return: max_return_fp_felt,
-            } = raw_l1_data;
+            } = job_result;
 
-            // @dev Each felt in the VerifierData is a UFixedPoint123x128 representation of a
-            // decimal
+            // @dev Each value of the L1Data that is needed by the vault is a decimal value,
+            // represented as a UFixedPoint123x128, packed into a felt
 
-            // @dev Twap and reserve price are in Wei, we only want the integer portion
-            // @dev Cast felt -> fp -> u256
+            // @dev TWAP and reserve price are Wei values and the vault only needs the integer
+            // portions
             let (twap, reserve_price): (u256, u256) = {
-                let (twap_fp, reserve_price_fp) = {
+                // @dev Convert from felt -> UFixedPoint123x128
+                let (twap_fp, reserve_price_fp): (UFixedPoint123x128, UFixedPoint123x128) = {
                     (twap_fp_felt.into(), reserve_price_fp_felt.into())
                 };
+
+                // @dev Get the integer value (remove decimal portion) then convert from u128 ->
+                // u256
                 (twap_fp.get_integer().into(), reserve_price_fp.get_integer().into())
             };
 
-            // @dev Max return is a percentage, convert to BPS (cast felt -> fp -> u128)
-            let BPS: UFixedPoint123x128 = BPS_u128.try_into().unwrap();
+            // @dev Max return is a percentage
+            let BPS_fp: UFixedPoint123x128 = BPS_u128.try_into().unwrap();
+
+            // @dev Convert from felt -> UFixedPoint123x128
             let max_return_fp: UFixedPoint123x128 = max_return_fp_felt.into();
-            let max_return: u128 = (max_return_fp * BPS).get_integer().into();
+
+            // @dev max_return = Scale by BPS and get integer portion (remove decimal portion)
+            let max_return: u128 = (max_return_fp * BPS_fp).get_integer();
+
+            // @dev Assert the L1 data is valid
+            assert!(twap.is_non_zero(), "Invalid L1 Data: twap expected: non-zero, got: {}", twap);
+            assert!(
+                reserve_price.is_non_zero(),
+                "Invalid L1 Data: reserve_price expected: non-zero, got: {}",
+                reserve_price,
+            );
 
             L1Data { twap, max_return, reserve_price }
         }
