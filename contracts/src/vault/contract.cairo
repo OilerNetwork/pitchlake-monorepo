@@ -222,7 +222,6 @@ pub mod Vault {
         pub timestamp: u64,
     }
 
-
     // *************************************************************************
     //                            IMPLEMENTATION
     // *************************************************************************
@@ -1008,9 +1007,9 @@ pub mod Vault {
         fn generate_job_request(self: @ContractState, timestamp: u64) -> Span<felt252> {
             let mut serialized_request = array![];
             JobRequest {
-                program_id: self.program_id.read(),
                 vault_address: get_contract_address(),
                 timestamp,
+                program_id: self.program_id.read(),
             }
                 .serialize(ref serialized_request);
             serialized_request.span()
