@@ -19,12 +19,12 @@ export const TWAP_RANGES = {
 export function loadUnconfirmedIndexerConfig(): UnconfirmedIndexerConfig {
   const useDemoData = process.env.USE_DEMO_DATA === 'true';
   
-  if (!useDemoData && !process.env.MAINNET_RPC_URL) {
-    throw new Error("MAINNET_RPC_URL is required in production mode");
+  if (!useDemoData && !process.env.L1_ALCHEMY_URL) {
+    throw new Error("L1_ALCHEMY_URL is required in production mode");
   }
 
   return {
-    mainnetRpcUrl: process.env.MAINNET_RPC_URL || 'https://eth-mainnet.alchemyapi.io/v2/demo',
+    mainnetRpcUrl: process.env.L1_ALCHEMY_URL || 'https://eth-mainnet.alchemyapi.io/v2/demo',
     useDemoData,
     twapRanges: TWAP_RANGES
   };

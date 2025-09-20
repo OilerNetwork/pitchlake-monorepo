@@ -28,7 +28,7 @@ func NewDBServer(ctx context.Context) *dbServer {
 	ctx, cancel := context.WithCancel(ctx)
 	db, err := db.NewDB()
 	if err != nil {
-		log.Fatal("Failed to load db")
+		log.Fatal("Failed to load db", err)
 	}
 	dbs := &dbServer{
 		log:    *log.Default(),

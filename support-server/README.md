@@ -59,7 +59,7 @@ FOSSIL_DB_CONNECTION_STRING=postgresql://user:password@host:port/database
 PITCHLAKE_DB_CONNECTION_STRING=postgresql://user:password@host:port/database
 
 # Ethereum Configuration
-MAINNET_RPC_URL=https://eth-mainnet.alchemyapi.io/v2/YOUR_API_KEY
+L1_ALCHEMY_URL=https://eth-mainnet.alchemyapi.io/v2/YOUR_API_KEY
 
 # StarkNet Configuration
 STARKNET_RPC=https://starknet-mainnet.infura.io/v3/YOUR_PROJECT_ID

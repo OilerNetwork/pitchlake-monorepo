@@ -1,23 +1,6 @@
 
 services:
   # Local database service (only used if pitchlake-db is not available)
-  db:
-    image: postgres:16
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-juno_indexer}
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-juno_indexer}"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    ports:
-      - "5430:5432"
-    profiles:
-      - local-db
 
   juno_plugin:
     volumes:
@@ -45,5 +28,5 @@ volumes:
   postgres_data:
 
 networks:
-  pitchlake-network:
+  fossil-monorepo_local-network:
     external: true

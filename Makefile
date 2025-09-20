@@ -59,7 +59,9 @@ start-all: ## Start all services (Fossil first, then Pitchlake services)
 	@$(MAKE) sync-addresses
 	@echo "📋 Step 3: Rebuilding Pitchlake services with updated env..."
 	@$(MAKE) build-all
-	@echo "📋 Step 4: Starting Pitchlake services..."
+	@echo "📋 Step 4: Running Pitchlake migrations..."
+	@$(MAKE) migrate
+	@echo "📋 Step 5: Starting Pitchlake services..."
 	@docker-compose up -d
 	@echo "⏳ Waiting for services to be healthy..."
 	@sleep 10
@@ -86,7 +88,7 @@ stop-all: ## Stop all services
 ##@ Development
 
 .PHONY: dev
-dev: setup-infra start-all ## Complete development setup (setup + start all services)
+dev: check-prerequisites start-all ## Complete development setup (setup + start all services)
 	@echo "🎉 Development environment ready!"
 	@echo "All services are running and ready for development."
 
@@ -134,7 +136,7 @@ restart-pitchlake: ## Restart only Pitchlake services (keeps Fossil running)
 	@echo "📋 Step 2: Stopping Pitchlake services..."
 	@docker-compose down
 	@echo "📋 Step 3: Starting Pitchlake services..."
-	@docker-compose --env-file .env.docker up -d
+	@docker-compose up -d
 	@echo "✅ Pitchlake services restarted!"
 
 ##@ Monitoring & Debugging
@@ -219,6 +221,19 @@ test: ## Run tests across all components
 
 ##@ Cleanup
 
+.PHONY: clean-pitchlake
+clean-pitchlake: ## Clean up only Pitchlake Docker resources (keeps Fossil running)
+	@echo "🧹 Cleaning up Pitchlake Docker resources..."
+	@echo "📋 Step 1: Stopping Pitchlake services..."
+	@docker-compose down
+	@echo "📋 Step 2: Removing Pitchlake containers and volumes..."
+	@docker-compose down --volumes --remove-orphans
+	@echo "📋 Step 3: Removing Pitchlake images..."
+	@docker rmi pitchlake-frontend pitchlake-backend pitchlake-support-server 2>/dev/null || true
+	@echo "📋 Step 4: Cleaning up Pitchlake networks..."
+	@docker network rm pitchlake-monorepo_local-network 2>/dev/null || true
+	@echo "✅ Pitchlake resources cleaned! (Fossil services remain running)"
+
 .PHONY: clean
 clean: ## Clean up all infrastructure (removes volumes and networks)
 	@echo "🧹 Cleaning up all infrastructure..."
@@ -236,3 +251,11 @@ clean: ## Clean up all infrastructure (removes volumes and networks)
 .PHONY: help
 help: ## Display this help
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+
+.PHONY: reset-fossil
+reset-fossil: ## Reset Fossil database
+	@echo "⚠️  WARNING: This will delete all Fossil database data!"
+	@read -p "Are you sure? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
+	@echo "🗄️  Resetting Fossil database..."
+	@cd fossil-monorepo && $(MAKE) dev-down && $(MAKE) dev-up
+	@echo "✅ Fossil database reset!"

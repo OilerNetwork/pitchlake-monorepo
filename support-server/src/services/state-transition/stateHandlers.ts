@@ -1,7 +1,7 @@
 import { Account, Contract, RpcProvider } from "starknet";
 import { FormattedBlockData } from "../confirmed-twaps/types";
 import { Logger } from "winston";
-import { formatRawToFossilRequest, formatTimeLeft } from "./utils";
+import { findJobId, formatRawToFossilRequest, formatTimeLeft } from "./utils";
 import { sendFossilRequest } from "./utils";
 import { StarknetBlock } from "../../types/types";
 import { rpcToStarknetBlock } from "../../utils/rpcClient";
@@ -18,7 +18,7 @@ export class StateHandlers {
     provider: RpcProvider,
     account: Account,
     latesFossilBlock: FormattedBlockData,
-    latestStarknetBlock: StarknetBlock,
+    latestStarknetBlock: StarknetBlock
   ) {
     this.logger = logger;
     this.provider = provider;
@@ -31,10 +31,13 @@ export class StateHandlers {
     const ethAddress = await vaultContract.get_eth_address();
     console.log("DEBUGGING: ethAddress", ethAddress);
     const ethAddressHex = "0x" + BigInt(ethAddress).toString(16);
-    const ethContract = new Contract(erc20ABI, ethAddressHex, this.provider).typedv2(erc20ABI);
-    ethContract.connect(this.account);
-    const { transaction_hash } = await ethContract.transfer(this.account.address, 1000000000000000n);
-    await this.provider.waitForTransaction(transaction_hash);
+    const ethContract = new Contract(erc20ABI, ethAddressHex, this.account);
+    const data = await ethContract.transfer(
+      this.account.address,
+      1000000000000000n
+    );
+    console.log("DEBUGGING: data", data);
+    await this.provider.waitForTransaction(data.transaction_hash);
     try {
       // Check if this is the first round that needs initialization
       const reservePrice = await roundContract.get_reserve_price();
@@ -43,41 +46,36 @@ export class StateHandlers {
         //logger.info("First round detected - needs initialization");
         const requestData =
           await vaultContract.get_request_to_start_first_round();
-
-        // Format request data for timestamp check
-        const requestTimestamp = Number(requestData[1]);
-
-        //// Check if Fossil has required blocks before proceeding
-        //if (this.latestFossilBlock.timestamp < requestTimestamp) {
-        //  this.logger.info(
-        //    `Fossil blocks haven't reached the request timestamp yet`
-        //  );
-        //  //return;
-        //}
-
-        // Initialize first round
-        await sendFossilRequest(
+        const findJobIdResponse = await findJobId(
           formatRawToFossilRequest(requestData),
           vaultContract.address,
           vaultContract,
-          this.logger,
+          this.logger
         );
+        if (!findJobIdResponse.job_id) {
+          await sendFossilRequest(
+            formatRawToFossilRequest(requestData),
+            vaultContract.address,
+            vaultContract,
+            this.logger
+          );
+          return;
+        }
 
         // The fossil request takes some time to process, so we'll exit here
         // and let the cron handle the state transition in the next iteration
-        return;
       }
 
       // Existing auction start logic
       //
       const auctionStartTime = Number(
-        await roundContract.get_auction_start_date(),
+        await roundContract.get_auction_start_date()
       );
 
       console.log("DEBUGGING: auctionStartTime", auctionStartTime);
       console.log(
         "DEBUGGING: latest starknet block timestamp" +
-          this.latestStarknetBlock.timestamp,
+          this.latestStarknetBlock.timestamp
       );
       console.log("DEBUGGING: now unix" + new Date().getTime() / 1000);
 
@@ -91,7 +89,7 @@ export class StateHandlers {
 
       console.log(
         "DEBUGGING: updated latestBlockStarknet",
-        latestBlockStarknetFormatted.timestamp,
+        latestBlockStarknetFormatted.timestamp
       );
 
       const w = Number(await roundContract.get_round_id());
@@ -145,7 +143,7 @@ export class StateHandlers {
 
   async handleAuctioningState(
     roundContract: Contract,
-    vaultContract: Contract,
+    vaultContract: Contract
   ) {
     try {
       const auctionEndTime = Number(await roundContract.get_auction_end_date());
@@ -154,8 +152,8 @@ export class StateHandlers {
         this.logger.info(
           `Waiting for auction end time. Time left: ${formatTimeLeft(
             this.latestStarknetBlock.timestamp,
-            auctionEndTime,
-          )}`,
+            auctionEndTime
+          )}`
         );
         return;
       }
@@ -183,19 +181,19 @@ export class StateHandlers {
 
   async handleRunningState(
     roundContract: Contract,
-    vaultContract: Contract,
+    vaultContract: Contract
   ): Promise<void> {
     try {
       const settlementTime = Number(
-        await roundContract.get_option_settlement_date(),
+        await roundContract.get_option_settlement_date()
       );
 
       if (this.latestStarknetBlock.timestamp < settlementTime) {
         this.logger.info(
           `Waiting for settlement time. Time left: ${formatTimeLeft(
             this.latestStarknetBlock.timestamp,
-            settlementTime,
-          )}`,
+            settlementTime
+          )}`
         );
         return;
       }
@@ -217,7 +215,7 @@ export class StateHandlers {
         requestData,
         vaultContract.address,
         vaultContract,
-        this.logger,
+        this.logger
       );
     } catch (error) {
       this.logger.error("Error handling Running state:", error);

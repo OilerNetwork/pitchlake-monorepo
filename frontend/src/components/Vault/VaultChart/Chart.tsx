@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import classNames from "classnames";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import {
   ArrowDownIcon,
@@ -90,7 +89,7 @@ const RoundPerformanceChart = () => {
   const roundHeaderFormatter = (
     selectedRound: string | undefined,
     currentRoundId: string | undefined,
-    conn: string,
+    conn: string
   ): string => {
     if (!selectedRound || !currentRoundId) return "";
 
@@ -121,7 +120,7 @@ const RoundPerformanceChart = () => {
             {roundHeaderFormatter(
               selectedRound.toString(),
               vaultState?.currentRoundId.toString(),
-              conn,
+              conn
             )}
           </p>
           <div className="flex items-center ">
@@ -192,10 +191,8 @@ const RoundPerformanceChart = () => {
             className="p-2 chart-history-button"
           >
             <History
-              className={classNames(
-                "w-5 h-5 cursor-pointer",
-                isExpandedView ? "text-primary" : "text-greyscale",
-              )}
+              className={`w-5 h-5 cursor-pointer,
+                ${isExpandedView ? "text-primary" : "text-greyscale"}`}
             />
           </Hoverable>
         </div>
@@ -210,9 +207,7 @@ const RoundPerformanceChart = () => {
         >
           {[
             ...Array(
-              vaultState?.currentRoundId
-                ? Number(vaultState.currentRoundId)
-                : 1,
+              vaultState?.currentRoundId ? Number(vaultState.currentRoundId) : 1
             ),
           ]
             .map((_, index) => index)
@@ -230,7 +225,9 @@ const RoundPerformanceChart = () => {
                   setRoundNavIsOpen(false);
                 }}
               >
-                {`Round ${index + 1}${conn === "demo" ? ` (${getDemoRoundId(index + 1)})` : ""}`}
+                {`Round ${index + 1}${
+                  conn === "demo" ? ` (${getDemoRoundId(index + 1)})` : ""
+                }`}
                 {index + 1 === Number(vaultState?.currentRoundId)
                   ? " (Live)"
                   : ""}
@@ -257,10 +254,10 @@ const RoundPerformanceChart = () => {
                      line === "CAP_LEVEL"
                        ? "text-success"
                        : line === "BASEFEE"
-                         ? "text-greyscale"
-                         : line === "STRIKE"
-                           ? "text-warning-300"
-                           : "text-error-300"
+                       ? "text-greyscale"
+                       : line === "STRIKE"
+                       ? "text-warning-300"
+                       : "text-error-300"
                    }`}
                 onClick={() => toggleLine(line)}
               >

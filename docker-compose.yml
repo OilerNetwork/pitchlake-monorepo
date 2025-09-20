@@ -19,6 +19,12 @@ services:
       - "5436:5432"
     networks:
       - fossil-monorepo_local-network
+    healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U fossil_user -d fossil"]
+        interval: 5s
+        timeout: 5s
+        retries: 5
+        start_period: 10s
 
 
   pitchlake-db:
@@ -37,6 +43,13 @@ services:
       - "5437:5432"
     networks:
       - fossil-monorepo_local-network
+    healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U pitchlake_user -d pitchlake"]
+        interval: 5s
+        timeout: 5s
+        retries: 5
+        start_period: 10s
+
 
   frontend:
     build:
@@ -61,7 +74,7 @@ services:
       - NEXT_PUBLIC_RPC_URL_SEPOLIA=http://localhost:5050
       - NEXT_PUBLIC_RPC_URL_DEVNET=http://localhost:5050
       - NEXT_PUBLIC_VAULT_ADDRESSES=${NEXT_PUBLIC_VAULT_ADDRESSES}
-      - NEXT_PUBLIC_WS_URL=http://backend:3005
+      - NEXT_PUBLIC_WS_URL=http://localhost:3005
       - FOSSIL_API_KEY=${FOSSIL_API_KEY}
       - NEXT_PUBLIC_FOSSIL_API_URL=${FOSSIL_API_URL}
       - FOSSIL_DB_URL=postgresql://fossil_user:fossil_password@fossil-db:5432/fossil
@@ -85,9 +98,12 @@ services:
       - PITCHLAKE_DB_URL=postgres://pitchlake_user:pitchlake_password@pitchlake-db:5432/pitchlake?sslmode=disable
       - FRONTEND_URL=http://frontend:3003
     depends_on:
-      - pitchlake-db
+      pitchlake-db:
+        condition: service_healthy
     ports:
       - "3005:3005"
+    networks:
+      - fossil-monorepo_local-network
 
   support-server:
     build:
@@ -103,7 +119,7 @@ services:
       - PITCHLAKE_DB_URL=postgres://pitchlake_user:pitchlake_password@pitchlake-db:5432/pitchlake?sslmode=disable
       
       # Ethereum Configuration
-      - MAINNET_RPC_URL=${MAINNET_RPC_URL}
+      - L1_ALCHEMY_URL=${L1_ALCHEMY_URL}
       
       # StarkNet Configuration
       - STARKNET_RPC=http://katana:5050

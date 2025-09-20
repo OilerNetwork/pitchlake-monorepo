@@ -30,14 +30,14 @@ class ArchitectureSupportServer {
       // Start all services, if a scheduled job should auto run on startup, add it here
       await Promise.all([
         runner.initialize(),
-        runTWAPUpdate()
+        runTWAPUpdate()()
       ]);
 
       logger.info('All services started successfully');
       runner.startListening();
 
       //Schedule cron
-      cron.schedule(CRON_SCHEDULE_TWAP as string, runTWAPUpdate() );
+      //cron.schedule(CRON_SCHEDULE_TWAP as string, runTWAPUpdate() );
       
 
       // Handle graceful shutdown

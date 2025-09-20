@@ -1,5 +1,4 @@
 import { poseidonHashSingle } from "@scure/starknet";
-import { bytesToNumberBE } from "@noble/curves/abstract/utils";
 import { OptionRoundStateType, FossilParams } from "@/lib/types";
 import { Result } from "starknet";
 import { FormattedBlockData } from "@/lib/types";
@@ -87,8 +86,14 @@ export const createJobId = (
   ].join("");
 
   const bytes = new TextEncoder().encode(input);
-  const asNum = bytesToNumberBE(bytes);
 
+  const bytesToNumberBE = (bytes: Uint8Array) => {
+    return BigInt(bytes.reduce((acc, byte) => acc * BigInt(256) + BigInt(byte), BigInt(0)));
+  };
+
+  const asNum =  bytesToNumberBE(bytes);
+
+  
   const hashResult = poseidonHashSingle(asNum);
   return hashResult.toString();
 };

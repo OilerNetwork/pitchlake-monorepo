@@ -5,21 +5,15 @@ import { ABI as vaultAbi } from "../../abi/vault";
 import { Logger } from "winston";
 import { Account } from "starknet";
 import { OptionRoundState, StarknetBlock } from "../../types/types";
-import { rpcToStarknetBlock } from "../../utils/rpcClient";
 import { StateHandlers } from "./stateHandlers";
 
 const {
   VAULT_ADDRESSES,
-  STARKNET_RPC,
   STARKNET_PRIVATE_KEY,
   STARKNET_ACCOUNT_ADDRESS,
-  FOSSIL_API_KEY,
-  FOSSIL_API_URL,
 } = process.env;
 
 export class StateTransitionService {
-  private latestBlockFossil: FormattedBlockData;
-  private latestBlockStarknet: StarknetBlock;
   private logger: Logger;
   private provider: RpcProvider;
   private account: Account;
@@ -31,8 +25,6 @@ export class StateTransitionService {
     logger: Logger,
     provider: RpcProvider,
   ) {
-    this.latestBlockFossil = latestBlockFossil;
-    this.latestBlockStarknet = latestBlockStarknet;
     this.logger = logger;
     this.provider = provider;
     this.account = new Account(
@@ -60,30 +52,20 @@ export class StateTransitionService {
       this.logger.error("No latest block found");
       return;
     }
-    const latestBlockFormatted = rpcToStarknetBlock(latestBlock);
-    const vaultContracts = vaultAddresses.map((vaultAddress) => {
+    //const latestBlockFormatted = rpcToStarknetBlock(latestBlock);
+    for (const vaultAddress of vaultAddresses) {
       const vaultContract = new Contract(
         vaultAbi,
         vaultAddress,
         this.account,
       ).typedv2(vaultAbi);
-      return vaultContract;
-    });
-    const transitions = await Promise.all(
-      vaultContracts.map(async (vaultContract) => {
-        return this.checkAndTransition(
-          this.latestBlockFossil,
-          latestBlockFormatted,
-          vaultContract,
-        );
-      }),
-    );
-    return transitions;
+      await this.checkAndTransition(
+        vaultContract,
+      );
+    }
   }
 
   async checkAndTransition(
-    latestBlockFossil: FormattedBlockData,
-    latestBlockStarknet: StarknetBlock,
     vaultContract: Contract,
   ): Promise<void> {
     const roundId = await vaultContract.get_current_round_id();

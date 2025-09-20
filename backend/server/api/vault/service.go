@@ -243,3 +243,7 @@ func (router *VaultRouter) deleteSubscriberVault(s *types.SubscriberVault) {
 		delete(router.Subscribers.List, s.VaultAddress)
 	}
 }
+
+func (router *VaultRouter) sendJobRequest(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
