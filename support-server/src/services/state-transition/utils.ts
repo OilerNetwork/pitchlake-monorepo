@@ -13,8 +13,8 @@ export const formatTimeLeft = (current: number, target: number) => {
 
 export const formatRawFossilRequest = (rawData: any): FossilRequest => {
   return {
-    program_id: rawData.program_id.toString(16),
-    vault_address: rawData.vault_address.toString(16),
+    program_id: "0x" + rawData.program_id.toString(16),
+    vault_address: "0x" + rawData.vault_address.toString(16),
     params: {
       twap: [Number(rawData.params.twap[0]), Number(rawData.params.twap[1])],
       max_return: [
