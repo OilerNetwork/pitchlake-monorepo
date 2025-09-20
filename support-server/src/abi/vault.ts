@@ -20,6 +20,42 @@ export const ABI = [
   },
   {
     "type": "struct",
+    "name": "pitch_lake::vault::interface::Params",
+    "members": [
+      {
+        "name": "twap",
+        "type": "(core::integer::u64, core::integer::u64)"
+      },
+      {
+        "name": "max_return",
+        "type": "(core::integer::u64, core::integer::u64)"
+      },
+      {
+        "name": "reserve_price",
+        "type": "(core::integer::u64, core::integer::u64)"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "pitch_lake::vault::interface::OffchainJobRequest",
+    "members": [
+      {
+        "name": "program_id",
+        "type": "core::felt252"
+      },
+      {
+        "name": "vault_address",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "params",
+        "type": "pitch_lake::vault::interface::Params"
+      }
+    ]
+  },
+  {
+    "type": "struct",
     "name": "core::array::Span::<core::felt252>",
     "members": [
       {
@@ -310,7 +346,7 @@ export const ABI = [
         "inputs": [],
         "outputs": [
           {
-            "type": "core::array::Span::<core::felt252>"
+            "type": "pitch_lake::vault::interface::OffchainJobRequest"
           }
         ],
         "state_mutability": "view"
@@ -321,7 +357,7 @@ export const ABI = [
         "inputs": [],
         "outputs": [
           {
-            "type": "core::array::Span::<core::felt252>"
+            "type": "pitch_lake::vault::interface::OffchainJobRequest"
           }
         ],
         "state_mutability": "view"

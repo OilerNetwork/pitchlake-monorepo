@@ -9,7 +9,7 @@ use pitch_lake::tests::utils::helpers::setup::eth_supply_and_approve_all_bidders
 use pitch_lake::tests::utils::lib::test_accounts::bystander;
 use pitch_lake::vault::interface::{
     IVaultDispatcher, IVaultDispatcherTrait, IVaultSafeDispatcher, IVaultSafeDispatcherTrait,
-    JobRequest, L1Data,
+    JobRequest, L1Data, OffchainJobRequest, Params,
 };
 use starknet::ContractAddress;
 use starknet::testing::set_contract_address;
@@ -360,12 +360,37 @@ pub impl VaultFacadeImpl of VaultFacadeTrait {
     /// Fossil
 
     fn get_request_to_start_first_round_serialized(ref self: VaultFacade) -> Span<felt252> {
-        self.vault_dispatcher.get_request_to_start_first_round()
+        let offchain_req = self.vault_dispatcher.get_request_to_start_first_round();
+
+        let (_, upper_bound) = offchain_req.params.twap;
+
+        let job_request = JobRequest {
+            program_id: offchain_req.program_id,
+            timestamp: upper_bound + self.get_proving_delay(),
+            vault_address: self.contract_address(),
+        };
+
+        let mut serialized: Array<felt252> = array![];
+        job_request.serialize(ref serialized);
+        serialized.span()
     }
 
     fn get_request_to_settle_round_serialized(ref self: VaultFacade) -> Span<felt252> {
-        self.vault_dispatcher.get_request_to_settle_round()
+        let offchain_req = self.vault_dispatcher.get_request_to_settle_round();
+
+        let (_, upper_bound) = offchain_req.params.twap;
+
+        let job_request = JobRequest {
+            program_id: offchain_req.program_id,
+            timestamp: upper_bound + self.get_proving_delay(),
+            vault_address: self.contract_address(),
+        };
+
+        let mut serialized: Array<felt252> = array![];
+        job_request.serialize(ref serialized);
+        serialized.span()
     }
+
 
     fn get_request_to_settle_round(ref self: VaultFacade) -> JobRequest {
         let mut request = self.get_request_to_settle_round_serialized();

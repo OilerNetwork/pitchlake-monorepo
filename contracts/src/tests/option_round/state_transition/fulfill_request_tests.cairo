@@ -146,7 +146,9 @@ fn test_callback_event() {
     vault.fossil_callback(req, res);
 
     assert_fossil_callback_success_event(
-        vault.contract_address(), get_mock_l1_data(), current_round.get_option_settlement_date(),
+        vault.contract_address(),
+        get_mock_l1_data(),
+        current_round.get_option_settlement_date() + vault.get_proving_delay(),
     );
 }
 
