@@ -15,9 +15,7 @@ export const HomeView = () => {
   
 
   useEffect(() => {
-    console.log("HERE")
     if(process.env.NEXT_PUBLIC_ENVIRONMENT){  
-      console.log("HEREEREREERE")
     const environment = process.env.NEXT_PUBLIC_ENVIRONMENT;
     setMode(environment);
     }

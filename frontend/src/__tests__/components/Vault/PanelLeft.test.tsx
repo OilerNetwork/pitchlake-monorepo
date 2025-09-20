@@ -47,7 +47,7 @@ const mockVaultState = {
   }),
 } as unknown as CairoCustomEnum;
 
-jest.mock("@/hooks/vault_v2/states/useVaultState", () => ({
+jest.mock("@/hooks/vault/states/useVaultState", () => ({
   __esModule: true,
   default: () => ({
     vaultState: mockVaultState,
@@ -55,7 +55,7 @@ jest.mock("@/hooks/vault_v2/states/useVaultState", () => ({
   }),
 }));
 
-jest.mock("@/hooks/vault_v2/states/useRoundState", () => ({
+jest.mock("@/hooks/vault/states/useRoundState", () => ({
   __esModule: true,
   default: () => ({
     address: "0x123",

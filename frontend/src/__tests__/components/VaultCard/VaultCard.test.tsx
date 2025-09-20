@@ -24,8 +24,8 @@ jest.mock("next/navigation", () => ({
 
 jest.mock("@/context/NewProvider");
 jest.mock("@/context/TimeProvider");
-jest.mock("@/hooks/vault_v2/rpc/useVaultStateRPC");
-jest.mock("@/hooks/vault_v2/rpc/useOptionRoundStateRPC");
+jest.mock("@/hooks/vault/rpc/useVaultStateRPC");
+jest.mock("@/hooks/vault/rpc/useOptionRoundStateRPC");
 
 describe("VaultCard", () => {
   const mockRouter = {

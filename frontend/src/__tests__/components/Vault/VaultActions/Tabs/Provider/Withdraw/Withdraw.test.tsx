@@ -81,7 +81,7 @@ jest.mock("@starknet-react/core", () => ({
   useProvider: () => mockImplementations.starknetReact.useProvider(),
 }));
 
-jest.mock("@/hooks/vault_v2/states/useRoundState", () => ({
+jest.mock("@/hooks/vault/states/useRoundState", () => ({
   __esModule: true,
   default: () => mockImplementations.useRoundState(),
 }));

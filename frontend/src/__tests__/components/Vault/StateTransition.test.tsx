@@ -17,9 +17,9 @@ jest.mock("@starknet-react/core", () => ({
   useAccount: jest.fn(),
 }));
 
-jest.mock("@/hooks/vault_v2/states/useRoundState");
-jest.mock("@/hooks/vault_v2/states/useVaultState");
-jest.mock("@/hooks/vault_v2/actions/useVaultActions");
+jest.mock("@/hooks/vault/states/useRoundState");
+jest.mock("@/hooks/vault/states/useVaultState");
+jest.mock("@/hooks/vault/actions/useVaultActions");
 jest.mock("@/context/NewProvider");
 jest.mock("@/context/HelpProvider");
 jest.mock("@/context/TransactionProvider");

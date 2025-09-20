@@ -59,6 +59,15 @@ export const createJobRequest = ({
   };
 };
 
+// Replace the TextEncoder usage with a pure JavaScript function
+const stringToBytes = (str: string): Uint8Array => {
+  const bytes = new Uint8Array(str.length);
+  for (let i = 0; i < str.length; i++) {
+    bytes[i] = str.charCodeAt(i);
+  }
+  return bytes;
+};
+
 export const createJobId = (
   targetTimestamp: number,
   roundDuration: number,
@@ -85,14 +94,14 @@ export const createJobId = (
     params.reserve_price[1],
   ].join("");
 
-  const bytes = new TextEncoder().encode(input);
+  // Replace TextEncoder with our pure JavaScript implementation
+  const bytes = stringToBytes(input);
 
   const bytesToNumberBE = (bytes: Uint8Array) => {
     return BigInt(bytes.reduce((acc, byte) => acc * BigInt(256) + BigInt(byte), BigInt(0)));
   };
 
-  const asNum =  bytesToNumberBE(bytes);
-
+  const asNum = bytesToNumberBE(bytes);
   
   const hashResult = poseidonHashSingle(asNum);
   return hashResult.toString();

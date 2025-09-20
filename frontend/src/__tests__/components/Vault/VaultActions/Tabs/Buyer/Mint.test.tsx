@@ -8,17 +8,17 @@ import useOBState from "@/hooks/vault/states/useOBState";
 import { useHelpContext } from "@/context/HelpProvider";
 
 // Mock the hooks
-jest.mock("@/hooks/vault_v2/actions/useVaultActions", () => ({
+jest.mock("@/hooks/vault/actions/useVaultActions", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
 
-jest.mock("@/hooks/vault_v2/rpc/useOptionBuyerStateRPC", () => ({
+jest.mock("@/hooks/vault/rpc/useOptionBuyerStateRPC", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
 
-jest.mock("@/hooks/vault_v2/states/useOBState", () => ({
+jest.mock("@/hooks/vault/states/useOBState", () => ({
   __esModule: true,
   default: jest.fn(),
 }));

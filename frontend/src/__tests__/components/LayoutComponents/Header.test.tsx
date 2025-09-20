@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import Header from "../../../components/LayoutComponents/Header";
 import useIsMobile from "../../../hooks/window/useIsMobile";
-import { useAccount, useConnect } from "@starknet-react/core";
+import { useAccount, useConnect, useSwitchChain } from "@starknet-react/core";
 import { useNewContext } from "@/context/NewProvider";
 import { useUiContext } from "@/context/UiProvider";
 import { useHelpContext } from "@/context/HelpProvider";
@@ -58,6 +58,9 @@ jest.mock("@starknet-react/core", () => ({
     data: "0",
     isError: false,
     isLoading: false,
+  }),
+  useSwitchChain: jest.fn().mockReturnValue({
+    switchChain: jest.fn(),
   }),
 }));
 
@@ -121,7 +124,7 @@ jest.mock("@/context/TimeProvider", () => ({
   }),
 }));
 
-jest.mock("@/hooks/vault_v2/states/useLPState", () => ({
+jest.mock("@/hooks/vault/states/useLPState", () => ({
   __esModule: true,
   default: jest.fn().mockReturnValue({
     lockedBalance: "500000000000000000",
@@ -130,7 +133,7 @@ jest.mock("@/hooks/vault_v2/states/useLPState", () => ({
   }),
 }));
 
-jest.mock("@/hooks/vault_v2/states/useVaultState", () => ({
+jest.mock("@/hooks/vault/states/useVaultState", () => ({
   __esModule: true,
   default: jest.fn().mockReturnValue({
     vaultState: {
@@ -314,10 +317,8 @@ describe("Header Component", () => {
     // Check network selector button
     const networkButton = screen.getByRole("button", { name: /testnet/i });
     expect(networkButton).toBeInTheDocument();
-    expect(networkButton).toBeDisabled();
 
-    // Since the button is disabled, we can't test the dropdown
-    // But we can verify the current network is displayed correctly
+    // Verify the current network is displayed correctly
     expect(screen.getByText("Testnet")).toBeInTheDocument();
   });
 

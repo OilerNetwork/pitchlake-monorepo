@@ -12,17 +12,17 @@ import useVaultState from "@/hooks/vault/states/useVaultState";
 import { HelpProvider } from "@/context/HelpProvider";
 
 // Mock the hooks
-jest.mock("@/hooks/vault_v2/actions/useVaultActions", () => ({
+jest.mock("@/hooks/vault/actions/useVaultActions", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
 
-jest.mock("@/hooks/vault_v2/states/useLPState", () => ({
+jest.mock("@/hooks/vault/states/useLPState", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
 
-jest.mock("@/hooks/vault_v2/states/useVaultState", () => ({
+jest.mock("@/hooks/vault/states/useVaultState", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
@@ -33,8 +33,8 @@ jest.mock("@/context/TransactionProvider", () => ({
 
 jest.mock("@starknet-react/core", () => ({
   useAccount: jest.fn(),
-  useContractWrite: jest.fn().mockReturnValue({
-    writeAsync: jest.fn(),
+  useSendTransaction: jest.fn().mockReturnValue({
+    sendAsync: jest.fn(),
     data: null,
     error: null,
     isPending: false,

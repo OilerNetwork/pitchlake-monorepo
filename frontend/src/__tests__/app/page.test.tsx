@@ -19,6 +19,12 @@ jest.mock("@/hooks/websocket/useWebSocketHome", () => ({
   default: jest.fn(),
 }));
 
+jest.mock("@/components/VaultCard/VaultCard", () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+
 // Mock environment variables
 const originalEnv = process.env;
 

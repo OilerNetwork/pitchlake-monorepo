@@ -12,12 +12,12 @@ jest.mock("@starknet-react/core", () => ({
   useAccount: jest.fn(),
 }));
 
-jest.mock("@/hooks/vault_v2/actions/useVaultActions", () => ({
+jest.mock("@/hooks/vault/actions/useVaultActions", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
 
-jest.mock("@/hooks/vault_v2/states/useLPState", () => ({
+jest.mock("@/hooks/vault/states/useLPState", () => ({
   __esModule: true,
   default: jest.fn(),
 }));

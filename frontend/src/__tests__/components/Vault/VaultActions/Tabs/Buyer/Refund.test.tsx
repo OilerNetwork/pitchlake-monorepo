@@ -123,17 +123,17 @@ jest.mock("@/context/NewProvider", () => ({
   useNewContext: jest.fn(),
 }));
 
-jest.mock("@/hooks/vault_v2/states/useVaultState", () => ({
+jest.mock("@/hooks/vault/states/useVaultState", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
 
-jest.mock("@/hooks/vault_v2/states/useOBState", () => ({
+jest.mock("@/hooks/vault/states/useOBState", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
 
-jest.mock("@/hooks/vault_v2/actions/useVaultActions", () => ({
+jest.mock("@/hooks/vault/actions/useVaultActions", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
