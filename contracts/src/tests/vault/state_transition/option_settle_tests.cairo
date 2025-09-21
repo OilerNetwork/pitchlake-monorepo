@@ -8,7 +8,7 @@ use pitch_lake::tests::utils::helpers::accelerators::{
     accelerate_to_running_custom, accelerate_to_settled,
 };
 use pitch_lake::tests::utils::helpers::event_helpers::{
-    assert_event_option_round_deployed_single, assert_event_option_settle, clear_event_logs,
+    assert_event_option_round_deployed,assert_event_option_round_deployed_single, assert_event_option_settle, clear_event_logs,
 };
 use pitch_lake::tests::utils::helpers::general_helpers::{create_array_gradient, to_gwei};
 use pitch_lake::tests::utils::helpers::setup::{
@@ -98,12 +98,12 @@ fn test_option_round_settled_event() {
 
         let mut round = vault.get_current_round();
         let settlement_price = round.get_strike_price() + rounds_to_run.into();
-        clear_event_logs(array![round.contract_address()]);
+        clear_event_logs(array![vault.contract_address()]);
         let total_payout = accelerate_to_settled(ref vault, settlement_price);
         let payout_per_option = total_payout / round.total_options_sold();
 
         // Check the event emits correctly
-        assert_event_option_settle(round.contract_address(), settlement_price, payout_per_option);
+        assert_event_option_settle(vault.contract_address(), round.get_round_id(), settlement_price, payout_per_option);
 
         rounds_to_run -= 1;
     }
@@ -168,7 +168,7 @@ fn test_next_round_deployed_events() {
         };
 
         assert(pricing_data != Default::default(), 'Pricing data not set correctly');
-        assert_event_option_round_deployed_single(
+        assert_event_option_round_deployed(
             vault.contract_address(),
             i + 1,
             round_i_plus_1.contract_address(),

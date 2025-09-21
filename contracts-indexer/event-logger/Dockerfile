@@ -1,15 +1,17 @@
 # Stage 1: Build golang dependencies and binaries
-FROM ubuntu:24.10 AS build
+FROM ubuntu:24.04 AS build
 
 ARG VM_DEBUG
-
+ARG RUST_VERSION=1.86.0
 RUN apt-get -qq update && \
     apt-get -qq install curl build-essential gcc git golang upx-ucl libjemalloc-dev libbz2-dev libjemalloc2 -y
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -q -y
+RUN curl https://sh.rustup.rs -sSf | bash -s -- -y --default-toolchain ${RUST_VERSION} --profile minimal
+ENV PATH="/root/.cargo/bin:${PATH}"
 
 WORKDIR /plugin
 
 COPY juno/ ./juno/
+
 #RUN git submodule update --init --remote --recursive
 RUN bash -c 'cd juno && source ~/.cargo/env && VM_DEBUG=${VM_DEBUG} make juno'
 
@@ -31,7 +33,7 @@ RUN go mod tidy
 RUN make build
 
 # Stage 2: Run Juno with the plugin
-FROM ubuntu:24.10
+FROM ubuntu:24.04
 
 # Install necessary runtime dependencies
 RUN apt-get -qq update && \

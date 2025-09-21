@@ -231,7 +231,6 @@ func (db *DB) RoundSettledIndex(prevStateOptionRound models.OptionRound, roundAd
 }
 
 func (db *DB) BidPlacedIndex(bid models.Bid, buyer models.OptionBuyer) error {
-	log.Printf("NEW BID %v", bid)
 	if err := db.CreateOptionBuyer(&buyer); err != nil {
 		return err
 	}
