@@ -196,7 +196,6 @@ export class StateHandlers {
         latestBlockStarknetFormatted.timestamp,
       );
 
-      let w, x, y, z;
       try {
         const roundIdRaw = await roundContract.get_round_id();
         const transitionDurationRaw =
@@ -223,25 +222,10 @@ export class StateHandlers {
           );
           return;
         }
-
-        w = Number(roundIdRaw);
-        x = Number(transitionDurationRaw);
-        y = Number(auctionDurationRaw);
-        z = Number(roundDurationRaw);
       } catch (error) {
         this.logger.error("Failed to get duration values:", error);
         return;
       }
-
-      console.log("DEBUGGING: round id", w);
-      console.log("DEBUGGING: durations", { x, y, z });
-      console.log("DEGGUGGING: durations in hours", {
-        x: (x / 3600).toFixed(2),
-        y: (y / 3600).toFixed(2),
-        z: (z / 3600).toFixed(2),
-      });
-
-      // get the vault.get_round_tr
 
       //if (this.latestFossilBlock.timestamp < auctionStartTime) {
       //  this.logger.info(
