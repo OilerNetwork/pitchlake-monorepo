@@ -3,7 +3,6 @@ import { setupLogger } from "../../shared/logger";
 import { GasDataService } from "../confirmed-twaps/gasData";
 import { StateTransitionService } from "../state-transition/stateTransitionService";
 
-
 export const runTWAPUpdate = () => async () => {
   const service = new GasDataService();
   // if (isJobRunning) {
@@ -20,11 +19,10 @@ export const runTWAPUpdate = () => async () => {
     const latestBlock = await service.updateTWAPs();
     console.log(`TWAP update job completed at ${new Date().toISOString()}, running state transition`);
 
-    if(!latestBlock) {
+    if (!latestBlock) {
       console.error("No latest block found");
       return;
     }
-
   } catch (error) {
     console.error("Error in TWAP update job:", error);
   } finally {
