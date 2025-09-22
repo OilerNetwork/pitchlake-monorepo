@@ -15,9 +15,61 @@ A high-performance WebSocket server built in Go for real-time blockchain data st
 
 ## ⚡ Quick Start
 
+### Prerequisites
+- Go 1.23+
+- PostgreSQL database
+- Docker (optional)
+
+### Environment Setup
+1. **Set up environment variables**
+   ```bash
+   export PITCHLAKE_DB_URL="postgres://username:password@localhost:5432/pitchlake?sslmode=disable"
+   ```
+   
+   Note: `FRONTEND_URL` is referenced in the code but currently commented out.
+
+2. **Install dependencies**
+   ```bash
+   go mod tidy
+   ```
+
+### Running the Server
+
+#### Option 1: Using Makefile (Recommended)
 ```bash
-# Build and run
+# Build and run with default database URL (localhost:5433)
 make build && make run
+
+# Or run directly
+make run
+```
+
+#### Option 2: Manual Build
+```bash
+# Build the application
+go build -o pitchlake-backend .
+
+# Run with custom database URL
+export PITCHLAKE_DB_URL="your_database_url"
+./pitchlake-backend
+```
+
+#### Option 3: Docker
+```bash
+# Build and run with Docker Compose
+docker-compose up --build
+
+# Or build manually
+docker build -t pitchlake-backend .
+docker run -p 8080:8080 -e PITCHLAKE_DB_URL="your_url" pitchlake-backend
+```
+
+### Verify Installation
+```bash
+# Check health endpoint
+curl http://localhost:8080/health
+
+# Expected response: HTTP 200 OK with "OK" body
 ```
 
 ## 🏗️ Architecture
@@ -39,14 +91,10 @@ server/
 
 ## 📡 API Endpoints
 
-### General Endpoints (`/general`)
-- **`/health`** - Health check endpoint
+### Available Endpoints
+- **`/health`** - Health check endpoint (HTTP GET)
 - **`/subscribeGas`** - WebSocket endpoint for gas price data
-
-### Home Endpoints (`/home`)  
 - **`/subscribeHome`** - WebSocket endpoint for home dashboard data
-
-### Vault Endpoints (`/vault`)
 - **`/subscribeVault`** - WebSocket endpoint for vault state updates
 
 ## 🔌 WebSocket Subscriptions
@@ -100,8 +148,8 @@ Subscribe to vault-specific updates:
 
 3. **Set up environment variables**
    ```bash
-   # Copy and configure environment file
-   cp .env.example .env
+   # Set the database URL
+   export PITCHLAKE_DB_URL="postgres://username:password@localhost:5432/pitchlake?sslmode=disable"
    ```
 
 4. **Run the server**
@@ -116,8 +164,8 @@ Subscribe to vault-specific updates:
 docker-compose up --build
 
 # Or build manually
-docker build -t pitchlake-websocket .
-docker run -p 8080:8080 pitchlake-websocket
+docker build -t pitchlake-backend .
+docker run -p 8080:8080 -e PITCHLAKE_DB_URL="your_database_url" pitchlake-backend
 ```
 
 ## 🧪 Testing
@@ -232,3 +280,12 @@ type GeneralRouter struct {
     pool                   pgxpool.Pool
 }
 ```
+
+## 📚 Documentation
+
+For detailed technical documentation, architecture details, and advanced configuration options, see:
+
+- **[documentation.md](./documentation.md)** - Comprehensive technical documentation
+- **[API Reference](./documentation.md#api-endpoints)** - Complete API endpoint documentation
+- **[Database Schema](./documentation.md#data-models)** - Data models and database structure
+- **[WebSocket Implementation](./documentation.md#websocket-implementation)** - Real-time communication details

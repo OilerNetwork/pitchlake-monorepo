@@ -1,162 +1,136 @@
-# Architecture Support Server
+# Support Server
 
-A consolidated Node.js server that combines functionality from three separate repositories:
-- **alchemy-indexer**: Ethereum block watcher and data collection
-- **pitchlake-cron**: TWAP (Time-Weighted Average Price) calculations and updates
-- **pitchlake-round-automator**: State transition automation for PitchLake options rounds
+A consolidated Node.js server that provides essential background services for the Pitchlake ecosystem, including TWAP calculations, state transition automation, and blockchain data processing.
 
-## Features
+## ⚡ Quick Start
 
-- **Block Watcher Service**: Monitors Ethereum blocks, collects gas data, and stores it in PostgreSQL
-- **TWAP Service**: Calculates and updates time-weighted average prices for different time windows
-- **State Transition Service**: Automates state transitions for PitchLake options rounds using StarkNet
-- **Unified Logging**: Centralized logging with Winston across all services
-- **Database Management**: Shared database connections for both Fossil and PitchLake databases
-- **Graceful Shutdown**: Proper cleanup and shutdown handling for all services
-
-## Project Structure
-
-```
-consolidated-server/
-├── src/
-│   ├── abi/                    # Smart contract ABIs
-│   │   ├── vault.ts           # Vault contract ABI
-│   │   └── optionRound.ts     # Option round contract ABI
-│   ├── services/               # Core service implementations
-│   │   ├── block-watcher.ts   # Ethereum block monitoring
-│   │   ├── twap.ts            # TWAP calculations
-│   │   └── state-transition.ts # Options round automation
-│   ├── shared/                 # Shared utilities
-│   │   ├── database.ts        # Database connection management
-│   │   ├── logger.ts          # Logging configuration
-│   │   └── types.ts           # Shared TypeScript types
-│   └── index.ts               # Main server entry point
-├── package.json                # Dependencies and scripts
-├── tsconfig.json              # TypeScript configuration
-└── README.md                  # This file
-```
-
-## Prerequisites
-
-- Node.js 18+ 
+### Prerequisites
+- Node.js 18+
 - PostgreSQL databases (Fossil and PitchLake)
 - StarkNet RPC access
 - Ethereum mainnet RPC access
 
-## Installation
-
-1. Clone the repository
-2. Install dependencies:
+### Environment Setup
+1. **Install dependencies**
    ```bash
    npm install
    ```
 
-3. Create a `.env` file with the following environment variables:
+2. **Set up environment variables**
+   ```bash
+   # Copy example environment file
+   cp env.example .env
+   
+   # Edit .env with your configuration
+   # Required: Database URLs, RPC endpoints, StarkNet credentials
+   ```
 
-```env
-# Database Connections
-FOSSIL_DB_CONNECTION_STRING=postgresql://user:password@host:port/database
-PITCHLAKE_DB_CONNECTION_STRING=postgresql://user:password@host:port/database
+3. **Set up databases**
+   ```bash
+   # Start databases and run migrations
+   make dev
+   ```
 
-# Ethereum Configuration
-L1_ALCHEMY_URL=https://eth-mainnet.alchemyapi.io/v2/YOUR_API_KEY
+### Running the Service
 
-# StarkNet Configuration
-STARKNET_RPC=https://starknet-mainnet.infura.io/v3/YOUR_PROJECT_ID
-STARKNET_PRIVATE_KEY=your_private_key
-STARKNET_ACCOUNT_ADDRESS=your_account_address
-VAULT_ADDRESSES=vault1,vault2,vault3
-
-# Fossil API Configuration
-FOSSIL_API_KEY=your_fossil_api_key
-FOSSIL_API_URL=https://api.fossil.com
-
-# Cron Schedules
-CRON_SCHEDULE=*/5 * * * * *  # Every 5 seconds for TWAP updates
-CRON_SCHEDULE_STATE=*/30 * * * * *  # Every 30 seconds for state transitions
-
-# Logging
-LOG_LEVEL=info
-
-# Optional: Demo mode
-USE_DEMO_DATA=false
-```
-
-## Usage
-
-### Development
+#### Option 1: Development Mode
 ```bash
+# Run in development mode
 npm run dev
-```
 
-### Development with watch mode
-```bash
+# Run with watch mode
 npm run dev:watch
 ```
 
-### Production
+#### Option 2: Production Mode
 ```bash
+# Build the application
 npm run build
+
+# Run the built application
 npm start
 ```
 
-## Services
+#### Option 3: Docker
+```bash
+# Start all services with Docker
+make docker-up
+```
 
-### Block Watcher Service
-- Monitors Ethereum mainnet for new blocks
-- Collects gas price, gas used, and other block data
-- Stores data in Fossil database
-- Handles block catch-up on startup
+### Verify Installation
+```bash
+# Check if services are running
+make check-dbs
 
-### TWAP Service
-- Calculates time-weighted average prices for:
-  - 12 minutes
-  - 3 hours  
-  - 30 days
-- Updates TWAP values based on new block data
-- Runs on configurable cron schedule
+# Check migration status
+make check-migrations
 
-### State Transition Service
-- Monitors PitchLake vault contracts
-- Automates state transitions for options rounds
-- Integrates with Fossil API for external data
-- Supports multiple vault monitoring
+# View logs
+docker compose logs -f
+```
 
-## Database Schema
+## 📋 Available Commands
 
-The server expects the following database tables:
+### Development Commands
+```bash
+npm run dev              # Run in development mode
+npm run dev:watch        # Run with watch mode
+npm run build            # Build the application
+npm start                # Run built application
+npm test                 # Run tests
+```
 
-### Fossil Database
-- `block_data`: Ethereum block information
-- `block_watcher_state`: Block processing state
+### Database Commands
+```bash
+make start-dbs           # Start databases
+make stop-dbs            # Stop databases
+make migrate-all         # Run all migrations
+make check-dbs           # Check database status
+make check-migrations    # Check migration status
+```
 
-### PitchLake Database  
-- `twap_state`: TWAP calculation state and values
+### Docker Commands
+```bash
+make docker-up           # Start all services
+make clean-project       # Clean project resources
+make create-network      # Create Docker network
+```
 
-## API Endpoints
+## 🔧 Quick Configuration
 
-Currently, this is a background service with no HTTP API endpoints. All functionality runs as scheduled jobs and background processes.
+### Required Environment Variables
 
-## Monitoring and Logging
+Copy `env.example` to `.env` and configure these essential variables:
 
-- All services use structured logging with Winston
-- Log levels can be configured via `LOG_LEVEL` environment variable
-- Each service has its own logger instance for easy identification
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `FOSSIL_DB_URL` | Fossil database connection string | Yes |
+| `PITCHLAKE_DB_URL` | PitchLake database connection string | Yes |
+| `L1_ALCHEMY_URL` | Ethereum RPC endpoint | Yes |
+| `STARKNET_RPC` | StarkNet RPC endpoint | Yes |
+| `STARKNET_PRIVATE_KEY` | StarkNet private key | Yes |
+| `STARKNET_ACCOUNT_ADDRESS` | StarkNet account address | Yes |
+| `VAULT_ADDRESSES` | Comma-separated vault addresses | Yes |
+| `FOSSIL_API_KEY` | Fossil API key | Yes |
+| `FOSSIL_API_URL` | Fossil API URL | Yes |
 
-## Error Handling
+> **Note**: See [documentation.md](./documentation.md#configuration) for complete configuration details and optional variables.
 
-- Graceful error handling across all services
-- Automatic retry mechanisms for transient failures
-- Comprehensive error logging with stack traces
-- Graceful shutdown on SIGTERM/SIGINT
+## 🏗️ What This Service Does
 
-## Contributing
+The Support Server runs three main services:
 
-1. Follow the existing code structure
-2. Add proper error handling and logging
-3. Update types in `shared/types.ts` when adding new functionality
-4. Ensure all services implement proper startup/shutdown methods
+- **TWAP Service**: Calculates time-weighted average prices for gas fees
+- **State Transition Service**: Automates options round state transitions on StarkNet
+- **Unconfirmed TWAPs Runner**: Processes real-time blockchain data
 
-## License
+> **Note**: For detailed service documentation, see [documentation.md](./documentation.md#services).
 
-[Add your license information here] 
+## 📚 Documentation
+
+For detailed technical documentation, see:
+
+- **[documentation.md](./documentation.md)** - Comprehensive technical documentation
+- **[Services](./documentation.md#services)** - Detailed service documentation
+- **[Database Schema](./documentation.md#database-schema)** - Complete database structure
+- **[API Reference](./documentation.md#api-reference)** - Service API documentation 
