@@ -2,7 +2,10 @@ use core::array::SpanTrait;
 use openzeppelin_token::erc20::ERC20Component;
 use openzeppelin_token::erc20::ERC20Component::Transfer;
 use pitch_lake::option_round::contract::OptionRound;
-use pitch_lake::option_round::interface::PricingData;
+use pitch_lake::option_round::interface::{
+    PricingData, OptionRoundEvent, PricingDataSet, AuctionStarted, BidPlaced, BidUpdated, 
+    AuctionEnded, OptionRoundSettled, OptionsExercised, UnusedBidsRefunded, OptionsMinted
+};
 use pitch_lake::vault::contract::Vault;
 use pitch_lake::vault::interface::L1Data;
 use starknet::{ContractAddress, testing};
@@ -57,9 +60,11 @@ pub fn assert_fossil_callback_success_event(
 ) {
     // Remove the OptionRoundDeployed event that is fired before the callback success event
     let _ = pop_log::<
-        Vault::OptionRoundDeployed,
+        Vault::Event,
     >(vault_address); // Pop the first (round deployed event)
-
+    let _ = pop_log::<
+        Vault::Event,
+    >(vault_address); // Pop the second (callback success event)
     match pop_log::<Vault::Event>(vault_address) {
         Option::Some(e) => {
             let expected = Vault::Event::FossilCallbackSuccess(
@@ -75,12 +80,13 @@ pub fn assert_fossil_callback_success_event(
 
 // Check AuctionStart emits correctly
 pub fn assert_event_auction_start(
-    option_round_address: ContractAddress, starting_liquidity: u256, options_available: u256,
+    vault_address: ContractAddress, round_id: u64, starting_liquidity: u256, options_available: u256,
 ) {
-    match pop_log::<OptionRound::Event>(option_round_address) {
+    let _ = pop_log::<Vault::Event>(vault_address);
+    match pop_log::<Vault::Event>(vault_address) {
         Option::Some(e) => {
-            let expected = OptionRound::Event::AuctionStarted(
-                OptionRound::AuctionStarted { starting_liquidity, options_available },
+            let expected = Vault::Event::OptionRoundEmitted(
+                Vault::OptionRoundEmitted { round_id, event: OptionRoundEvent::AuctionStarted(AuctionStarted { starting_liquidity, options_available }) },
             );
             assert_events_equal(e, expected);
         },
@@ -90,17 +96,18 @@ pub fn assert_event_auction_start(
 
 // Check AuctionAcceptedBid emits correctly
 pub fn assert_event_auction_bid_placed(
-    contract: ContractAddress,
+    vault_address: ContractAddress,
+    round_id: u64,
     account: ContractAddress,
     bid_id: felt252,
     amount: u256,
     price: u256,
     bid_tree_nonce_now: u64,
 ) {
-    match pop_log::<OptionRound::Event>(contract) {
+    match pop_log::<Vault::Event>(vault_address) {
         Option::Some(e) => {
-            let expected = OptionRound::Event::BidPlaced(
-                OptionRound::BidPlaced { account, bid_id, amount, price, bid_tree_nonce_now },
+            let expected = Vault::Event::OptionRoundEmitted(
+                Vault::OptionRoundEmitted { round_id, event: OptionRoundEvent::BidPlaced(BidPlaced { account, bid_id, amount, price, bid_tree_nonce_now }) },
             );
             //println!("expected:\n{}\n{}\n{}\n{}\n{}", Into::<ContractAddress,
             //felt252>::into(account), bid_id, amount, price, bid_tree_nonce_now);
@@ -111,19 +118,18 @@ pub fn assert_event_auction_bid_placed(
 }
 
 pub fn assert_event_auction_bid_updated(
-    contract: ContractAddress,
+    vault_address: ContractAddress,
     account: ContractAddress,
+    round_id: u64,
     bid_id: felt252,
     price_increase: u256,
     bid_tree_nonce_before: u64,
     bid_tree_nonce_now: u64,
 ) {
-    match pop_log::<OptionRound::Event>(contract) {
+    match pop_log::<Vault::Event>(vault_address) {
         Option::Some(e) => {
-            let expected = OptionRound::Event::BidUpdated(
-                OptionRound::BidUpdated {
-                    account, bid_id, price_increase, bid_tree_nonce_before, bid_tree_nonce_now,
-                },
+            let expected = Vault::Event::OptionRoundEmitted(
+                Vault::OptionRoundEmitted { round_id, event: OptionRoundEvent::BidUpdated(BidUpdated { account, bid_id, price_increase, bid_tree_nonce_before, bid_tree_nonce_now }) },
             );
             assert_events_equal(e, expected);
         },
@@ -133,14 +139,12 @@ pub fn assert_event_auction_bid_updated(
 
 // Check PricingDataSet emits correctly
 pub fn assert_event_pricing_data_set(
-    option_round_address: ContractAddress, strike_price: u256, cap_level: u128, reserve_price: u256,
+    vault_address: ContractAddress, round_id: u64, strike_price: u256, cap_level: u128, reserve_price: u256,
 ) {
-    match pop_log::<OptionRound::Event>(option_round_address) {
+    match pop_log::<Vault::Event>(vault_address) {
         Option::Some(e) => {
-            let expected = OptionRound::Event::PricingDataSet(
-                OptionRound::PricingDataSet {
-                    pricing_data: PricingData { strike_price, cap_level, reserve_price },
-                },
+            let expected = Vault::Event::OptionRoundEmitted(
+                Vault::OptionRoundEmitted { round_id, event: OptionRoundEvent::PricingDataSet(PricingDataSet { pricing_data: PricingData { strike_price, cap_level, reserve_price } }) },
             );
             assert_events_equal(e, expected);
         },
@@ -149,18 +153,17 @@ pub fn assert_event_pricing_data_set(
 }
 // Check AuctionEnd emits correctly
 pub fn assert_event_auction_end(
-    option_round_address: ContractAddress,
+    vault_address: ContractAddress,
+    round_id: u64,
     options_sold: u256,
     clearing_price: u256,
     unsold_liquidity: u256,
     clearing_bid_tree_nonce: u64,
 ) {
-    match pop_log::<OptionRound::Event>(option_round_address) {
+    match pop_log::<Vault::Event>(vault_address) {
         Option::Some(e) => {
-            let expected = OptionRound::Event::AuctionEnded(
-                OptionRound::AuctionEnded {
-                    options_sold, clearing_price, unsold_liquidity, clearing_bid_tree_nonce,
-                },
+            let expected = Vault::Event::OptionRoundEmitted(
+                Vault::OptionRoundEmitted { round_id, event: OptionRoundEvent::AuctionEnded(AuctionEnded { options_sold, clearing_price, unsold_liquidity, clearing_bid_tree_nonce }) },
             );
             assert_events_equal(e, expected);
         },
@@ -170,12 +173,12 @@ pub fn assert_event_auction_end(
 
 // Check OptionSettle emits correctly
 pub fn assert_event_option_settle(
-    option_round_address: ContractAddress, settlement_price: u256, payout_per_option: u256,
+    vault_address: ContractAddress, round_id: u64, settlement_price: u256, payout_per_option: u256,
 ) {
-    match pop_log::<OptionRound::Event>(option_round_address) {
+    match pop_log::<Vault::Event>(vault_address) {
         Option::Some(e) => {
-            let expected = OptionRound::Event::OptionRoundSettled(
-                OptionRound::OptionRoundSettled { settlement_price, payout_per_option },
+            let expected = Vault::Event::OptionRoundEmitted(
+                Vault::OptionRoundEmitted { round_id, event: OptionRoundEvent::OptionRoundSettled(OptionRoundSettled { settlement_price, payout_per_option }) },
             );
             assert_events_equal(e, expected);
         },
@@ -185,12 +188,12 @@ pub fn assert_event_option_settle(
 
 // Check UnusedBidsRefunded emits correctly
 pub fn assert_event_unused_bids_refunded(
-    contract: ContractAddress, account: ContractAddress, refunded_amount: u256,
+    vault_address: ContractAddress, round_id: u64, account: ContractAddress, refunded_amount: u256,
 ) {
-    match pop_log::<OptionRound::Event>(contract) {
+    match pop_log::<Vault::Event>(vault_address) {
         Option::Some(e) => {
-            let expected = OptionRound::Event::UnusedBidsRefunded(
-                OptionRound::UnusedBidsRefunded { account, refunded_amount },
+            let expected = Vault::Event::OptionRoundEmitted(
+                Vault::OptionRoundEmitted { round_id, event: OptionRoundEvent::UnusedBidsRefunded(UnusedBidsRefunded { account, refunded_amount }) },
             );
             assert_events_equal(e, expected);
         },
@@ -199,16 +202,16 @@ pub fn assert_event_unused_bids_refunded(
 }
 
 pub fn assert_event_options_tokenized(
-    contract: ContractAddress, account: ContractAddress, minted_amount: u256,
+    vault_address: ContractAddress,eth_address: ContractAddress, round_id: u64, account: ContractAddress, minted_amount: u256,
 ) {
     // We pop here twice since the method fires a ERC20 transfer event before the OptionsTokenized
     // event
-    match pop_log::<ERC20Component::Transfer>(contract) {
+    match pop_log::<ERC20Component::Transfer>(eth_address) {
         Option::Some(_) => {
-            match pop_log::<OptionRound::Event>(contract) {
+            match pop_log::<Vault::Event>(vault_address) {
                 Option::Some(e) => {
-                    let expected = OptionRound::Event::OptionsMinted(
-                        OptionRound::OptionsMinted { account, minted_amount },
+                    let expected = Vault::Event::OptionRoundEmitted(
+                        Vault::OptionRoundEmitted { round_id, event: OptionRoundEvent::OptionsMinted(OptionsMinted { account, minted_amount }) },
                     );
                     assert_events_equal(e, expected);
                 },
@@ -220,7 +223,9 @@ pub fn assert_event_options_tokenized(
 }
 // Check OptionsExercised emits correctly
 pub fn assert_event_options_exercised(
-    contract: ContractAddress,
+    vault_address: ContractAddress,
+    eth_address: ContractAddress,
+    round_id: u64,
     account: ContractAddress,
     total_options_exercised: u256,
     mintable_options_exercised: u256,
@@ -228,15 +233,13 @@ pub fn assert_event_options_exercised(
 ) {
     // If the account burned erc20 tokens, we need to remove that event from the log
     if total_options_exercised > mintable_options_exercised {
-        let _ = pop_log::<ERC20Component::Event>(contract);
+        let _ = pop_log::<ERC20Component::Event>(eth_address);
     }
 
-    match pop_log::<OptionRound::Event>(contract) {
+    match pop_log::<Vault::Event>(vault_address) {
         Option::Some(e) => {
-            let expected = OptionRound::Event::OptionsExercised(
-                OptionRound::OptionsExercised {
-                    account, total_options_exercised, mintable_options_exercised, exercised_amount,
-                },
+            let expected = Vault::Event::OptionRoundEmitted(
+                Vault::OptionRoundEmitted { round_id, event: OptionRoundEvent::OptionsExercised(OptionsExercised { account, total_options_exercised, mintable_options_exercised, exercised_amount }) },
             );
             assert_events_equal(e, expected);
         },

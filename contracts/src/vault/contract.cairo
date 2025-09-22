@@ -8,7 +8,7 @@ pub mod Vault {
     use pitch_lake::library::pricing_utils::{calculate_cap_level, calculate_strike_price};
     use pitch_lake::option_round::interface::{
         ConstructorArgs as OptionRoundConstructorArgs, IOptionRoundDispatcher,
-        IOptionRoundDispatcherTrait, OptionRoundState, PricingData,
+        IOptionRoundDispatcherTrait, OptionRoundState, PricingData, OptionRoundEvent, PricingDataSet, AuctionStarted, BidPlaced, BidUpdated, AuctionEnded, OptionRoundSettled, OptionsExercised, UnusedBidsRefunded, OptionsMinted
     };
     use pitch_lake::vault::interface::{
         ConstructorArgs, IVault, JobRequest, L1Data, OffchainJobRequest, Params, VerifierData,
@@ -138,6 +138,7 @@ pub mod Vault {
         StashWithdrawn: StashWithdrawn,
         OptionRoundDeployed: OptionRoundDeployed,
         FossilCallbackSuccess: FossilCallbackSuccess,
+        OptionRoundEmitted: OptionRoundEmitted,
     }
 
     // @dev Emitted when a deposit is made for an account
@@ -152,6 +153,11 @@ pub mod Vault {
         pub amount: u256,
         pub account_unlocked_balance_now: u256,
         pub vault_unlocked_balance_now: u256,
+    }
+    #[derive( Drop, starknet::Event, Serde, PartialEq)]
+    pub struct OptionRoundEmitted {
+        pub round_id: u64,
+        pub event: OptionRoundEvent,
     }
 
     // @dev Emitted when an account makes a withdrawal
@@ -674,6 +680,14 @@ pub mod Vault {
 
             total_payout
         }
+        fn emit_option_round_event(ref self: ContractState, round_id: u64, option_round_event: OptionRoundEvent) {
+            // @dev Get the round dispatcher to validate the round exists
+            let _round = self.get_round_dispatcher(round_id);
+            // verify caller is the round
+            assert(get_caller_address() == _round.contract_address, 'Caller not the round');
+            // @dev Emit the option round event
+            self.emit(Event::OptionRoundEmitted(OptionRoundEmitted { round_id, event: option_round_event }));
+        }
     }
 
     // *************************************************************************
@@ -1123,9 +1137,11 @@ pub mod Vault {
             }
         }
 
-        // @dev Combine deposits from the last checkpoint into a single deposit for the current
-        // round, and if there are premiums/unsold liquidity collectable, add them as a deposit for
-        // the upcoming round
+        // @dev General function to emit any option round event from the vault
+       
+
+        // @dev Refresh the position of an account, including its current and upcoming round
+        // deposits, and update its stash checkpoint.
         fn refresh_position(ref self: ContractState, account: ContractAddress) {
             // @dev Get the refreshed current and upcoming round deposits
             let current_round_id = self.current_round_id.read();
@@ -1204,6 +1220,8 @@ pub mod Vault {
             }
         }
 
+
+
         // @dev Get the liquidity that remained for an account after a round settled that was not
         // stashed @param account: The account in question
         // @param account_staring_liq: The liquidity the account locked at the start of the round
@@ -1246,5 +1264,7 @@ pub mod Vault {
                 }
             }
         }
+
+    
     }
 }

@@ -1,10 +1,9 @@
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import Deposit from "@/components/Vault/VaultActions/Tabs/Provider/Deposit";
-import { HelpProvider } from "@/context/HelpProvider";
-import { useHelpContext } from "@/context/HelpProvider";
+
 
 // Mock all external dependencies
-const mockwriteAsync = jest
+const mockSendAsync = jest
   .fn()
   .mockResolvedValue({ transaction_hash: "0x123" });
 
@@ -45,8 +44,8 @@ jest.mock("@starknet-react/core", () => ({
       address: "0x123",
     },
   }),
-  useContractWrite: () => ({
-    writeAsync: mockwriteAsync,
+  useSendTransaction: () => ({
+    sendAsync: mockSendAsync,
   }),
 }));
 
@@ -59,7 +58,7 @@ jest.mock("@/context/TransactionProvider", () => ({
   }),
 }));
 
-jest.mock("@/hooks/vault_v2/states/useVaultState", () => ({
+jest.mock("@/hooks/vault/states/useVaultState", () => ({
   __esModule: true,
   default: jest.fn().mockReturnValue({
     vaultState: {
@@ -69,7 +68,7 @@ jest.mock("@/hooks/vault_v2/states/useVaultState", () => ({
   }),
 }));
 
-jest.mock("@/hooks/vault_v2/states/useLPState", () => ({
+jest.mock("@/hooks/vault/states/useLPState", () => ({
   __esModule: true,
   default: jest.fn().mockReturnValue({
     unlockedBalance: BigInt("1000000000000000000"), // 1 ETH
@@ -124,7 +123,7 @@ describe("Deposit Component", () => {
       await onConfirm();
     });
 
-    expect(mockwriteAsync).toHaveBeenCalled();
+    expect(mockSendAsync).toHaveBeenCalled();
   });
 });
 

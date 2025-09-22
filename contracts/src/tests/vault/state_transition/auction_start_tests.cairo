@@ -13,7 +13,7 @@ use pitch_lake::tests::utils::helpers::accelerators::{
     timeskip_and_start_auction,
 };
 use pitch_lake::tests::utils::helpers::event_helpers::{
-    assert_event_auction_start, assert_event_option_round_deployed,
+    assert_event_auction_start, assert_event_option_round_deployed, clear_event_logs,
 };
 use pitch_lake::tests::utils::helpers::general_helpers::{
     create_array_gradient, create_array_linear, get_portion_of_amount, sum_u256_array,
@@ -87,12 +87,14 @@ fn test_auction_started_option_round_event() {
 
     while rounds_to_run > 0_u32 {
         let mut current_round = vault.get_current_round();
+        let current_round_id = current_round.get_round_id();
+        clear_event_logs(array![vault.contract_address()]);
         let total_options_available = accelerate_to_auctioning(ref vault);
         let starting_liquidity = current_round.starting_liquidity();
 
         // Check the event emits correctly
         assert_event_auction_start(
-            current_round.contract_address(), starting_liquidity, total_options_available,
+            vault.contract_address(), current_round_id, starting_liquidity, total_options_available,
         );
 
         accelerate_to_running(ref vault);

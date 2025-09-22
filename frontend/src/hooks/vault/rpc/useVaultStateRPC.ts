@@ -3,7 +3,6 @@ import { optionRoundABI, vaultABI } from "@/lib/abi";
 import { VaultStateType } from "@/lib/types";
 import { stringToHex } from "@/lib/utils";
 import { useMemo } from "react";
-import { useNewContext } from "@/context/NewProvider";
 import { BlockTag } from "starknet";
 
 const useVaultStateRPC = ({

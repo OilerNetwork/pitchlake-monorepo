@@ -1,5 +1,5 @@
 {
-  "name": "architecture-support-server",
+  "name": "support-server",
   "version": "1.0.0",
   "description": "Architecture Support Server - consolidated server combining alchemy-indexer, pitchlake-cron, and pitchlake-round-automator functionality",
   "main": "dist/index.js",

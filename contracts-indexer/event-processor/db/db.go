@@ -170,7 +170,6 @@ func (db *DB) Shutdown() {
 
 func (db *DB) GetEventsByBlockHash(blockHash string, orderBy string) ([]models.Event, error) {
 
-
 	query := `
 		SELECT 
 			from,
@@ -610,6 +609,15 @@ func (db *DB) GetVaultAddresses() ([]string, error) {
 	// return addresses, nil
 }
 
+func (db *DB) GetRoundById(roundId uint64, vaultAddress string) (*models.OptionRound, error) {
+	query := `SELECT * FROM option_rounds WHERE round_id = $1 AND vault_address = $2;`
+	var round models.OptionRound
+	err := db.tx.QueryRow(context.Background(), query, roundId, vaultAddress).Scan(&round)
+	if err != nil {
+		return nil, err
+	}
+	return &round, nil
+}
 func (db *DB) GetRoundAddresses(vaultAddress string) (*[]string, error) {
 	var addresses []string
 

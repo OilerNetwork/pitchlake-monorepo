@@ -3,9 +3,9 @@ import { setupLogger } from "./shared/logger";
 import * as cron from "node-cron";
 import { UnconfirmedTWAPsRunner } from "./services/unconfirmed-twaps";
 
-dotenv.config();
-import { runTWAPUpdate } from "./services/scheduler/scheduler";
-const logger = setupLogger("Main");
+dotenv.config()
+import { runStateTransition, runTWAPUpdate } from "./services/scheduler/scheduler";
+const logger = setupLogger('Main');
 
 class ArchitectureSupportServer {
   constructor() {}
@@ -20,14 +20,18 @@ class ArchitectureSupportServer {
       logger.info("Starting Architecture Support Server...");
 
       // Start all services, if a scheduled job should auto run on startup, add it here
-      await Promise.all([runner.initialize(), runTWAPUpdate()]);
+      await Promise.all([
+        runner.initialize(),
+        runTWAPUpdate()(),
+        runStateTransition()()
+      ]);
 
       logger.info("All services started successfully");
       runner.startListening();
 
       //Schedule cron
-      cron.schedule(CRON_SCHEDULE_TWAP as string, runTWAPUpdate());
-
+      //cron.schedule(CRON_SCHEDULE_TWAP as string, runTWAPUpdate() );
+      
       // Handle graceful shutdown
       this.setupGracefulShutdown();
     } catch (error) {

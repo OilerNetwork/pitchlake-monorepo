@@ -26,6 +26,13 @@ func (router *VaultRouter) subscribeVaultHandler(w http.ResponseWriter, r *http.
 	}
 }
 
+func (router *VaultRouter) sendJobRequestHandler(w http.ResponseWriter, r *http.Request) {
+	err := router.sendJobRequest(r.Context(), w, r)
+	if errors.Is(err, context.Canceled) {
+		return
+	}
+}
+
 func NewVaultRouter(serveMux *http.ServeMux, logger *log.Logger) *VaultRouter {
 	router := &VaultRouter{
 		Subscribers: SubscribersWithLock{

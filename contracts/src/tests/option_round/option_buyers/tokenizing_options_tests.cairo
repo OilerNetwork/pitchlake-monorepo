@@ -85,11 +85,11 @@ fn test_tokenizing_options_mints_option_tokens() {
 #[test]
 #[available_gas(500000000)]
 fn test_tokenizing_options_events() {
-    let (mut vault, _) = setup_facade();
+    let (mut vault, eth) = setup_facade();
     let (mut current_round, mut option_bidders) = test_helper(ref vault);
 
     // Check options tokenized event emits correctly
-    clear_event_logs(array![current_round.contract_address()]);
+    clear_event_logs(array![vault.contract_address()]);
     loop {
         match option_bidders.pop_front() {
             Option::Some(bidder) => {
@@ -97,7 +97,7 @@ fn test_tokenizing_options_events() {
                 // Tokenize options
                 let options_minted = current_round.mint_options(*bidder);
                 assert_event_options_tokenized(
-                    current_round.contract_address(), *bidder, options_minted,
+                    vault.contract_address(), eth.contract_address, current_round.get_round_id(), *bidder, options_minted,
                 );
                 // User's option erc20 balance after tokenizing
             },

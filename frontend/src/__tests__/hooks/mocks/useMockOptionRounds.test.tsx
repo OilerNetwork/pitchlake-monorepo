@@ -35,9 +35,9 @@ describe("useMockOptionRounds", () => {
       capLevel: "2480",
       roundState: "Open",
       reservePrice: "2000000000",
-      auctionStartDate: 1200000, // mockDate + 200000
-      auctionEndDate: 1400000, // mockDate + 400000
-      optionSettleDate: 1600000, // mockDate + 600000
+      auctionStartDate: 200000, // mockDate + 200000
+      auctionEndDate: 400000, // mockDate + 400000
+      optionSettleDate: 600000, // mockDate + 600000
       deploymentDate: "1",
       performanceLP: "0",
       performanceOB: "0",

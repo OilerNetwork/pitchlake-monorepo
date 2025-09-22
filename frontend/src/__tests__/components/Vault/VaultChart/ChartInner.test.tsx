@@ -102,7 +102,7 @@ jest.mock("@/context/ChartProvider", () => ({
   })),
 }));
 
-jest.mock("@/hooks/vault_v2/states/useRoundState", () => ({
+jest.mock("@/hooks/vault/states/useRoundState", () => ({
   __esModule: true,
   default: jest.fn(() => ({
     deploymentDate: "1000",
@@ -112,7 +112,7 @@ jest.mock("@/hooks/vault_v2/states/useRoundState", () => ({
   })),
 }));
 
-jest.mock("@/hooks/vault_v2/states/useVaultState", () => ({
+jest.mock("@/hooks/vault/states/useVaultState", () => ({
   __esModule: true,
   default: jest.fn(() => ({
     vaultState: {

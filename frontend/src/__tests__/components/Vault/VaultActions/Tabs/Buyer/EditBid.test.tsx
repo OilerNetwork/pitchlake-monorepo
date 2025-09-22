@@ -31,7 +31,7 @@ jest.mock("@/context/HelpProvider", () => ({
   }),
 }));
 
-jest.mock("@/hooks/vault_v2/states/useVaultState", () => ({
+jest.mock("@/hooks/vault/states/useVaultState", () => ({
   __esModule: true,
   default: () => ({
     vaultState: { ethAddress: "0x456", address: "0x789" },
@@ -39,7 +39,7 @@ jest.mock("@/hooks/vault_v2/states/useVaultState", () => ({
   }),
 }));
 
-jest.mock("@/hooks/vault_v2/states/useRoundState", () => ({
+jest.mock("@/hooks/vault/states/useRoundState", () => ({
   __esModule: true,
   default: () => ({
     address: "0xabc",
