@@ -6,20 +6,6 @@ import (
 )
 
 func TestLoadConfig(t *testing.T) {
-	// Save original environment variables
-	originalDBURL := os.Getenv("DB_URL")
-	originalRPCURL := os.Getenv("RPC_URL")
-	originalUDCAddress := os.Getenv("UDC_ADDRESS")
-	originalCursor := os.Getenv("CURSOR")
-
-	// Clean up after test
-	defer func() {
-		os.Setenv("DB_URL", originalDBURL)
-		os.Setenv("RPC_URL", originalRPCURL)
-		os.Setenv("UDC_ADDRESS", originalUDCAddress)
-		os.Setenv("CURSOR", originalCursor)
-	}()
-
 	tests := []struct {
 		name        string
 		envVars     map[string]string
@@ -27,30 +13,30 @@ func TestLoadConfig(t *testing.T) {
 		expected    *Config
 	}{
 		{
-			name: "valid config with all variables",
+			name: "valid configuration with all required fields",
 			envVars: map[string]string{
-				"DB_URL":      "postgres://localhost:5432/test",
+				"DB_URL":      "postgres://user:pass@localhost:5432/db",
 				"RPC_URL":     "https://starknet-mainnet.infura.io",
 				"UDC_ADDRESS": "0x123",
 				"CURSOR":      "1000",
 			},
 			expectError: false,
 			expected: &Config{
-				DatabaseURL: "postgres://localhost:5432/test",
+				DatabaseURL: "postgres://user:pass@localhost:5432/db",
 				RPCURL:      "https://starknet-mainnet.infura.io",
 				UDCAddress:  "0x123",
 				Cursor:      1000,
 			},
 		},
 		{
-			name: "valid config with required variables only",
+			name: "valid configuration with minimal required fields",
 			envVars: map[string]string{
-				"DB_URL":  "postgres://localhost:5432/test",
+				"DB_URL":  "postgres://user:pass@localhost:5432/db",
 				"RPC_URL": "https://starknet-mainnet.infura.io",
 			},
 			expectError: false,
 			expected: &Config{
-				DatabaseURL: "postgres://localhost:5432/test",
+				DatabaseURL: "postgres://user:pass@localhost:5432/db",
 				RPCURL:      "https://starknet-mainnet.infura.io",
 				UDCAddress:  "",
 				Cursor:      0,
@@ -66,16 +52,16 @@ func TestLoadConfig(t *testing.T) {
 		{
 			name: "missing RPC_URL",
 			envVars: map[string]string{
-				"DB_URL": "postgres://localhost:5432/test",
+				"DB_URL": "postgres://user:pass@localhost:5432/db",
 			},
 			expectError: true,
 		},
 		{
 			name: "invalid CURSOR value",
 			envVars: map[string]string{
-				"DB_URL":  "postgres://localhost:5432/test",
+				"DB_URL":  "postgres://user:pass@localhost:5432/db",
 				"RPC_URL": "https://starknet-mainnet.infura.io",
-				"CURSOR":  "invalid",
+				"CURSOR":  "not_a_number",
 			},
 			expectError: true,
 		},
@@ -83,19 +69,33 @@ func TestLoadConfig(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Clear environment
-			os.Unsetenv("DB_URL")
-			os.Unsetenv("RPC_URL")
-			os.Unsetenv("UDC_ADDRESS")
-			os.Unsetenv("CURSOR")
+			// Arrange - save original env vars
+			originalEnv := make(map[string]string)
+			for key := range tt.envVars {
+				originalEnv[key] = os.Getenv(key)
+			}
 
-			// Set test environment variables
+			// Clean up after test
+			t.Cleanup(func() {
+				// Restore original env vars
+				for key, value := range originalEnv {
+					if value == "" {
+						os.Unsetenv(key)
+					} else {
+						os.Setenv(key, value)
+					}
+				}
+			})
+
+			// Set test env vars
 			for key, value := range tt.envVars {
 				os.Setenv(key, value)
 			}
 
-			config, err := LoadConfig()
+			// Act
+			result, err := LoadConfig()
 
+			// Assert
 			if tt.expectError {
 				if err == nil {
 					t.Errorf("Expected error but got none")
@@ -108,26 +108,23 @@ func TestLoadConfig(t *testing.T) {
 				return
 			}
 
-			if config.DatabaseURL != tt.expected.DatabaseURL {
-				t.Errorf("Expected DatabaseURL %s, got %s", tt.expected.DatabaseURL, config.DatabaseURL)
+			if result.DatabaseURL != tt.expected.DatabaseURL {
+				t.Errorf("Expected DatabaseURL %s, got %s", tt.expected.DatabaseURL, result.DatabaseURL)
 			}
-
-			if config.RPCURL != tt.expected.RPCURL {
-				t.Errorf("Expected RPCURL %s, got %s", tt.expected.RPCURL, config.RPCURL)
+			if result.RPCURL != tt.expected.RPCURL {
+				t.Errorf("Expected RPCURL %s, got %s", tt.expected.RPCURL, result.RPCURL)
 			}
-
-			if config.UDCAddress != tt.expected.UDCAddress {
-				t.Errorf("Expected UDCAddress %s, got %s", tt.expected.UDCAddress, config.UDCAddress)
+			if result.UDCAddress != tt.expected.UDCAddress {
+				t.Errorf("Expected UDCAddress %s, got %s", tt.expected.UDCAddress, result.UDCAddress)
 			}
-
-			if config.Cursor != tt.expected.Cursor {
-				t.Errorf("Expected Cursor %d, got %d", tt.expected.Cursor, config.Cursor)
+			if result.Cursor != tt.expected.Cursor {
+				t.Errorf("Expected Cursor %d, got %d", tt.expected.Cursor, result.Cursor)
 			}
 		})
 	}
 }
 
-func TestConfigValidate(t *testing.T) {
+func TestConfig_Validate(t *testing.T) {
 	tests := []struct {
 		name        string
 		config      *Config
@@ -136,44 +133,54 @@ func TestConfigValidate(t *testing.T) {
 		{
 			name: "valid config",
 			config: &Config{
-				DatabaseURL: "postgres://localhost:5432/test",
+				DatabaseURL: "postgres://user:pass@localhost:5432/db",
 				RPCURL:      "https://starknet-mainnet.infura.io",
+				UDCAddress:  "0x123",
+				Cursor:      1000,
 			},
 			expectError: false,
 		},
 		{
 			name: "missing database URL",
 			config: &Config{
-				RPCURL: "https://starknet-mainnet.infura.io",
+				DatabaseURL: "",
+				RPCURL:      "https://starknet-mainnet.infura.io",
 			},
 			expectError: true,
 		},
 		{
 			name: "missing RPC URL",
 			config: &Config{
-				DatabaseURL: "postgres://localhost:5432/test",
+				DatabaseURL: "postgres://user:pass@localhost:5432/db",
+				RPCURL:      "",
 			},
 			expectError: true,
 		},
 		{
-			name:        "both URLs missing",
-			config:      &Config{},
+			name: "both URLs missing",
+			config: &Config{
+				DatabaseURL: "",
+				RPCURL:      "",
+			},
 			expectError: true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// Act
 			err := tt.config.Validate()
 
+			// Assert
 			if tt.expectError {
 				if err == nil {
 					t.Errorf("Expected error but got none")
 				}
-			} else {
-				if err != nil {
-					t.Errorf("Unexpected error: %v", err)
-				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("Unexpected error: %v", err)
 			}
 		})
 	}

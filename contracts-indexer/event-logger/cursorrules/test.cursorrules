@@ -1,0 +1,28 @@
+name: Golang Testing Rules
+description: Custom rules for writing tests in Golang projects following best practices.
+globs:
+  - "**/*.go"
+  
+rules:
+  - match: ".*_test.go"
+    instructions: |
+      # Golang Testing Best Practices for *_test.go files
+      
+      - Always use the `testing` package.
+      - Follow the Arrange-Act-Assert pattern: arrange test data, act by calling the function, assert the expected results.
+      - Name your tests starting with "Test" followed by the function name or behavior you are testing, e.g., `TestAddUser`.
+      - Use descriptive and clear variable names like inputX, expectedX, actualX.
+      - Write unit tests for each public function.
+      - Use test doubles (mocks or fakes) to simulate dependencies where appropriate.
+      - Use table-driven tests for testing various inputs and outputs efficiently.
+      - For setup or teardown, use `t.Cleanup` or setup helper functions.
+      - Handle errors explicitly and use `t.Fatal` or `t.Error` to report failures.
+      - Use `go test -v` for verbose output when running tests.
+      
+  - match: "**/*.go"
+    instructions: |
+      # General Go coding rules relevant to tests
+      
+      - Keep functions small and focused.
+      - Declare types explicitly.
+      - Handle errors explicitly.
