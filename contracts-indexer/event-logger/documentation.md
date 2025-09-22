@@ -8,24 +8,8 @@ The Event Logger is a sophisticated StarkNet event indexing system designed to c
 
 ### High-Level Architecture
 
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   StarkNet      │───▶│   Juno Node      │───▶│  Event Logger   │
-│   Blockchain    │    │   (with Plugin)  │    │    Plugin       │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-                                                         │
-                                                         ▼
-                                               ┌─────────────────┐
-                                               │   PostgreSQL    │
-                                               │    Database     │
-                                               └─────────────────┘
-                                                         │
-                                                         ▼
-                                               ┌─────────────────┐
-                                               │  Event Processor│
-                                               │   (Downstream)  │
-                                               └─────────────────┘
-```
+<img width="615" height="246" alt="Screenshot 2025-09-23 at 12 29 45 AM" src="https://github.com/user-attachments/assets/cd8fe294-b1a4-4073-89c6-24d89f7ad32b" />
+
 
 ### Component Architecture
 
