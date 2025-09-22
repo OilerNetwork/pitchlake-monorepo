@@ -29,24 +29,7 @@ export class StateHandlers {
 
   async handleOpenState(roundContract: Contract, vaultContract: Contract) {
     // Send dummy txn to make katana mine a block
-    let ethAddress;
-    try {
-      ethAddress = await vaultContract.get_eth_address();
-
-      this.logger.debug("Raw ETH address response:", {
-        ethAddress,
-        type: typeof ethAddress,
-      });
-
-      if (ethAddress === undefined || ethAddress === null) {
-        this.logger.warn("ETH address is not set, skipping dummy transaction");
-        return;
-      }
-    } catch (error) {
-      this.logger.error("Failed to get ETH address:", error);
-      return;
-    }
-
+    const ethAddress = await vaultContract.get_eth_address();
     const ethAddressHex = "0x" + BigInt(ethAddress).toString(16);
     const ethContract = new Contract(
       erc20ABI,
@@ -62,70 +45,12 @@ export class StateHandlers {
 
     try {
       // Check if this is the first round that needs initialization
-      let reservePrice;
-      try {
-        reservePrice = await roundContract.get_reserve_price();
-
-        this.logger.debug("Raw reserve price response:", {
-          reservePrice,
-          type: typeof reservePrice,
-        });
-
-        // Check if reserve price is valid
-        if (reservePrice === undefined || reservePrice === null) {
-          this.logger.warn(
-            "Reserve price is not set, skipping reserve price logic",
-          );
-          return;
-        }
-      } catch (error) {
-        this.logger.error("Failed to get reserve price:", error);
-        return;
-      }
+      const reservePrice = await roundContract.get_reserve_price();
 
       if (reservePrice === 0n) {
         this.logger.info("First round detected - needs initialization");
-        let requestData;
-        try {
-          requestData = await vaultContract.get_request_to_start_first_round();
-
-          this.logger.debug("Raw request data response:", {
-            requestData,
-            type: typeof requestData,
-          });
-
-          if (
-            requestData === undefined ||
-            requestData === null ||
-            typeof requestData !== "object"
-          ) {
-            this.logger.warn(
-              "Request data is invalid, for first round initialization",
-            );
-            return;
-          }
-
-          // Check if the request data has the required structure
-          if (
-            !requestData.params ||
-            !requestData.program_id ||
-            !requestData.vault_address
-          ) {
-            this.logger.warn(
-              "Request data is missing required fields, skipping first round initialization",
-            );
-            this.logger.warn(
-              "Required fields: params, program_id, vault_address",
-            );
-            return;
-          }
-        } catch (error) {
-          this.logger.error(
-            "Failed to get request data for first round:",
-            error,
-          );
-          return;
-        }
+        const requestData =
+          await vaultContract.get_request_to_start_first_round();
 
         //// Check if Fossil has required blocks before proceeding
         //if (this.latestFossilBlock.timestamp < requestTimestamp) {
@@ -152,28 +77,6 @@ export class StateHandlers {
       }
 
       // Existing auction start logic
-      //
-      let auctionStartTimeRaw;
-      try {
-        auctionStartTimeRaw = await roundContract.get_auction_start_date();
-
-        this.logger.debug("Raw auction start time response:", {
-          auctionStartTimeRaw,
-          type: typeof auctionStartTimeRaw,
-        });
-
-        // Check if auction start time is valid
-        if (auctionStartTimeRaw === undefined || auctionStartTimeRaw === null) {
-          this.logger.warn(
-            "Auction start date is not set yet, skipping auction start logic",
-          );
-          return;
-        }
-      } catch (error) {
-        this.logger.error("Failed to get auction start date:", error);
-        return;
-      }
-
       const latestBlockStarknet = await this.provider.getBlock("latest");
       if (!latestBlockStarknet) {
         console.error("No latest block found");
@@ -182,33 +85,7 @@ export class StateHandlers {
       const latestBlockStarknetFormatted =
         rpcToStarknetBlock(latestBlockStarknet);
 
-      console.log(
-        "DEBUGGING: updated latestBlockStarknet",
-        latestBlockStarknetFormatted.timestamp,
-      );
-
-      try {
-        const roundIdRaw = await roundContract.get_round_id();
-        const transitionDurationRaw =
-          await vaultContract.get_round_transition_duration();
-        const auctionDurationRaw = await vaultContract.get_auction_duration();
-        const roundDurationRaw = await vaultContract.get_round_duration();
-
-        // Check if any values are undefined
-        if (
-          roundIdRaw === undefined ||
-          transitionDurationRaw === undefined ||
-          auctionDurationRaw === undefined ||
-          roundDurationRaw === undefined
-        ) {
-          this.logger.warn("");
-          return;
-        }
-      } catch (error) {
-        this.logger.error("Failed to get duration values:", error);
-        return;
-      }
-
+      // Check if any values are undefined
       //if (this.latestFossilBlock.timestamp < auctionStartTime) {
       //  this.logger.info(
       //    `Waiting for auction start time. Time left: ${formatTimeLeft(
@@ -246,119 +123,69 @@ export class StateHandlers {
     roundContract: Contract,
     vaultContract: Contract,
   ) {
-    try {
-      let auctionEndTimeRaw;
-      try {
-        auctionEndTimeRaw = await roundContract.get_auction_end_date();
+    const auctionEndTimeRaw = await roundContract.get_auction_end_date();
+    const auctionEndTime = Number(auctionEndTimeRaw);
 
-        this.logger.debug("Raw auction end time response:", {
-          auctionEndTimeRaw,
-          type: typeof auctionEndTimeRaw,
-        });
-
-        // Check if auction end time is valid
-        if (auctionEndTimeRaw === undefined || auctionEndTimeRaw === null) {
-          this.logger.warn(
-            "Auction end date is not set, skipping auction end logic",
-          );
-          return;
-        }
-      } catch (error) {
-        this.logger.error("Failed to get auction end date:", error);
-        return;
-      }
-
-      const auctionEndTime = Number(auctionEndTimeRaw);
-
-      if (this.latestStarknetBlock.timestamp < auctionEndTime) {
-        this.logger.info(
-          `Waiting for auction end time. Time left: ${formatTimeLeft(
-            this.latestStarknetBlock.timestamp,
-            auctionEndTime,
-          )}`,
-        );
-        return;
-      }
-
-      this.logger.info("Ending auction...");
-
-      const { suggestedMaxFee: estimatedMaxFee } =
-        await this.account.estimateInvokeFee({
-          contractAddress: vaultContract.address,
-          entrypoint: "end_auction",
-          calldata: [],
-        });
-
-      const { transaction_hash } = await vaultContract.end_auction();
-      await this.provider.waitForTransaction(transaction_hash);
-
-      this.logger.info("Auction ended successfully", {
-        transactionHash: transaction_hash,
-      });
-    } catch (error) {
-      this.logger.error("Error handling Auctioning state:", error);
-      throw error;
+    if (this.latestStarknetBlock.timestamp < auctionEndTime) {
+      this.logger.info(
+        `Waiting for auction end time. Time left: ${formatTimeLeft(
+          this.latestStarknetBlock.timestamp,
+          auctionEndTime,
+        )}`,
+      );
+      return;
     }
+
+    this.logger.info("Ending auction...");
+
+    const { suggestedMaxFee: estimatedMaxFee } =
+      await this.account.estimateInvokeFee({
+        contractAddress: vaultContract.address,
+        entrypoint: "end_auction",
+        calldata: [],
+      });
+
+    const { transaction_hash } = await vaultContract.end_auction();
+    await this.provider.waitForTransaction(transaction_hash);
+
+    this.logger.info("Auction ended successfully", {
+      transactionHash: transaction_hash,
+    });
   }
 
   async handleRunningState(
     roundContract: Contract,
     vaultContract: Contract,
   ): Promise<void> {
-    try {
-      let settlementTimeRaw;
-      try {
-        settlementTimeRaw = await roundContract.get_option_settlement_date();
+    const settlementTimeRaw = await roundContract.get_option_settlement_date();
+    const settlementTime = Number(settlementTimeRaw);
 
-        this.logger.debug("Raw settlement time response:", {
-          settlementTimeRaw,
-          type: typeof settlementTimeRaw,
-        });
-
-        // Check if settlement time is valid
-        if (settlementTimeRaw === undefined || settlementTimeRaw === null) {
-          this.logger.warn(
-            "Settlement date is not set, skipping settlement logic",
-          );
-          return;
-        }
-      } catch (error) {
-        this.logger.error("Failed to get settlement date:", error);
-        return;
-      }
-
-      const settlementTime = Number(settlementTimeRaw);
-
-      if (this.latestStarknetBlock.timestamp < settlementTime) {
-        this.logger.info(
-          `Waiting for settlement time. Time left: ${formatTimeLeft(
-            this.latestStarknetBlock.timestamp,
-            settlementTime,
-          )}`,
-        );
-        return;
-      }
-
-      this.logger.info("Settlement time reached");
-
-      //// Check if Fossil has required blocks before proceeding
-      //if (this.latestFossilBlock.timestamp < Number(requestData.timestamp)) {
-      //  this.logger.info(
-      //    `Fossil blocks haven't reached the request timestamp yet`
-      //  );
-      //  return;
-      //}
-
-      const rawRequestData = await vaultContract.get_request_to_settle_round();
-
-      await sendFossilRequest(
-        formatRawFossilRequest(rawRequestData),
-        vaultContract,
-        this.logger,
+    if (this.latestStarknetBlock.timestamp < settlementTime) {
+      this.logger.info(
+        `Waiting for settlement time. Time left: ${formatTimeLeft(
+          this.latestStarknetBlock.timestamp,
+          settlementTime,
+        )}`,
       );
-    } catch (error) {
-      this.logger.error("Error handling Running state:", error);
-      throw error;
+      return;
     }
+
+    this.logger.info("Settlement time reached");
+
+    //// Check if Fossil has required blocks before proceeding
+    //if (this.latestFossilBlock.timestamp < Number(requestData.timestamp)) {
+    //  this.logger.info(
+    //    `Fossil blocks haven't reached the request timestamp yet`
+    //  );
+    //  return;
+    //}
+
+    const rawRequestData = await vaultContract.get_request_to_settle_round();
+
+    await sendFossilRequest(
+      formatRawFossilRequest(rawRequestData),
+      vaultContract,
+      this.logger,
+    );
   }
 }
