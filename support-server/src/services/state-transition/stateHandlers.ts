@@ -10,20 +10,17 @@ export class StateHandlers {
   private logger: Logger;
   private provider: RpcProvider;
   private account: Account;
-  private latestFossilBlock: FormattedBlockData;
   private latestStarknetBlock: StarknetBlock;
 
   constructor(
     logger: Logger,
     provider: RpcProvider,
     account: Account,
-    latesFossilBlock: FormattedBlockData,
     latestStarknetBlock: StarknetBlock
   ) {
     this.logger = logger;
     this.provider = provider;
     this.account = account;
-    this.latestFossilBlock = latesFossilBlock;
     this.latestStarknetBlock = latestStarknetBlock;
   }
 

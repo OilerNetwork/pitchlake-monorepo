@@ -37,7 +37,6 @@ export class StateTransitionService {
       provider,
       this.account,
       latestBlockFossil,
-      latestBlockStarknet,
     );
   }
 

@@ -175,7 +175,6 @@ pub trait IVault<TContractState> {
     fn fossil_callback(
         ref self: TContractState, job_request: Span<felt252>, result: Span<felt252>,
     ) -> u256;
-    
     fn emit_option_round_event(ref self: TContractState, round_id: u64, option_round_event: OptionRoundEvent);
 }
 
