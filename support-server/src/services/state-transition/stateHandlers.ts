@@ -127,10 +127,6 @@ export class StateHandlers {
           return;
         }
 
-        // Format request data for timestamp check
-        // The request data is now an object, so we need to extract the timestamp from params
-        // Based on the ABI, the timestamp should be in params.twap[1]
-
         //// Check if Fossil has required blocks before proceeding
         //if (this.latestFossilBlock.timestamp < requestTimestamp) {
         //  this.logger.info(
