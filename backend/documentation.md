@@ -6,28 +6,7 @@ The Pitchlake Backend is a high-performance WebSocket server built in Go that pr
 
 ## Architecture
 
-### Core Components
-
-```
-backend/
-├── main.go                 # Application entry point
-├── server/                 # Server implementation
-│   ├── server.go          # Main server setup and routing
-│   ├── listener.go        # Database event listener
-│   ├── api/               # API handlers and services
-│   │   ├── general/       # Gas price and general endpoints
-│   │   ├── home/          # Home dashboard endpoints
-│   │   ├── vault/         # Vault-specific endpoints
-│   │   ├── utils/         # Shared utilities
-│   │   └── integrations/  # External service integrations
-│   ├── types/             # Type definitions
-│   └── validations/       # Request validation logic
-├── db/                    # Database layer
-│   ├── db.go             # Database connection management
-│   └── repositories/     # Data access layer
-├── models/               # Data models and structures
-└── docker-compose.yml    # Container orchestration
-```
+<img width="450" height="274" alt="Screenshot 2025-09-23 at 12 32 18 AM" src="https://github.com/user-attachments/assets/e0f2d6c0-4c1a-49dc-8a62-a09869e6e2cb" />
 
 ### Server Architecture
 
