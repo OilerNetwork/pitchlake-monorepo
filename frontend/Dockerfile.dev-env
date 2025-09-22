@@ -44,5 +44,8 @@ RUN pnpm install --frozen-lockfile --prod
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 
+# Build the Next.js application
+RUN pnpm run build
+
 # Define the command to run the app
 CMD ["sh", "-c", "PORT=${PORT} pnpm start"]
