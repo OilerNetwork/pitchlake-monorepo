@@ -1,30 +1,30 @@
 import { Account, Contract, RpcProvider } from "starknet";
-import { FormattedBlockData } from "../confirmed-twaps/types";
 import { Logger } from "winston";
-import { findJobId, formatRawToFossilRequest, formatTimeLeft } from "./utils";
+import {  formatRawToFossilRequest, formatTimeLeft } from "./utils";
 import { sendFossilRequest } from "./utils";
-import { StarknetBlock } from "../../types/types";
+import { JobRequest, JobStatus } from "../../types/types";
 import { rpcToStarknetBlock } from "../../utils/rpcClient";
 import { ABI as erc20ABI } from "../../abi/erc20";
+import { DB } from "../../shared/db";
 export class StateHandlers {
+  private db: DB;
   private logger: Logger;
   private provider: RpcProvider;
   private account: Account;
-  private latestStarknetBlock: StarknetBlock;
 
   constructor(
+    db: DB,
     logger: Logger,
     provider: RpcProvider,
     account: Account,
-    latestStarknetBlock: StarknetBlock
   ) {
+    this.db = db;
     this.logger = logger;
     this.provider = provider;
     this.account = account;
-    this.latestStarknetBlock = latestStarknetBlock;
   }
 
-  async handleOpenState(roundContract: Contract, vaultContract: Contract) {
+  async handleOpenState(roundContract: Contract, vaultContract: Contract, jobRequest: JobRequest|undefined) {
     const ethAddress = await vaultContract.get_eth_address();
     console.log("DEBUGGING: ethAddress", ethAddress);
     const ethAddressHex = "0x" + BigInt(ethAddress).toString(16);
@@ -38,26 +38,26 @@ export class StateHandlers {
     try {
       // Check if this is the first round that needs initialization
       const reservePrice = await roundContract.get_reserve_price();
-
+      console.log("DEBUGGING: reservePrice", reservePrice);
       if (reservePrice === 0n) {
         //logger.info("First round detected - needs initialization");
         const requestData =
           await vaultContract.get_request_to_start_first_round();
-        const findJobIdResponse = await findJobId(
-          formatRawToFossilRequest(requestData),
-          vaultContract.address,
-          vaultContract,
-          this.logger
-        );
-        if (!findJobIdResponse.job_id) {
-          await sendFossilRequest(
+          console.log("DEBUGGING: jobRequest", jobRequest);
+          if (jobRequest?.status === JobStatus.Pending) {
+            this.logger.info(`Job request for vault ${vaultContract.address} is pending`);
+            return;
+          }
+          this.logger.info(`Job request for vault ${vaultContract.address} is failed, retrying`);
+          const response = await sendFossilRequest(
             formatRawToFossilRequest(requestData),
             vaultContract.address,
             vaultContract,
             this.logger
           );
+          await this.db.upsertJobRequest(vaultContract.address, response.job_id, response.status as JobStatus);
           return;
-        }
+          
 
         // The fossil request takes some time to process, so we'll exit here
         // and let the cron handle the state transition in the next iteration
@@ -70,9 +70,16 @@ export class StateHandlers {
       );
 
       console.log("DEBUGGING: auctionStartTime", auctionStartTime);
+      const latestBlock = await this.provider.getBlock("latest");
+      if (!latestBlock) {
+        console.error("No latest block found");
+        return;
+      }
+      const latestStarknetBlock =
+        rpcToStarknetBlock(latestBlock);
       console.log(
         "DEBUGGING: latest starknet block timestamp" +
-          this.latestStarknetBlock.timestamp
+          latestStarknetBlock.timestamp
       );
       console.log("DEBUGGING: now unix" + new Date().getTime() / 1000);
 
@@ -125,7 +132,6 @@ export class StateHandlers {
           },
         ]);
 
-      console.log("ARE WE HERE");
       const { transaction_hash } = await vaultContract.start_auction();
       await this.provider.waitForTransaction(transaction_hash);
 
@@ -145,10 +151,17 @@ export class StateHandlers {
     try {
       const auctionEndTime = Number(await roundContract.get_auction_end_date());
 
-      if (this.latestStarknetBlock.timestamp < auctionEndTime) {
+      const latestBlock = await this.provider.getBlock("latest");
+      if (!latestBlock) {
+        console.error("No latest block found");
+        return;
+      }
+      const latestStarknetBlock =
+        rpcToStarknetBlock(latestBlock);
+      if (latestStarknetBlock.timestamp < auctionEndTime) {
         this.logger.info(
           `Waiting for auction end time. Time left: ${formatTimeLeft(
-            this.latestStarknetBlock.timestamp,
+            latestStarknetBlock.timestamp,
             auctionEndTime
           )}`
         );
@@ -178,17 +191,25 @@ export class StateHandlers {
 
   async handleRunningState(
     roundContract: Contract,
-    vaultContract: Contract
+    vaultContract: Contract,
+    jobRequest: JobRequest|undefined
   ): Promise<void> {
     try {
       const settlementTime = Number(
         await roundContract.get_option_settlement_date()
       );
 
-      if (this.latestStarknetBlock.timestamp < settlementTime) {
+      const latestBlock = await this.provider.getBlock("latest");
+      if (!latestBlock) {
+        console.error("No latest block found");
+        return;
+      }
+      const latestStarknetBlock =
+        rpcToStarknetBlock(latestBlock);
+      if (latestStarknetBlock.timestamp < settlementTime) {
         this.logger.info(
           `Waiting for settlement time. Time left: ${formatTimeLeft(
-            this.latestStarknetBlock.timestamp,
+            latestStarknetBlock.timestamp,
             settlementTime
           )}`
         );
@@ -197,6 +218,10 @@ export class StateHandlers {
 
       this.logger.info("Settlement time reached");
 
+      if (jobRequest?.status === JobStatus.Pending) {
+        this.logger.info(`Job request for vault ${vaultContract.address} is pending`);
+        return;
+      }
       const rawRequestData = await vaultContract.get_request_to_settle_round();
       const requestData = formatRawToFossilRequest(rawRequestData);
 

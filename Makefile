@@ -195,8 +195,49 @@ status: ## Show status of all services
 .PHONY: migrate
 migrate: ## Run database migrations
 	@echo "🗄️  Running database migrations..."
-	@cd support-server && $(MAKE) migrate-all
+	@$(MAKE) migrate-pitchlake
+	@$(MAKE) migrate-fossil
 	@echo "✅ Migrations completed!"
+
+.PHONY: migrate-pitchlake
+migrate-pitchlake: ## Run pitchlake database migrations
+	@echo "️  Running pitchlake migrations..."
+	@if docker ps --format "table {{.Names}}" | grep -q "pitchlake-db"; then \
+		echo "Pitchlake database is running"; \
+	else \
+		echo "Starting pitchlake database..."; \
+		docker-compose up -d pitchlake-db; \
+		echo "Waiting for database to be ready..."; \
+		sleep 5; \
+	fi
+	@if docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "\dt" 2>/dev/null | grep -q "twap_state"; then \
+		echo "Pitchlake migrations already applied"; \
+	else \
+		echo "Applying pitchlake migrations..."; \
+		docker exec -i pitchlake-db psql -U pitchlake_user -d pitchlake < migrations/pitchlake/001_create_twap_tables.sql; \
+		docker exec -i pitchlake-db psql -U pitchlake_user -d pitchlake < migrations/pitchlake/002_add_notify_triggers.sql; \
+		docker exec -i pitchlake-db psql -U pitchlake_user -d pitchlake < migrations/pitchlake/003_create_fossil_table.sql; \
+		echo "Pitchlake migrations completed!"; \
+	fi
+
+.PHONY: migrate-fossil
+migrate-fossil: ## Run fossil database migrations
+	@echo "🗄️  Running fossil migrations..."
+	@if docker ps --format "table {{.Names}}" | grep -q "fossil-db"; then \
+		echo "Fossil database is running"; \
+	else \
+		echo "Starting fossil database..."; \
+		docker-compose up -d fossil-db; \
+		echo "Waiting for database to be ready..."; \
+		sleep 5; \
+	fi
+	@if docker exec fossil-db psql -U fossil_user -d fossil -c "\dt" 2>/dev/null | grep -q "blockheaders"; then \
+		echo "Fossil migrations already applied"; \
+	else \
+		echo "Applying fossil migrations..."; \
+		docker exec -i fossil-db psql -U fossil_user -d fossil < migrations/fossil/001_create_blockheaders_table.sql; \
+		echo "Fossil migrations completed!"; \
+	fi
 
 .PHONY: reset-dbs
 reset-dbs: ## Reset all databases (WARNING: This will delete all data!)
@@ -259,3 +300,8 @@ reset-fossil: ## Reset Fossil database
 	@echo "🗄️  Resetting Fossil database..."
 	@cd fossil-monorepo && $(MAKE) dev-down && $(MAKE) dev-up
 	@echo "✅ Fossil database reset!"
+
+.PHONY: list-jobs
+list-jobs:
+	@echo "Listing all jobs in job_requests table..."
+	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "SELECT * FROM job_requests;" || echo "Failed to list jobs. Make sure the container is running."

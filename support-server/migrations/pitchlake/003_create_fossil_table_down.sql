@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS public.job_requests;

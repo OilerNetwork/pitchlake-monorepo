@@ -19,72 +19,24 @@ export const formatRawToFossilRequest = (rawData: any) => {
   };
 };
 
-export const findJobId = async (
-  requestData: FossilRequest,
-  clientAddress: string,
-  vaultContract: Contract,
-  logger: Logger,
-) => {
-  // Format request data
-  const vaultAddress = requestData.vaultAddress;
-  const requestTimestamp = Number(requestData.timestamp);
-  const identifier = requestData.identifier;
-
-  // Get round duration from vault contract
-  const roundDuration = Number(await vaultContract.get_round_duration());
-
-  // Calculate windows for each metric
-  const twapWindow = roundDuration;
-  const maxReturnWindow = roundDuration * 3;
-  const reservePriceWindow = roundDuration * 3;
-
-  logger.debug("Calculation windows:", {
-    roundDuration,
-    twapWindow,
-    maxReturnWindow,
-    reservePriceWindow,
-  });
-
-  const fossilRequest = {
-    identifiers: [identifier],
-    params: {
-      twap: [requestTimestamp - twapWindow, requestTimestamp],
-      volatility: [requestTimestamp - maxReturnWindow, requestTimestamp],
-      reserve_price: [requestTimestamp - reservePriceWindow, requestTimestamp],
-    },
-    client_info: {
-      client_address: clientAddress,
-      vault_address: vaultAddress,
-      timestamp: requestTimestamp,
-    },
-  };
-
-  logger.info("Sending request to Fossil API");
-  logger.debug({ request: fossilRequest });
-
+export const getJobStatus = async (jobId: string) => {
   try {
-    const response = await axios.post(
-      `${FOSSIL_API_URL}/find_job_id`,
-      fossilRequest,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": FOSSIL_API_KEY,
-        },
+    const response = await axios.get(`${FOSSIL_API_URL}/job_status/${jobId}`, {
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": FOSSIL_API_KEY,
       },
-    );
-
-    logger.info(
-      "Fossil request sent. Response: " + JSON.stringify(response.data),
-    );
+    });
     return response.data;
   } catch (error) {
-    logger.error("Error sending Fossil request:", error);
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      // Job not found - return a default status
+      return { status: 'not_found', job_id: jobId };
+    }
+    // Re-throw other errors
     throw error;
   }
 };
-
-
 export const sendFossilRequest = async (
   requestData: FossilRequest,
   clientAddress: string,
