@@ -7,19 +7,8 @@ The Event Processor is a sophisticated event processing system designed to handl
 ## System Architecture
 
 ### High-Level Architecture
+<img width="615" height="246" alt="Screenshot 2025-09-23 at 12 29 45 AM" src="https://github.com/user-attachments/assets/7a5a2965-918d-46ec-982a-2679df1d1b15" />
 
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Event Logger  │───▶│   PostgreSQL     │───▶│ Event Processor │
-│   (Juno Plugin) │    │   Database       │    │   (Go Service)  │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-                                │                         │
-                                ▼                         ▼
-                       ┌─────────────────┐    ┌─────────────────┐
-                       │ Database        │    │ State Updates   │
-                       │ Triggers        │    │ & Notifications │
-                       └─────────────────┘    └─────────────────┘
-```
 
 ### Component Architecture
 
