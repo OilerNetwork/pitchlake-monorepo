@@ -17,18 +17,8 @@ The Support Server is a consolidated Node.js application that provides essential
 
 ### High-Level Architecture
 
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Ethereum      │───▶│  Support Server  │───▶│   PostgreSQL    │
-│   Blockchain    │    │  (Node.js)       │    │   Databases     │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-                                │                         │
-                                ▼                         ▼
-                       ┌─────────────────┐    ┌─────────────────┐
-                       │   StarkNet      │    │  State Updates  │
-                       │   Contracts     │    │  & Notifications│
-                       └─────────────────┘    └─────────────────┘
-```
+<img width="450" height="274" alt="Screenshot 2025-09-23 at 12 32 18 AM" src="https://github.com/user-attachments/assets/86c8050e-77e4-46c0-82b5-5c48e7bb9c0c" />
+
 
 ### Component Architecture
 
