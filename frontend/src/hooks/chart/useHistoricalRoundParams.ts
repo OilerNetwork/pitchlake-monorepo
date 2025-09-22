@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
 import { useEffect } from "react";
 import { useProvider } from "@starknet-react/core";
 import { useNewContext } from "@/context/NewProvider";
@@ -32,15 +31,17 @@ const fetchVaultRounds = async (
   toRound: number | undefined,
   nodeUrl: string | undefined,
 ): Promise<ReadVaultRoundsResponse> => {
-  const response = await axios.get("/api/getHistoricalRoundParams", {
-    params: {
+  const response = await fetch("/api/getHistoricalRoundParams", {
+    method: "GET",
+    body: JSON.stringify({
       vaultAddress,
       fromRound,
       toRound,
       nodeUrl,
-    },
+    }),
   });
-  return response.data;
+  const data = await response.json();
+  return data;
 };
 
 export const useHistoricalRoundParams = ({

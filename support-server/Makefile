@@ -58,8 +58,8 @@ migrate-pitchlake: check-dbs
 		echo "Pitchlake migrations already applied"; \
 	else \
 		echo "Running pitchlake migrations..."; \
-		docker exec -i pitchlake-db psql -U pitchlake_user -d pitchlake < migrations/pitchlake/001_create_twap_tables.sql; \
-		docker exec -i pitchlake-db psql -U pitchlake_user -d pitchlake < migrations/pitchlake/002_add_notify_triggers.sql; \
+		docker exec -i pitchlake-db psql -U pitchlake_user -d pitchlake < ../migrations/pitchlake/001_create_twap_tables.sql; \
+		docker exec -i pitchlake-db psql -U pitchlake_user -d pitchlake < ../migrations/pitchlake/002_add_notify_triggers.sql; \
 		echo "Pitchlake migrations completed!"; \
 	fi
 
@@ -69,7 +69,7 @@ migrate-fossil: check-dbs
 		echo "Fossil migrations already applied"; \
 	else \
 		echo "Running fossil migrations..."; \
-		docker exec -i fossil-db psql -U fossil_user -d fossil < migrations/fossil/001_create_blockheaders_table.sql; \
+		docker exec -i fossil-db psql -U fossil_user -d fossil < ../migrations/fossil/001_create_blockheaders_table.sql; \
 		echo "Fossil migrations completed!"; \
 	fi
 

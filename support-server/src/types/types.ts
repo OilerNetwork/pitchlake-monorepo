@@ -7,6 +7,19 @@ export interface StateTransitionConfig {
   vaultAddresses: string[];
 }
 
+export enum JobStatus {
+  Pending = "Pending",
+  Completed = "Completed",
+  Failed = "Failed",
+  NOT_FOUND = "not_found",
+}
+
+export type JobRequest = {
+  job_id: string;
+  status: JobStatus;
+  vaultAddress: string;
+}
+
 enum OptionRoundState {
   Open = 0,
   Auctioning = 1, 

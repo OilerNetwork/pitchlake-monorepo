@@ -9,7 +9,7 @@ jest.mock("@/context/NewProvider", () => ({
   useNewContext: jest.fn(),
 }));
 
-jest.mock("@/hooks/vault_v2/rpc/useLPStateRPC", () => ({
+jest.mock("@/hooks/vault/rpc/useLPStateRPC", () => ({
   __esModule: true,
   default: jest.fn(),
 }));

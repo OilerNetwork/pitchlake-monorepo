@@ -237,17 +237,17 @@ jest.mock("@/context/NewProvider", () => ({
   useNewContext: jest.fn(() => mockConfig.hooks.newContext),
 }));
 
-jest.mock("@/hooks/vault_v2/rpc/useOptionBuyerStateRPC", () => ({
+jest.mock("@/hooks/vault/rpc/useOptionBuyerStateRPC", () => ({
   __esModule: true,
   default: jest.fn(() => mockConfig.hooks.optionBuyer),
 }));
 
-jest.mock("@/hooks/vault_v2/actions/useVaultActions", () => ({
+jest.mock("@/hooks/vault/actions/useVaultActions", () => ({
   __esModule: true,
   default: jest.fn(() => mockConfig.hooks.optionRound),
 }));
 
-jest.mock("@/hooks/vault_v2/states/useRoundState", () => ({
+jest.mock("@/hooks/vault/states/useRoundState", () => ({
   __esModule: true,
   default: jest.fn(() => ({
     roundState: "Auctioning",
@@ -255,7 +255,7 @@ jest.mock("@/hooks/vault_v2/states/useRoundState", () => ({
   })),
 }));
 
-jest.mock("@/hooks/vault_v2/states/useVaultState", () => ({
+jest.mock("@/hooks/vault/states/useVaultState", () => ({
   __esModule: true,
   default: jest.fn(() => ({
     selectedRoundAddress: "0x123",
@@ -266,7 +266,7 @@ jest.mock("@/hooks/vault_v2/states/useVaultState", () => ({
   })),
 }));
 
-jest.mock("@/hooks/vault_v2/states/useOBState", () => {
+jest.mock("@/hooks/vault/states/useOBState", () => {
   const mockOBState = jest.fn();
   mockOBState.mockReturnValue({
     bids: [

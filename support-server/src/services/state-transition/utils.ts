@@ -19,6 +19,24 @@ export const formatRawToFossilRequest = (rawData: any) => {
   };
 };
 
+export const getJobStatus = async (jobId: string) => {
+  try {
+    const response = await axios.get(`${FOSSIL_API_URL}/job_status/${jobId}`, {
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": FOSSIL_API_KEY,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      // Job not found - return a default status
+      return { status: 'not_found', job_id: jobId };
+    }
+    // Re-throw other errors
+    throw error;
+  }
+};
 export const sendFossilRequest = async (
   requestData: FossilRequest,
   clientAddress: string,

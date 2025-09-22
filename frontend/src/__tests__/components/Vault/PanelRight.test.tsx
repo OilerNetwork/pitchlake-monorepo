@@ -27,7 +27,7 @@ jest.mock("../../../hooks/vault/useTabContent", () => ({
   useTabContent: jest.fn(),
 }));
 
-jest.mock("@/hooks/vault_v2/states/useVaultState", () => ({
+jest.mock("@/hooks/vault/states/useVaultState", () => ({
   __esModule: true,
   default: jest.fn().mockReturnValue({
     vaultState: {
@@ -38,7 +38,7 @@ jest.mock("@/hooks/vault_v2/states/useVaultState", () => ({
   }),
 }));
 
-jest.mock("@/hooks/vault_v2/states/useRoundState", () => ({
+jest.mock("@/hooks/vault/states/useRoundState", () => ({
   __esModule: true,
   default: jest.fn().mockReturnValue({
     roundId: "1",
@@ -61,7 +61,7 @@ jest.mock("@/context/NewProvider", () => ({
   }),
 }));
 
-jest.mock("@/hooks/vault_v2/rpc/useOptionBuyerStateRPC", () => ({
+jest.mock("@/hooks/vault/rpc/useOptionBuyerStateRPC", () => ({
   __esModule: true,
   default: jest.fn().mockReturnValue(null),
 }));

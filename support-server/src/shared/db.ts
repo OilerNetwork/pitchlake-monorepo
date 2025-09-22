@@ -1,4 +1,5 @@
 import { PoolClient, Pool } from "pg";
+import { JobRequest, JobStatus } from "src/types/types";
 
 export class DB {
   private fossilPool: Pool;
@@ -6,11 +7,15 @@ export class DB {
 
   constructor() {
     // Check if we're in demo mode
-    if (process.env.USE_DEMO_DATA === 'true') {
+    if (process.env.USE_DEMO_DATA === "true") {
       // In demo mode, create mock pools or use fallback connection strings
-      const fallbackFossilUrl = process.env.FOSSIL_DB_URL || 'postgresql://demo:demo@localhost:5432/fossil_demo';
-      const fallbackPitchlakeUrl = process.env.PITCHLAKE_DB_URL || 'postgresql://demo:demo@localhost:5433/pitchlake_demo';
-      
+      const fallbackFossilUrl =
+        process.env.FOSSIL_DB_URL ||
+        "postgresql://demo:demo@localhost:5432/fossil_demo";
+      const fallbackPitchlakeUrl =
+        process.env.PITCHLAKE_DB_URL ||
+        "postgresql://demo:demo@localhost:5433/pitchlake_demo";
+
       this.fossilPool = new Pool({
         connectionString: fallbackFossilUrl,
         ssl: this.getSSLConfig(fallbackFossilUrl),
@@ -27,7 +32,7 @@ export class DB {
       if (!process.env.PITCHLAKE_DB_URL) {
         throw new Error("PITCHLAKE_DB_URL is required in production mode");
       }
-      
+
       this.fossilPool = new Pool({
         connectionString: process.env.FOSSIL_DB_URL,
         ssl: this.getSSLConfig(process.env.FOSSIL_DB_URL),
@@ -41,10 +46,13 @@ export class DB {
 
   private getSSLConfig(connectionString: string) {
     // For localhost connections, don't use SSL
-    if (connectionString.includes('localhost') || connectionString.includes('127.0.0.1')) {
+    if (
+      connectionString.includes("localhost") ||
+      connectionString.includes("127.0.0.1")
+    ) {
       return false;
     }
-    
+
     // For production/remote connections, use SSL with rejectUnauthorized: false
     return {
       rejectUnauthorized: false,
@@ -68,6 +76,49 @@ export class DB {
     }
 
     return Number(result.rows[0].block_number);
+  }
+
+  async getJobRequestsPitchlake() {
+    const query = `
+    SELECT job_id, status, vault_address FROM job_requests
+    `;
+    const result = await this.pitchlakePool.query(query);
+    const jobRequests: JobRequest[] = result.rows.map((row) => ({
+      job_id: row.job_id,
+      status: row.status as JobStatus,
+      vaultAddress: row.vault_address,
+    }));
+    return jobRequests;
+  }
+
+  async upsertJobRequest(
+    vaultAddress: string,
+    job_id: string,
+    status: JobStatus
+  ) {
+    await this.pitchlakePool.query(
+      `
+      INSERT INTO job_requests (vault_address, job_id, status) VALUES ($1, $2, $3)
+      ON CONFLICT (vault_address) DO UPDATE SET status = $3, job_id = $2
+      `,
+      [vaultAddress, job_id, status]
+    );
+  }
+  async updateJobRequest(
+    vaultAddress: string,
+    job_id: string,
+    status: JobStatus
+  ) {
+    try {
+      const query = `
+    UPDATE job_requests SET status = $1, job_id = $2 WHERE vault_address = $3
+    `;
+      await this.pitchlakePool.query(query, [status, job_id, vaultAddress]);
+      return true;
+    } catch (error) {
+      console.error("Error updating job request:", error);
+      return false;
+    }
   }
 
   async getRelevantBlocks(currentTimestamp: number, timeWindow: number) {
@@ -222,7 +273,7 @@ export class DB {
         blockInsertResult.rows.length === 0 ||
         blockInsertResult.rows[0].is_confirmed
       ) {
-        console.log("HERE")
+        console.log("HERE");
         client.query("ROLLBACK");
         return {
           shouldRecalibrate: true,

@@ -168,8 +168,8 @@ export default function VaultCard({ vaultAddress }: { vaultAddress: string }) {
             >
               {parseFloat(
                 formatEther(
-                  num.toBigInt(vaultState?.lockedBalance) +
-                    num.toBigInt(vaultState?.unlockedBalance),
+                  BigInt(vaultState?.lockedBalance) +
+                    BigInt(vaultState?.unlockedBalance),
                   //+num.toBigInt(stashedBalance),
                 ),
               ).toFixed(1)}{" "}

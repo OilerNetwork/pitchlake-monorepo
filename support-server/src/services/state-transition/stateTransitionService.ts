@@ -1,38 +1,30 @@
-import { FormattedBlockData } from "../confirmed-twaps/types";
 import { CairoCustomEnum, Contract, RpcProvider } from "starknet";
 import { ABI as OptionRoundAbi } from "../../abi/optionRound";
 import { ABI as vaultAbi } from "../../abi/vault";
 import { Logger } from "winston";
 import { Account } from "starknet";
-import { OptionRoundState, StarknetBlock } from "../../types/types";
-import { rpcToStarknetBlock } from "../../utils/rpcClient";
+import { JobRequest, JobStatus, OptionRoundState } from "../../types/types";
 import { StateHandlers } from "./stateHandlers";
+import {DB} from "../../shared/db";
+import { getJobStatus } from "./utils";
 
 const {
   VAULT_ADDRESSES,
-  STARKNET_RPC,
   STARKNET_PRIVATE_KEY,
   STARKNET_ACCOUNT_ADDRESS,
-  FOSSIL_API_KEY,
-  FOSSIL_API_URL,
 } = process.env;
 
 export class StateTransitionService {
-  private latestBlockFossil: FormattedBlockData;
-  private latestBlockStarknet: StarknetBlock;
+  private db: DB;
   private logger: Logger;
   private provider: RpcProvider;
   private account: Account;
   private stateHandlers: StateHandlers;
 
   constructor(
-    latestBlockFossil: FormattedBlockData,
-    latestBlockStarknet: StarknetBlock,
     logger: Logger,
     provider: RpcProvider,
   ) {
-    this.latestBlockFossil = latestBlockFossil;
-    this.latestBlockStarknet = latestBlockStarknet;
     this.logger = logger;
     this.provider = provider;
     this.account = new Account(
@@ -40,12 +32,12 @@ export class StateTransitionService {
       STARKNET_ACCOUNT_ADDRESS!,
       STARKNET_PRIVATE_KEY!,
     );
+    this.db = new DB();
     this.stateHandlers = new StateHandlers(
+      this.db,
       logger,
       provider,
       this.account,
-      latestBlockFossil,
-      latestBlockStarknet,
     );
   }
 
@@ -60,35 +52,46 @@ export class StateTransitionService {
       this.logger.error("No latest block found");
       return;
     }
-    const latestBlockFormatted = rpcToStarknetBlock(latestBlock);
-    const vaultContracts = vaultAddresses.map((vaultAddress) => {
+
+    const jobRequests = await this.db.getJobRequestsPitchlake();
+    
+
+
+    const jobRequestsUpdated = await Promise.all(jobRequests.map(async(jobRequest) => {
+      const updatedData: JobRequest = {
+        ...jobRequest,
+      }
+      if (jobRequest.status !== JobStatus.Failed) {
+        const jobStatus = await getJobStatus(jobRequest.job_id);
+        if(jobStatus.status !== jobRequest.status) {
+          await this.db.updateJobRequest(jobRequest.vaultAddress, jobRequest.job_id, jobStatus.status as JobStatus);
+        }
+        updatedData.status = jobStatus.status as JobStatus;
+      }
+      return updatedData;
+    }));
+
+
+    for (const vaultAddress of vaultAddresses) {
+      const jobRequest = jobRequestsUpdated.find((jobRequest) => jobRequest.vaultAddress === vaultAddress);
       const vaultContract = new Contract(
         vaultAbi,
         vaultAddress,
         this.account,
       ).typedv2(vaultAbi);
-      return vaultContract;
-    });
-    const transitions = await Promise.all(
-      vaultContracts.map(async (vaultContract) => {
-        return this.checkAndTransition(
-          this.latestBlockFossil,
-          latestBlockFormatted,
-          vaultContract,
-        );
-      }),
-    );
-    return transitions;
+      await this.checkAndTransition(
+        vaultContract,
+        jobRequest,
+      );
+    }
   }
 
   async checkAndTransition(
-    latestBlockFossil: FormattedBlockData,
-    latestBlockStarknet: StarknetBlock,
     vaultContract: Contract,
+    jobRequest: JobRequest|undefined,
   ): Promise<void> {
     const roundId = await vaultContract.get_current_round_id();
     const roundAddress = await vaultContract.get_round_address(roundId);
-    console.log("roundAddress", roundAddress);
     // Convert decimal address to hex
     const roundAddressHex = "0x" + BigInt(roundAddress).toString(16);
     this.logger.info(`Checking round ${roundId} at ${roundAddressHex}`);
@@ -131,7 +134,7 @@ export class StateTransitionService {
 
     switch (stateEnum) {
       case OptionRoundState.Open:
-        await this.stateHandlers.handleOpenState(roundContract, vaultContract);
+        await this.stateHandlers.handleOpenState(roundContract, vaultContract, jobRequest);
         break;
 
       case OptionRoundState.Auctioning:
@@ -145,6 +148,7 @@ export class StateTransitionService {
         await this.stateHandlers.handleRunningState(
           roundContract,
           vaultContract,
+          jobRequest,
         );
         break;
 

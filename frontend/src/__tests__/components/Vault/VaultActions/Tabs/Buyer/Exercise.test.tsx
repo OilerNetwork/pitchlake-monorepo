@@ -4,7 +4,6 @@ import Exercise from "@/components/Vault/VaultActions/Tabs/Buyer/Exercise";
 import { useAccount } from "@starknet-react/core";
 import { useTransactionContext } from "@/context/TransactionProvider";
 import useErc20Balance from "@/hooks/erc20/useErc20Balance";
-import useErc20Allowance from "@/hooks/erc20/useErc20Allowance";
 import useVaultState from "@/hooks/vault/states/useVaultState";
 import useRoundState from "@/hooks/vault/states/useRoundState";
 import useOBState from "@/hooks/vault/states/useOBState";
@@ -35,8 +34,8 @@ jest.mock("@/context/NewProvider", () => ({
 
 jest.mock("@starknet-react/core", () => ({
   useAccount: jest.fn(),
-  useContractWrite: jest.fn().mockReturnValue({
-    writeAsync: jest.fn(),
+  useSendTransaction: jest.fn().mockReturnValue({
+    sendAsync: jest.fn(),
     data: null,
     error: null,
     isPending: false,
@@ -53,15 +52,14 @@ jest.mock("@/context/TransactionProvider", () => ({
 }));
 
 jest.mock("@/hooks/erc20/useErc20Balance", () => jest.fn());
-jest.mock("@/hooks/erc20/useErc20Allowance", () => jest.fn());
 
-jest.mock("@/hooks/vault_v2/states/useVaultState", () => jest.fn());
+jest.mock("@/hooks/vault/states/useVaultState", () => jest.fn());
 
-jest.mock("@/hooks/vault_v2/states/useRoundState", () => jest.fn());
+jest.mock("@/hooks/vault/states/useRoundState", () => jest.fn());
 
-jest.mock("@/hooks/vault_v2/states/useOBState", () => jest.fn());
+jest.mock("@/hooks/vault/states/useOBState", () => jest.fn());
 
-jest.mock("@/hooks/vault_v2/actions/useVaultActions", () => jest.fn());
+jest.mock("@/hooks/vault/actions/useVaultActions", () => jest.fn());
 
 jest.mock("@/lang/en/help.json", () => ({
   exerciseButton: {

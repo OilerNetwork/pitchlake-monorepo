@@ -23,9 +23,9 @@ jest.mock("@starknet-react/core", () => ({
 }));
 
 jest.mock("@/context/NewProvider");
-jest.mock("@/hooks/vault_v2/states/useRoundState");
+jest.mock("@/hooks/vault/states/useRoundState");
 jest.mock("@/hooks/chart/useHistoricalRoundParams");
-jest.mock("@/hooks/vault_v2/states/useVaultState");
+jest.mock("@/hooks/vault/states/useVaultState");
 jest.mock("@/context/HelpProvider");
 jest.mock("@/context/ChartProvider", () => ({
   useChartContext: jest.fn(),

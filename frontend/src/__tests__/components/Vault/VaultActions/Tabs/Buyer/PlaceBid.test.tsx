@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import PlaceBid from "@/components/Vault/VaultActions/Tabs/Buyer/PlaceBid";
-import { useContractWrite } from "@starknet-react/core";
+import { useSendTransaction } from "@starknet-react/core";
 import { useHelpContext } from "@/context/HelpProvider";
 import { HelpProvider } from "@/context/HelpProvider";
 
@@ -78,7 +78,7 @@ jest.mock("@/context/NewProvider", () => ({
 }));
 
 // Mock useRoundState hook
-jest.mock("@/hooks/vault_v2/states/useRoundState", () => ({
+jest.mock("@/hooks/vault/states/useRoundState", () => ({
   __esModule: true,
   default: jest.fn().mockReturnValue({
     address: "0x456",
@@ -119,7 +119,7 @@ jest.mock("@/context/TransactionProvider", () => ({
   }),
 }));
 
-jest.mock("@/hooks/vault_v2/states/useVaultState", () => ({
+jest.mock("@/hooks/vault/states/useVaultState", () => ({
   __esModule: true,
   default: jest.fn().mockReturnValue({
     vaultState: {
@@ -136,8 +136,8 @@ jest.mock("@starknet-react/core", () => ({
     account: { address: "0x789" },
     address: "0x789",
   }),
-  useContractWrite: jest.fn().mockReturnValue({
-    writeAsync: jest.fn(),
+  useSendTransaction: jest.fn().mockReturnValue({
+    sendAsync: jest.fn(),
   }),
   useContract: jest.fn().mockReturnValue({
     contract: null,
@@ -194,7 +194,7 @@ jest.mock("@/context/HelpProvider", () => ({
 
 describe("PlaceBid", () => {
   const mockShowConfirmation = jest.fn();
-  const mockWriteAsync = jest.fn();
+  const mockSendAsync = jest.fn();
   const mockSetActiveDataId = jest.fn();
 
   beforeEach(() => {
@@ -202,8 +202,8 @@ describe("PlaceBid", () => {
     localStorage.clear();
 
     // Mock useContractWrite
-    (useContractWrite as jest.Mock).mockReturnValue({
-      writeAsync: mockWriteAsync,
+    (useSendTransaction as jest.Mock).mockReturnValue({
+      sendAsync: mockSendAsync,
     });
 
     // Mock useHelpContext

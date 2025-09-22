@@ -54,7 +54,7 @@ fn test_exercise_options_before_round_settles_fails() {
 #[test]
 #[available_gas(5000000000)]
 fn test_exercise_options_events() {
-    let (mut vault, _) = setup_facade();
+    let (mut vault, eth) = setup_facade();
     let mut option_bidders = option_bidders_get(3).span();
     let mut current_round = vault.get_current_round();
     let options_available = accelerate_to_auctioning(ref vault);
@@ -72,10 +72,10 @@ fn test_exercise_options_events() {
     match option_bidders.pop_front() {
         Option::Some(ob) => {
             current_round.mint_options(*ob);
-            clear_event_logs(array![current_round.contract_address()]);
+            clear_event_logs(array![vault.contract_address()]);
             let payout_amount = current_round.exercise_options(*ob);
             assert_event_options_exercised(
-                current_round.contract_address(), *ob, bid_count, 0_u256, payout_amount,
+                vault.contract_address(), eth.contract_address, current_round.get_round_id(), *ob, bid_count, 0_u256, payout_amount,
             );
         },
         Option::None => {},
@@ -84,10 +84,10 @@ fn test_exercise_options_events() {
     loop {
         match option_bidders.pop_front() {
             Option::Some(ob) => {
-                clear_event_logs(array![current_round.contract_address()]);
+                clear_event_logs(array![vault.contract_address()]);
                 let payout_amount = current_round.exercise_options(*ob);
                 assert_event_options_exercised(
-                    current_round.contract_address(), *ob, bid_count, bid_count, payout_amount,
+                    vault.contract_address(), eth.contract_address, current_round.get_round_id(), *ob, bid_count, bid_count, payout_amount,
                 );
             },
             Option::None => { break (); },

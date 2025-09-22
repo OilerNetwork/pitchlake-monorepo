@@ -108,7 +108,7 @@ fn test_refunding_bids_events() {
     // End auction
     timeskip_and_end_auction(ref vault);
 
-    clear_event_logs(array![current_round.contract_address()]);
+    clear_event_logs(array![vault.contract_address()]);
     // Pop last bidder from array because their bids are not refundable
     match option_bidders.pop_back() {
         Option::Some(_) => {
@@ -119,7 +119,7 @@ fn test_refunding_bids_events() {
                         // Check refunding bids emits the correct event
                         let refund_amount = current_round.refund_bid(*bidder);
                         assert_event_unused_bids_refunded(
-                            current_round.contract_address(), *bidder, refund_amount,
+                            vault.contract_address(), current_round.get_round_id(), *bidder, refund_amount,
                         );
                     },
                     Option::None => { break; },

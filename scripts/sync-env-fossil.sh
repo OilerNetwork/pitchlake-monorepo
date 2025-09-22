@@ -120,10 +120,24 @@ echo -e "   📦 12min Vault: ${YELLOW}$VAULT_12MIN${NC}"
 echo -e "   📦 3h Vault: ${YELLOW}$VAULT_3H${NC}"
 echo -e "   📦 1m Vault: ${YELLOW}$VAULT_1M${NC}"
 
-# Create .env.local and .env.docker from .env.example
-echo -e "${BLUE}📝 Creating .env.local and .env.docker from .env.example...${NC}"
-cp "$PITCHLAKE_ENV_EXAMPLE" "$PITCHLAKE_ENV_LOCAL"
-cp "$PITCHLAKE_ENV_EXAMPLE" "$PITCHLAKE_ENV_DOCKER"
+# Create .env.local and .env.docker from .env.example (only if they don't exist)
+echo -e "${BLUE}📝 Setting up .env.local and .env.docker files...${NC}"
+
+# Create .env.local from .env.example if it doesn't exist
+if [ ! -f "$PITCHLAKE_ENV_LOCAL" ]; then
+    echo -e "${BLUE}   📄 Creating .env.local from .env.example...${NC}"
+    cp "$PITCHLAKE_ENV_EXAMPLE" "$PITCHLAKE_ENV_LOCAL"
+else
+    echo -e "${GREEN}   ✅ .env.local already exists, preserving existing configuration${NC}"
+fi
+
+# Create .env.docker from .env.example if it doesn't exist
+if [ ! -f "$PITCHLAKE_ENV_DOCKER" ]; then
+    echo -e "${BLUE}   📄 Creating .env.docker from .env.example...${NC}"
+    cp "$PITCHLAKE_ENV_EXAMPLE" "$PITCHLAKE_ENV_DOCKER"
+else
+    echo -e "${GREEN}   ✅ .env.docker already exists, preserving existing configuration${NC}"
+fi
 
 # Update both files with extracted addresses
 echo -e "${BLUE}🔧 Updating .env.local and .env.docker with vault addresses...${NC}"
@@ -146,10 +160,10 @@ update_env_var() {
 # Update vault addresses in both files
 update_env_var "VAULT_ADDRESSES" "${VAULT_12MIN},${VAULT_3H},${VAULT_1M}" "$PITCHLAKE_ENV_LOCAL"
 update_env_var "VAULT_ADDRESSES" "${VAULT_12MIN},${VAULT_3H},${VAULT_1M}" "$PITCHLAKE_ENV_DOCKER"
-update_env_var "STARKNET_ACCOUNT_ADDRESS" "$STARKNET_ACCOUNT_ADDRESS" "$PITCHLAKE_ENV_LOCAL"
-update_env_var "STARKNET_ACCOUNT_ADDRESS" "$STARKNET_ACCOUNT_ADDRESS" "$PITCHLAKE_ENV_DOCKER"
-update_env_var "STARKNET_PRIVATE_KEY" "$STARKNET_PRIVATE_KEY" "$PITCHLAKE_ENV_LOCAL"
-update_env_var "STARKNET_PRIVATE_KEY" "$STARKNET_PRIVATE_KEY" "$PITCHLAKE_ENV_DOCKER"
+# update_env_var "STARKNET_ACCOUNT_ADDRESS" "$STARKNET_ACCOUNT_ADDRESS" "$PITCHLAKE_ENV_LOCAL"
+# update_env_var "STARKNET_ACCOUNT_ADDRESS" "$STARKNET_ACCOUNT_ADDRESS" "$PITCHLAKE_ENV_DOCKER"
+# update_env_var "STARKNET_PRIVATE_KEY" "$STARKNET_PRIVATE_KEY" "$PITCHLAKE_ENV_LOCAL"
+# update_env_var "STARKNET_PRIVATE_KEY" "$STARKNET_PRIVATE_KEY" "$PITCHLAKE_ENV_DOCKER"
 # Update RPC URLs - local for .env.local, docker for .env.docker
 update_env_var "STARKNET_RPC" "$STARKNET_RPC_LOCAL" "$PITCHLAKE_ENV_LOCAL"
 update_env_var "STARKNET_RPC" "$STARKNET_RPC_DOCKER" "$PITCHLAKE_ENV_DOCKER"
