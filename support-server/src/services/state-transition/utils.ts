@@ -31,7 +31,6 @@ export const formatRawFossilRequest = (rawData: any): FossilRequest => {
 
 export const sendFossilRequest = async (
   fossilRequest: FossilRequest,
-  //  clientAddress: string,
   vaultContract: Contract,
   logger: Logger,
 ) => {

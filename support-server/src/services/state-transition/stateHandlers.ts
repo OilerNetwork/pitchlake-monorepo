@@ -85,7 +85,6 @@ export class StateHandlers {
       const latestBlockStarknetFormatted =
         rpcToStarknetBlock(latestBlockStarknet);
 
-      // Check if any values are undefined
       //if (this.latestFossilBlock.timestamp < auctionStartTime) {
       //  this.logger.info(
       //    `Waiting for auction start time. Time left: ${formatTimeLeft(
