@@ -6,6 +6,8 @@ This repository contains a complete DeFi options trading platform built on Stark
 
 The Pitchlake system consists of several interconnected components:
 
+<img width="567" height="453" alt="Screenshot 2025-09-23 at 12 31 32 AM" src="https://github.com/user-attachments/assets/3f249883-049c-46de-842f-78d513b85831" />
+
 - **Fossil Monorepo**: RISC0 proof generation and StarkNet verification system
 - **Smart Contracts**: Cairo contracts for options trading vaults
 - **Backend API**: Go-based WebSocket server for real-time data
