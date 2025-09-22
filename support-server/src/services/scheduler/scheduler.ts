@@ -17,16 +17,12 @@ export const runTWAPUpdate = () => async () => {
   // isJobRunning = true;
 
   try {
-    //  const latestBlock = await service.updateTWAPs();
-    //  console.log("Latest block:", latestBlock);
-    //  console.log(
-    //    `TWAP update job completed at ${new Date().toISOString()}, running state transition`,
-    //  );
+    const latestBlock = await service.updateTWAPs();
 
-    //  if (!latestBlock) {
-    //    console.error("No latest block found");
-    //    return;
-    //  }
+    if (!latestBlock) {
+      console.error("No latest block found");
+      return;
+    }
 
     const { STARKNET_RPC } = process.env;
     const provider = new RpcProvider({ nodeUrl: STARKNET_RPC });
@@ -39,8 +35,7 @@ export const runTWAPUpdate = () => async () => {
       rpcToStarknetBlock(latestBlockStarknet);
     const logger = setupLogger("State Transition");
     const stateTransitionService = new StateTransitionService(
-      //latestBlock,
-      { blockNumber: 1, timestamp: 1, basefee: 1 },
+      latestBlock,
       latestBlockStarknetFormatted,
       logger,
       provider,

@@ -32,12 +32,12 @@ export class StateHandlers {
     let ethAddress;
     try {
       ethAddress = await vaultContract.get_eth_address();
-      
-      this.logger.debug("Raw ETH address response:", { 
-        ethAddress, 
-        type: typeof ethAddress 
+
+      this.logger.debug("Raw ETH address response:", {
+        ethAddress,
+        type: typeof ethAddress,
       });
-      
+
       if (ethAddress === undefined || ethAddress === null) {
         this.logger.warn("ETH address is not set, skipping dummy transaction");
         return;
@@ -46,7 +46,7 @@ export class StateHandlers {
       this.logger.error("Failed to get ETH address:", error);
       return;
     }
-    
+
     const ethAddressHex = "0x" + BigInt(ethAddress).toString(16);
     const ethContract = new Contract(
       erc20ABI,
@@ -65,15 +65,17 @@ export class StateHandlers {
       let reservePrice;
       try {
         reservePrice = await roundContract.get_reserve_price();
-        
-        this.logger.debug("Raw reserve price response:", { 
-          reservePrice, 
-          type: typeof reservePrice 
+
+        this.logger.debug("Raw reserve price response:", {
+          reservePrice,
+          type: typeof reservePrice,
         });
-        
+
         // Check if reserve price is valid
         if (reservePrice === undefined || reservePrice === null) {
-          this.logger.warn("Reserve price is not set, skipping reserve price logic");
+          this.logger.warn(
+            "Reserve price is not set, skipping reserve price logic",
+          );
           return;
         }
       } catch (error) {
@@ -86,41 +88,48 @@ export class StateHandlers {
         let requestData;
         try {
           requestData = await vaultContract.get_request_to_start_first_round();
-          
-          this.logger.debug("Raw request data response:", { 
-            requestData, 
-            type: typeof requestData 
+
+          this.logger.debug("Raw request data response:", {
+            requestData,
+            type: typeof requestData,
           });
-          
-          if (requestData === undefined || requestData === null || typeof requestData !== 'object') {
-            this.logger.warn("Request data is invalid, skipping first round initialization");
-            this.logger.warn("This might indicate the vault contract is not ready for first round initialization");
+
+          if (
+            requestData === undefined ||
+            requestData === null ||
+            typeof requestData !== "object"
+          ) {
+            this.logger.warn(
+              "Request data is invalid, for first round initialization",
+            );
             return;
           }
-          
+
           // Check if the request data has the required structure
-          if (!requestData.params || !requestData.program_id || !requestData.vault_address) {
-            this.logger.warn("Request data is missing required fields, skipping first round initialization");
-            this.logger.warn("Required fields: params, program_id, vault_address");
+          if (
+            !requestData.params ||
+            !requestData.program_id ||
+            !requestData.vault_address
+          ) {
+            this.logger.warn(
+              "Request data is missing required fields, skipping first round initialization",
+            );
+            this.logger.warn(
+              "Required fields: params, program_id, vault_address",
+            );
             return;
           }
         } catch (error) {
-          this.logger.error("Failed to get request data for first round:", error);
-          this.logger.warn("This might indicate the vault contract is not properly initialized or the method is failing");
-          this.logger.warn("Skipping first round initialization for now - the round will remain in Open state");
+          this.logger.error(
+            "Failed to get request data for first round:",
+            error,
+          );
           return;
         }
 
         // Format request data for timestamp check
         // The request data is now an object, so we need to extract the timestamp from params
         // Based on the ABI, the timestamp should be in params.twap[1]
-        const requestTimestamp = Number(requestData.params.twap[1]);
-        
-        this.logger.debug("Request timestamp extracted:", {
-          requestTimestamp,
-          twapParams: requestData.params.twap,
-          fullParams: requestData.params
-        });
 
         //// Check if Fossil has required blocks before proceeding
         //if (this.latestFossilBlock.timestamp < requestTimestamp) {
@@ -141,7 +150,9 @@ export class StateHandlers {
         // and let the cron handle the state transition in the next iteration
         return;
       } else {
-        this.logger.info("Reserve price is not 0, proceeding with auction start logic");
+        this.logger.info(
+          "Reserve price is not 0, proceeding with auction start logic",
+        );
       }
 
       // Existing auction start logic
@@ -149,22 +160,24 @@ export class StateHandlers {
       let auctionStartTimeRaw;
       try {
         auctionStartTimeRaw = await roundContract.get_auction_start_date();
-        
-        this.logger.debug("Raw auction start time response:", { 
-          auctionStartTimeRaw, 
-          type: typeof auctionStartTimeRaw 
+
+        this.logger.debug("Raw auction start time response:", {
+          auctionStartTimeRaw,
+          type: typeof auctionStartTimeRaw,
         });
-        
+
         // Check if auction start time is valid
         if (auctionStartTimeRaw === undefined || auctionStartTimeRaw === null) {
-          this.logger.warn("Auction start date is not set yet, skipping auction start logic");
+          this.logger.warn(
+            "Auction start date is not set yet, skipping auction start logic",
+          );
           return;
         }
       } catch (error) {
         this.logger.error("Failed to get auction start date:", error);
         return;
       }
-      
+
       const auctionStartTime = Number(auctionStartTimeRaw);
 
       console.log("DEBUGGING: auctionStartTime", auctionStartTime);
@@ -190,24 +203,31 @@ export class StateHandlers {
       let w, x, y, z;
       try {
         const roundIdRaw = await roundContract.get_round_id();
-        const transitionDurationRaw = await vaultContract.get_round_transition_duration();
+        const transitionDurationRaw =
+          await vaultContract.get_round_transition_duration();
         const auctionDurationRaw = await vaultContract.get_auction_duration();
         const roundDurationRaw = await vaultContract.get_round_duration();
-        
+
         this.logger.debug("Raw duration responses:", {
           roundId: roundIdRaw,
           transitionDuration: transitionDurationRaw,
           auctionDuration: auctionDurationRaw,
-          roundDuration: roundDurationRaw
+          roundDuration: roundDurationRaw,
         });
-        
+
         // Check if any values are undefined
-        if (roundIdRaw === undefined || transitionDurationRaw === undefined || 
-            auctionDurationRaw === undefined || roundDurationRaw === undefined) {
-          this.logger.warn("One or more duration values are undefined, skipping duration logic");
+        if (
+          roundIdRaw === undefined ||
+          transitionDurationRaw === undefined ||
+          auctionDurationRaw === undefined ||
+          roundDurationRaw === undefined
+        ) {
+          this.logger.warn(
+            "One or more duration values are undefined, skipping duration logic",
+          );
           return;
         }
-        
+
         w = Number(roundIdRaw);
         x = Number(transitionDurationRaw);
         y = Number(auctionDurationRaw);
@@ -269,22 +289,24 @@ export class StateHandlers {
       let auctionEndTimeRaw;
       try {
         auctionEndTimeRaw = await roundContract.get_auction_end_date();
-        
-        this.logger.debug("Raw auction end time response:", { 
-          auctionEndTimeRaw, 
-          type: typeof auctionEndTimeRaw 
+
+        this.logger.debug("Raw auction end time response:", {
+          auctionEndTimeRaw,
+          type: typeof auctionEndTimeRaw,
         });
-        
+
         // Check if auction end time is valid
         if (auctionEndTimeRaw === undefined || auctionEndTimeRaw === null) {
-          this.logger.warn("Auction end date is not set, skipping auction end logic");
+          this.logger.warn(
+            "Auction end date is not set, skipping auction end logic",
+          );
           return;
         }
       } catch (error) {
         this.logger.error("Failed to get auction end date:", error);
         return;
       }
-      
+
       const auctionEndTime = Number(auctionEndTimeRaw);
 
       if (this.latestStarknetBlock.timestamp < auctionEndTime) {
@@ -326,22 +348,24 @@ export class StateHandlers {
       let settlementTimeRaw;
       try {
         settlementTimeRaw = await roundContract.get_option_settlement_date();
-        
-        this.logger.debug("Raw settlement time response:", { 
-          settlementTimeRaw, 
-          type: typeof settlementTimeRaw 
+
+        this.logger.debug("Raw settlement time response:", {
+          settlementTimeRaw,
+          type: typeof settlementTimeRaw,
         });
-        
+
         // Check if settlement time is valid
         if (settlementTimeRaw === undefined || settlementTimeRaw === null) {
-          this.logger.warn("Settlement date is not set, skipping settlement logic");
+          this.logger.warn(
+            "Settlement date is not set, skipping settlement logic",
+          );
           return;
         }
       } catch (error) {
         this.logger.error("Failed to get settlement date:", error);
         return;
       }
-      
+
       const settlementTime = Number(settlementTimeRaw);
 
       if (this.latestStarknetBlock.timestamp < settlementTime) {

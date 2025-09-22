@@ -1,6 +1,9 @@
 import { Block, WatchBlocksReturnType } from "viem";
 import { DB } from "../../shared/db";
-import { UnconfirmedIndexerConfig, loadUnconfirmedIndexerConfig } from "./config";
+import {
+  UnconfirmedIndexerConfig,
+  loadUnconfirmedIndexerConfig,
+} from "./config";
 import { UnconfirmedTWAPService } from "./twapService";
 import { UnconfirmedBlockProcessor } from "./blockProcessor";
 import { RPCClient } from "../../utils/rpcClient";
@@ -18,7 +21,11 @@ export class UnconfirmedTWAPsRunner {
     this.config = loadUnconfirmedIndexerConfig();
     this.rpcClient = new RPCClient(this.config);
     this.twapService = new UnconfirmedTWAPService(this.db);
-    this.blockProcessor = new UnconfirmedBlockProcessor(this.db, this.twapService, this.config);
+    this.blockProcessor = new UnconfirmedBlockProcessor(
+      this.db,
+      this.twapService,
+      this.config,
+    );
   }
 
   async initialize(): Promise<void> {
@@ -32,17 +39,17 @@ export class UnconfirmedTWAPsRunner {
     let currentBlock = Number(await this.rpcClient.getBlockNumber());
 
     const lastProcessedBlock = Number(
-      await this.db.getLastProcessedBlock(currentBlock)
+      await this.db.getLastProcessedBlock(currentBlock),
     );
 
     console.log(
-      `Last processed block: ${lastProcessedBlock}, Current chain head: ${currentBlock}`
+      `Last processed block: ${lastProcessedBlock}, Current chain head: ${currentBlock}`,
     );
 
     // Catch up on missing blocks
     if (lastProcessedBlock < Number(currentBlock)) {
       console.log(
-        `Catching up from block ${lastProcessedBlock + 1} to ${currentBlock}`
+        `Catching up from block ${lastProcessedBlock + 1} to ${currentBlock}`,
       );
 
       let blockNumber = Number(lastProcessedBlock);
@@ -50,7 +57,8 @@ export class UnconfirmedTWAPsRunner {
         try {
           const length = Math.min(currentBlock - blockNumber + 1, 1000);
           const blocks = await this.rpcClient.getBlocks(blockNumber, length);
-          const shouldRecalibrate = await this.blockProcessor.processBlocks(blocks);
+          const shouldRecalibrate =
+            await this.blockProcessor.processBlocks(blocks);
 
           currentBlock = Number(await this.rpcClient.getBlockNumber());
           blockNumber += length;
@@ -73,7 +81,8 @@ export class UnconfirmedTWAPsRunner {
     const unwatch = this.rpcClient.getClient().watchBlocks({
       onBlock: async (block: Block) => {
         try {
-          const shouldRecalibrate = await this.blockProcessor.processBlock(block);
+          const shouldRecalibrate =
+            await this.blockProcessor.processBlock(block);
           if (shouldRecalibrate) {
             unwatch();
             await this.initialize();
@@ -97,4 +106,4 @@ export class UnconfirmedTWAPsRunner {
   private async sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
-} 
+}
