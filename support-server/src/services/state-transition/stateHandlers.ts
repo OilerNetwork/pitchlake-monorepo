@@ -174,15 +174,6 @@ export class StateHandlers {
         return;
       }
 
-      const auctionStartTime = Number(auctionStartTimeRaw);
-
-      console.log("DEBUGGING: auctionStartTime", auctionStartTime);
-      console.log(
-        "DEBUGGING: latest starknet block timestamp" +
-          this.latestStarknetBlock.timestamp,
-      );
-      console.log("DEBUGGING: now unix" + new Date().getTime() / 1000);
-
       const latestBlockStarknet = await this.provider.getBlock("latest");
       if (!latestBlockStarknet) {
         console.error("No latest block found");
@@ -203,13 +194,6 @@ export class StateHandlers {
         const auctionDurationRaw = await vaultContract.get_auction_duration();
         const roundDurationRaw = await vaultContract.get_round_duration();
 
-        this.logger.debug("Raw duration responses:", {
-          roundId: roundIdRaw,
-          transitionDuration: transitionDurationRaw,
-          auctionDuration: auctionDurationRaw,
-          roundDuration: roundDurationRaw,
-        });
-
         // Check if any values are undefined
         if (
           roundIdRaw === undefined ||
@@ -217,9 +201,7 @@ export class StateHandlers {
           auctionDurationRaw === undefined ||
           roundDurationRaw === undefined
         ) {
-          this.logger.warn(
-            "One or more duration values are undefined, skipping duration logic",
-          );
+          this.logger.warn("");
           return;
         }
       } catch (error) {
@@ -248,7 +230,6 @@ export class StateHandlers {
           },
         ]);
 
-      console.log("ARE WE HERE");
       const { transaction_hash } = await vaultContract.start_auction();
       await this.provider.waitForTransaction(transaction_hash);
 
