@@ -188,9 +188,25 @@ export class StateTransitionService {
       const stateRaw = await roundContract.get_state();
       this.logger.debug(`Raw state: ${JSON.stringify(stateRaw)}`);
       const state = (stateRaw as CairoCustomEnum).activeVariant();
-      const stateEnum = OptionRoundState[state as keyof typeof OptionRoundState];
       
-      this.logger.info(`Round ${roundId} is in ${stateEnum} state`);
+      // Map string state names to enum values
+      const stateEnum = (() => {
+        switch (state) {
+          case "Open":
+            return OptionRoundState.Open;
+          case "Auctioning":
+            return OptionRoundState.Auctioning;
+          case "Running":
+            return OptionRoundState.Running;
+          case "Settled":
+            return OptionRoundState.Settled;
+          default:
+            this.logger.warn(`Unknown state: ${state}`);
+            return OptionRoundState.Open; // Default fallback
+        }
+      })();
+      
+      this.logger.info(`Round ${roundId} is in ${state} state (${stateEnum})`);
 
       // Handle each state with proper error handling
       switch (stateEnum) {
