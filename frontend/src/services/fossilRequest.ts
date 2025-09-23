@@ -1,5 +1,4 @@
 "use server";
-import { VaultStateType, OptionRoundStateType } from "@/lib/types";
 import { createJobRequest } from "@/lib/utils";
 import { FossilParams } from "@/lib/types";
 

@@ -23,7 +23,6 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
   disconnect,
   copyToClipboard,
 }) => {
-  const pathName = usePathname();
 
   return (
     <div className="absolute right-0 mt-2 w-64 bg-black rounded-md shadow-lg py-1 border border-greyscale-800 max-h-[270px]">

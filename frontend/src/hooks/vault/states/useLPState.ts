@@ -1,5 +1,4 @@
 import { useNewContext } from "@/context/NewProvider";
-import { useMemo } from "react";
 import useLPStateRPC from "../rpc/useLPStateRPC";
 
 const useLPState = () => {

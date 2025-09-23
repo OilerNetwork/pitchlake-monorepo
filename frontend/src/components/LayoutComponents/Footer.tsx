@@ -1,18 +1,10 @@
 "use client";
 import React from "react";
 import Link from "next/link";
-import {
-  ExternalLinkIcon,
-  XIcon,
-  MessagesSquareIcon,
-  SendIcon,
-} from "lucide-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faXTwitter,
-  faDiscord,
-  faTelegramPlane,
-} from "@fortawesome/free-brands-svg-icons";
+import {faXTwitter} from "@fortawesome/free-brands-svg-icons/faXTwitter";
+import {faDiscord} from "@fortawesome/free-brands-svg-icons/faDiscord";
+import {faTelegramPlane} from "@fortawesome/free-brands-svg-icons/faTelegramPlane";
 import useIsMobile from "@/hooks/window/useIsMobile";
 
 const Footer: React.FC = () => {

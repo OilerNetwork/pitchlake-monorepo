@@ -4,7 +4,6 @@ import ActionButton from "@/components/Vault/Utils/ActionButton";
 import InputField from "@/components/Vault/Utils/InputField";
 import {
   EthereumIcon,
-  HourglassIcon,
   LayerStackIcon,
 } from "@/components/Icons";
 import { formatUnits, parseUnits, formatEther } from "ethers";

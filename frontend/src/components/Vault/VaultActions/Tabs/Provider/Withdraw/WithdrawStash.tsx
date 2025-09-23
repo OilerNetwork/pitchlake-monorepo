@@ -4,7 +4,6 @@ import { formatEther } from "ethers";
 import { useAccount } from "@starknet-react/core";
 import { CollectEthIcon } from "@/components/Icons";
 import { useTransactionContext } from "@/context/TransactionProvider";
-import Hoverable from "@/components/BaseComponents/Hoverable";
 import { formatNumber } from "@/lib/utils";
 import useVaultActions from "@/hooks/vault/actions/useVaultActions";
 import useLPState from "@/hooks/vault/states/useLPState";

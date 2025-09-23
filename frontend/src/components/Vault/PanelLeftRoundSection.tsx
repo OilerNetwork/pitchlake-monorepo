@@ -2,14 +2,13 @@
 import React, { useMemo } from "react";
 import { LayerStackIcon } from "@/components/Icons";
 import {
-  timeUntilTarget,
   formatNumberText,
   roundIdFormatter,
   getProfitAndLoss,
 } from "@/lib/utils";
 import { formatUnits } from "ethers";
 import { ChevronUp, ChevronDown, SquareArrowOutUpRight } from "lucide-react";
-import { Explorer, useExplorer } from "@starknet-react/core";
+import { useExplorer } from "@starknet-react/core";
 import Hoverable from "@/components/BaseComponents/Hoverable";
 import { OptionRoundStateType } from "@/lib/types";
 

@@ -1,8 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { formatEther } from "ethers";
 import Hoverable from "./Hoverable";
-import { formatNumber } from "@/lib/utils";
 
 interface TimelineTooltipProps {
   roundTransitionDuration: string | number;

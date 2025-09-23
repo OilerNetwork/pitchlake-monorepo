@@ -1,10 +1,10 @@
 "use server";
 
 import { NextResponse } from "next/server";
-import { getDemoFossilCallbackData, getDemoRoundData } from "@/lib/demo/utils";
-import { Account, CairoUint256, Contract, Provider } from "starknet";
+import { getDemoFossilCallbackData } from "@/lib/demo/utils";
+import { Account, Contract, Provider } from "starknet";
 import { vaultABI } from "@/lib/abi";
-import { FossilCallbackArgs, L1Data } from "@/lib/types";
+import { FossilCallbackArgs } from "@/lib/types";
 
 export interface DemoFossilCallParams {
   vaultAddress: string;

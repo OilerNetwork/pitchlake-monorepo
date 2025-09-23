@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import useGasData from "./useGasData";
 import { getDemoRoundId } from "@/lib/demo/utils";
 import { useChartContext } from "@/context/ChartProvider";
 import { useHistoricalRoundParams } from "./useHistoricalRoundParams";
@@ -11,7 +10,7 @@ import { formatUnits } from "ethers";
 const useChartData = (activeLines: any, vaultAddress?: string) => {
   const { conn, selectedRound } = useNewContext();
   // Chart context
-  const { isExpandedView, setIsExpandedView, xMax, xMin } = useChartContext();
+  const { isExpandedView, xMax, xMin } = useChartContext();
   const { gasData } = {gasData: []};
   // Help context
 

@@ -1,6 +1,6 @@
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { parseEther } from "ethers";
-import { num, Call } from "starknet";
+import { Call } from "starknet";
 import { useSendTransaction } from "@starknet-react/core";
 import { isValidHex64 } from "@/lib/utils";
 import { useTransactionContext } from "@/context/TransactionProvider";

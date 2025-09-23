@@ -1,7 +1,6 @@
 "use client";
-import React, { useMemo, useRef, useCallback, forwardRef } from "react";
+import React, {  useRef, useCallback, forwardRef } from "react";
 import { useHelpContext } from "@/context/HelpProvider";
-import helpData from "@/lang/en/help.json";
 
 interface HoverableProps {
   dataId?: string | null; // e.g. "item1"

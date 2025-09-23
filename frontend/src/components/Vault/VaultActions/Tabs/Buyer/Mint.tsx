@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useMemo } from "react";
+import React, { ReactNode, useMemo } from "react";
 import { HammerIcon } from "@/components/Icons";
 import ActionButton from "@/components/Vault/Utils/ActionButton";
 import { useAccount } from "@starknet-react/core";

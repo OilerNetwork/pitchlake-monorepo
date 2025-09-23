@@ -76,7 +76,7 @@ jest
 // Test setup
 const queryClient = new QueryClient();
 
-const renderWithProviders = (ui: React.ReactElement) => {
+const renderWithProviders = (ui: React.ReactElement<any>) => {
   return render(
     <QueryClientProvider client={queryClient}>
       <ChartProvider>{ui}</ChartProvider>

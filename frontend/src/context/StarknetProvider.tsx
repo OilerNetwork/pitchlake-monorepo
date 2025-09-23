@@ -3,7 +3,6 @@ import React from "react";
 import { sepolia, mainnet, devnet, Chain } from "@starknet-react/chains";
 import {
   StarknetConfig,
-  argent,
   ready,
   braavos,
   useInjectedConnectors,
