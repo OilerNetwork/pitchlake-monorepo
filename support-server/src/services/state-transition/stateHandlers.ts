@@ -290,13 +290,17 @@ export class StateHandlers {
       const settlementTime = Number(
         await roundContract.get_option_settlement_date(),
       );
+      this.logger.debug(`Settlement time: ${settlementTime}`);
 
       const latestBlock = await this.provider.getBlock("latest");
       if (!latestBlock) {
-        console.error("No latest block found");
+        this.logger.error("No latest block found");
         return;
       }
+      
       const latestStarknetBlock = rpcToStarknetBlock(latestBlock);
+      this.logger.debug(`Current timestamp: ${latestStarknetBlock.timestamp}`);
+      
       if (latestStarknetBlock.timestamp < settlementTime) {
         this.logger.info(
           `Waiting for settlement time. Time left: ${formatTimeLeft(
@@ -309,19 +313,65 @@ export class StateHandlers {
 
       this.logger.info("Settlement time reached");
 
+      // Check if we already have a pending job for settlement
       if (jobRequest?.status === JobStatus.Pending) {
         this.logger.info(
-          `Job request for vault ${vaultContract.address} is pending`,
+          `Settlement job request for vault ${vaultContract.address} is pending`,
         );
         return;
       }
-      const rawRequestData = await vaultContract.get_request_to_settle_round();
-      const requestData = formatRawFossilRequest(rawRequestData);
-
-      await sendFossilRequest(requestData, vaultContract, this.logger);
+      
+      // Handle failed jobs - retry by sending new request
+      if (jobRequest?.status === JobStatus.Failed) {
+        this.logger.info(
+          `Settlement job request for vault ${vaultContract.address} failed, retrying`,
+        );
+        // Clean up failed job before sending new one
+        await this.db.deleteJobRequest(vaultContract.address);
+      }
+      
+      // Check if we're past the proving delay for settlement
+      const provingDelay = Number(await vaultContract.get_proving_delay());
+      const earliestSettlementTime = settlementTime + provingDelay;
+      
+      if (latestStarknetBlock.timestamp < earliestSettlementTime) {
+        this.logger.info(
+          `Waiting for proving delay to pass for settlement. Earliest settlement time: ${earliestSettlementTime}, current: ${latestStarknetBlock.timestamp}, time left: ${formatTimeLeft(
+            latestStarknetBlock.timestamp,
+            earliestSettlementTime,
+          )}`,
+        );
+        return;
+      }
+      
+      // Send settlement request with proper error handling
+      try {
+        const rawRequestData = await vaultContract.get_request_to_settle_round();
+        const requestData = formatRawFossilRequest(rawRequestData);
+        
+        const response = await sendFossilRequest(requestData, vaultContract, this.logger);
+        
+        // Store the settlement job request for tracking
+        await this.db.upsertJobRequest(
+          vaultContract.address,
+          response.job_id,
+          response.status as JobStatus,
+        );
+        
+        this.logger.info("Settlement request sent successfully", {
+          jobId: response.job_id,
+          status: response.status
+        });
+        
+      } catch (error) {
+        this.logger.error("Failed to send settlement request:", error);
+        // Don't throw - let the service continue with other vaults
+        return;
+      }
+      
     } catch (error) {
       this.logger.error("Error handling Running state:", error);
-      throw error;
+      // Don't throw - let the service continue with other vaults
     }
   }
 }
