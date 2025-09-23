@@ -284,6 +284,9 @@ export class StateHandlers {
     jobRequest: JobRequest | undefined,
   ): Promise<void> {
     try {
+      // Mine block on devnet first to ensure accurate timestamps
+      await mineBlockHelper(this.provider, this.account, vaultContract, this.logger);
+      
       const settlementTime = Number(
         await roundContract.get_option_settlement_date(),
       );
