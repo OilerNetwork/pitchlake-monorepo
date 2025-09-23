@@ -1,4 +1,4 @@
-import { Account, Contract, RpcProvider } from "starknet";
+import { Account, Contract, RpcProvider, CairoCustomEnum } from "starknet";
 import { Logger } from "winston";
 import { formatRawFossilRequest, formatTimeLeft } from "./utils";
 import { sendFossilRequest } from "./utils";
@@ -167,6 +167,15 @@ export class StateHandlers {
         return;
       }
 
+      // Re-check state before executing action to avoid race conditions
+      const currentStateRaw = await roundContract.get_state();
+      const currentState = (currentStateRaw as CairoCustomEnum).activeVariant();
+      
+      if (currentState !== "Open") {
+        this.logger.info(`State changed from Open to ${currentState}, skipping auction start`);
+        return;
+      }
+
       this.logger.info("Starting auction...");
 
       // Estimate gas fee with error handling
@@ -250,6 +259,15 @@ export class StateHandlers {
             auctionEndTime,
           )}`,
         );
+        return;
+      }
+
+      // Re-check state before executing action to avoid race conditions
+      const currentStateRaw = await roundContract.get_state();
+      const currentState = (currentStateRaw as CairoCustomEnum).activeVariant();
+      
+      if (currentState !== "Auctioning") {
+        this.logger.info(`State changed from Auctioning to ${currentState}, skipping auction end`);
         return;
       }
 
