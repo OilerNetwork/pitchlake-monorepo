@@ -42,14 +42,8 @@ export class StateTransitionService {
   }
 
   async runStateTransition() {
-    if (!VAULT_ADDRESSES) return;
-    const vaultAddresses = VAULT_ADDRESSES.split(",").map((addr) =>
-      addr.trim(),
-    );
-
-    const latestBlock = await this.provider.getBlock("latest");
-    if (!latestBlock) {
-      this.logger.error("No latest block found");
+    if (!VAULT_ADDRESSES) {
+      this.logger.warn("No vault addresses configured");
       return;
     }
 
