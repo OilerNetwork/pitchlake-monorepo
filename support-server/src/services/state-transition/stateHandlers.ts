@@ -174,12 +174,31 @@ export class StateHandlers {
         return;
       }
 
-      this.logger.info("Auction started successfully", {
-        transactionHash: transaction_hash,
-      });
+      // Execute transaction with proper error handling
+      try {
+        const { transaction_hash } = await vaultContract.start_auction();
+        this.logger.info(`Auction start transaction submitted: ${transaction_hash}`);
+        
+        // Wait for transaction confirmation with timeout
+        const receipt = await this.provider.waitForTransaction(transaction_hash, {
+          retryInterval: 2000,
+          successStates: ["ACCEPTED_ON_L2", "ACCEPTED_ON_L1"]
+        });
+        
+        this.logger.info("Auction started successfully", {
+          transactionHash: transaction_hash,
+          receipt: JSON.stringify(receipt)
+        });
+        
+      } catch (error) {
+        this.logger.error("Failed to start auction:", error);
+        // Don't throw - let the service continue with other vaults
+        return;
+      }
+      
     } catch (error) {
       this.logger.error("Error handling Open state:", error);
-      throw error;
+      // Don't throw - let the service continue with other vaults
     }
   }
 
