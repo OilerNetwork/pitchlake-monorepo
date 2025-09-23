@@ -214,7 +214,6 @@ export class StateHandlers {
       const auctionEndTime = Number(auctionEndTimeRaw);
       this.logger.debug(`Auction end time: ${auctionEndTime}`);
 
-    this.logger.info("Ending auction...");
       const latestBlock = await this.provider.getBlock("latest");
       if (!latestBlock) {
         this.logger.error("No latest block found");
@@ -232,16 +231,24 @@ export class StateHandlers {
           )}`,
         );
         return;
+      }
 
-    const { suggestedMaxFee: estimatedMaxFee } =
-      await this.account.estimateInvokeFee({
-        contractAddress: vaultContract.address,
-        entrypoint: "end_auction",
-        calldata: [],
-      });
+      this.logger.info("Ending auction...");
 
-    const { transaction_hash } = await vaultContract.end_auction();
-    await this.provider.waitForTransaction(transaction_hash);
+      // Estimate gas fee with error handling
+      let estimatedMaxFee;
+      try {
+        const feeEstimate = await this.account.estimateInvokeFee({
+          contractAddress: vaultContract.address,
+          entrypoint: "end_auction",
+          calldata: [],
+        });
+        estimatedMaxFee = feeEstimate.suggestedMaxFee;
+        this.logger.debug(`Estimated max fee: ${estimatedMaxFee}`);
+      } catch (error) {
+        this.logger.error("Failed to estimate gas fee for end_auction:", error);
+        return;
+      }
 
     this.logger.info("Auction ended successfully", {
       transactionHash: transaction_hash,
