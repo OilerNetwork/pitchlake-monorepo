@@ -140,6 +140,10 @@ services:
       
       # Optional: Demo mode
       - USE_DEMO_DATA=${USE_DEMO_DATA:-false}
+      
+      # Development/Testing
+      - IS_DEVNET=${IS_DEVNET:-false}
+      - INITIAL_BLOCK_NUMBER=${INITIAL_BLOCK_NUMBER:-0}
     
     volumes:
       - ./logs:/app/logs

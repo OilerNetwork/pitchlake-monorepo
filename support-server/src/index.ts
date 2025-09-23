@@ -14,7 +14,7 @@ class ArchitectureSupportServer {
   constructor() {}
 
   async start(): Promise<void> {
-    const { CRON_SCHEDULE_STATE, CRON_SCHEDULE_TWAP } = process.env;
+    const { CRON_SCHEDULE_STATE, CRON_SCHEDULE } = process.env;
 
     // Validate environment variables and set up services
 

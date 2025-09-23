@@ -208,6 +208,25 @@ CREATE TABLE driver_events (
 | `CRON_SCHEDULE_STATE` | No | State transition schedule | `*/30 * * * * *` |
 | `LOG_LEVEL` | No | Logging level | `info` |
 | `USE_DEMO_DATA` | No | Enable demo mode | `false` |
+| `IS_DEVNET` | No | Enable devnet mode (block mining) | `false` |
+| `INITIAL_BLOCK_NUMBER` | No | Starting block for TWAP processing | `0` |
+
+### Development Environment Variables
+
+#### `IS_DEVNET`
+- **Purpose**: Enables devnet-specific behavior for testing and development
+- **Behavior**: When set to `true`, the state transition service will mine blocks on Katana devnet to update timestamps for accurate testing
+- **Usage**: Essential for local development with Katana to ensure proper timestamp progression
+- **Code Location**: `stateHandlers.ts` - only executes block mining when `IS_DEVNET !== "true"`
+
+#### `INITIAL_BLOCK_NUMBER`
+- **Purpose**: Sets the starting block number for TWAP (Time-Weighted Average Price) data processing
+- **Behavior**: 
+  - If no previous TWAP state exists, processing starts from this block number
+  - If previous state exists, processing resumes from the last processed block
+  - Used by the gas data service to determine where to begin historical data processing
+- **Usage**: Set to a recent block number to avoid processing the entire blockchain history
+- **Code Location**: `gasData.ts` - used in TWAP calculation initialization
 
 ### Configuration Validation
 
@@ -225,6 +244,16 @@ const requiredEnvVars = [
   'FOSSIL_API_KEY',
   'FOSSIL_API_URL'
 ];
+
+// Optional environment variables with defaults
+const optionalEnvVars = {
+  'IS_DEVNET': 'false',
+  'INITIAL_BLOCK_NUMBER': '0',
+  'CRON_SCHEDULE': '*/5 * * * * *',
+  'CRON_SCHEDULE_STATE': '*/30 * * * * *',
+  'LOG_LEVEL': 'info',
+  'USE_DEMO_DATA': 'false'
+};
 ```
 
 ## Data Models
@@ -570,6 +599,21 @@ make dev
 # Run in development mode
 npm run dev
 ```
+
+**Devnet Development**:
+```bash
+# Set devnet environment variables
+export IS_DEVNET=true
+export INITIAL_BLOCK_NUMBER=9263962
+
+# Start with devnet configuration
+make dev
+```
+
+**Key Devnet Features**:
+- Block mining for timestamp updates
+- Historical data processing from specific block
+- Katana integration for local testing
 
 **Production**:
 ```bash
