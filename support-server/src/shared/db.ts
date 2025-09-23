@@ -121,6 +121,19 @@ export class DB {
     }
   }
 
+  async clearAllJobRequests() {
+    try {
+      const query = `DELETE FROM job_requests`;
+      const result = await this.pitchlakePool.query(query);
+      console.log(`Cleared ${result.rowCount} job requests from the database`);
+      return true;
+    } catch (error) {
+      console.error("Error clearing all job requests:", error);
+      return false;
+    }
+  }
+
+
   async getRelevantBlocks(currentTimestamp: number, timeWindow: number) {
     const query = `
     WITH time_windows AS (
