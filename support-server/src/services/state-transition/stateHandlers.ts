@@ -131,6 +131,16 @@ export class StateHandlers {
           );
           return; // Exit here to let the cron handle the state transition in the next iteration
         }
+      } else {
+        // Reserve price is non-zero, so this is NOT a first round initialization
+        // If we have a job request, it must be from a previous settlement that completed
+        // but wasn't marked as completed by Fossil. Clean it up.
+        if (jobRequest) {
+          this.logger.warn(
+            `Cleaning up completed settlement job for vault ${vaultContract.address} (reserve price is set, so no initialization needed)`
+          );
+          await this.db.deleteJobRequest(vaultContract.address);
+        }
       }
 
       // Auction start logic with proper time validation
@@ -205,10 +215,20 @@ export class StateHandlers {
   async handleAuctioningState(
     roundContract: Contract,
     vaultContract: Contract,
+    jobRequest: JobRequest | undefined,
   ) {
     try {
       // Mine block on devnet first to ensure accurate timestamps
       await mineBlockHelper(this.provider, this.account, vaultContract, this.logger);
+      
+      // If we have a job request in auctioning state, it means the previous job completed
+      // but wasn't marked as completed by Fossil. Clean it up.
+      if (jobRequest) {
+        this.logger.warn(
+          `Cleaning up completed job for vault ${vaultContract.address} (in auctioning state, so previous job must have completed)`
+        );
+        await this.db.deleteJobRequest(vaultContract.address);
+      }
       
       const auctionEndTimeRaw = await roundContract.get_auction_end_date();
       const auctionEndTime = Number(auctionEndTimeRaw);

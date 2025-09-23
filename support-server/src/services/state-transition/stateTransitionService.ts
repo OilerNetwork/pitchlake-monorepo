@@ -206,6 +206,7 @@ export class StateTransitionService {
           await this.stateHandlers.handleAuctioningState(
             roundContract,
             vaultContract,
+            jobRequest,
           );
           break;
 
