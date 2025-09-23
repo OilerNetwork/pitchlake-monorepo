@@ -95,8 +95,16 @@ export class UnconfirmedTWAPsRunner {
   }
 
   startListening() {
+    let isProcessing = false; // Prevent concurrent block processing
+
     const unwatch = this.rpcClient.getClient().watchBlocks({
       onBlock: async (block: Block) => {
+        if (isProcessing) {
+          console.log("Skipping block - already processing another block");
+          return;
+        }
+
+        isProcessing = true;
         try {
           const shouldRecalibrate =
             await this.blockProcessor.processBlock(block);
