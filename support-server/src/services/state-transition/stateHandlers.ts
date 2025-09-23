@@ -54,35 +54,83 @@ export class StateHandlers {
       
       // Check if this is the first round that needs initialization
       const reservePrice = await roundContract.get_reserve_price();
-      console.log("DEBUGGING: reservePrice", reservePrice);
+      this.logger.debug(`Reserve price: ${reservePrice}`);
+      
       if (reservePrice === 0n) {
         this.logger.info("First round detected - needs initialization");
-        const requestData =
-          await vaultContract.get_request_to_start_first_round();
-        console.log("DEBUGGING: jobRequest", jobRequest);
+        
+        // Check if we already have a pending or completed job for this vault
         if (jobRequest?.status === JobStatus.Pending) {
           this.logger.info(
             `Job request for vault ${vaultContract.address} is pending`,
           );
           return;
         }
-        this.logger.info(
-          `Job request for vault ${vaultContract.address} is failed, retrying`,
-        );
-        const response = await sendFossilRequest(
-          formatRawFossilRequest(requestData),
-          vaultContract,
-          this.logger,
-        );
-        await this.db.upsertJobRequest(
-          vaultContract.address,
-          response.job_id,
-          response.status as JobStatus,
-        );
-        return;
-
-        // The fossil request takes some time to process, so we'll exit here
-        // and let the cron handle the state transition in the next iteration
+        
+        if (jobRequest?.status === JobStatus.Completed) {
+          this.logger.info(
+            `Job request for vault ${vaultContract.address} is completed, proceeding with auction start`,
+          );
+          // Clean up completed job and proceed to auction start
+          await this.db.deleteJobRequest(vaultContract.address);
+          
+          // Double-check that reserve price is now set (safety check)
+          const updatedReservePrice = await roundContract.get_reserve_price();
+          if (updatedReservePrice === 0n) {
+            this.logger.warn(
+              `Job completed but reserve price still 0 for vault ${vaultContract.address}. This may be a timing issue.`
+            );
+            // Continue anyway - the next poll will handle it
+          }
+        } else {
+          // No job or failed job - send new request
+          if (jobRequest?.status === JobStatus.Failed) {
+            this.logger.info(
+              `Previous job request for vault ${vaultContract.address} failed, retrying`,
+            );
+            // Clean up failed job before sending new one
+            await this.db.deleteJobRequest(vaultContract.address);
+          }
+          
+          // Check if we're past the proving delay for initialization
+          const deploymentTime = Number(await roundContract.get_deployment_date());
+          const provingDelay = Number(await vaultContract.get_proving_delay());
+          const latestBlock = await this.provider.getBlock("latest");
+          if (!latestBlock) {
+            this.logger.error("No latest block found");
+            return;
+          }
+          const latestStarknetBlock = rpcToStarknetBlock(latestBlock);
+          
+          const earliestInitTime = deploymentTime + provingDelay;
+          if (latestStarknetBlock.timestamp < earliestInitTime) {
+            this.logger.info(
+              `Waiting for proving delay to pass. Earliest init time: ${earliestInitTime}, current: ${latestStarknetBlock.timestamp}, time left: ${formatTimeLeft(
+                latestStarknetBlock.timestamp,
+                earliestInitTime,
+              )}`,
+            );
+            return;
+          }
+          
+          this.logger.info(
+            `Sending new job request for vault ${vaultContract.address}`,
+          );
+          
+          const requestData = await vaultContract.get_request_to_start_first_round();
+          const response = await sendFossilRequest(
+            formatRawFossilRequest(requestData),
+            vaultContract,
+            this.logger,
+          );
+          
+          await this.db.upsertJobRequest(
+            vaultContract.address,
+            response.job_id,
+            response.status as JobStatus,
+          );
+          return; // Exit here to let the cron handle the state transition in the next iteration
+        }
       }
 
       // Existing auction start logic
