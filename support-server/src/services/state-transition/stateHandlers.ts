@@ -133,42 +133,29 @@ export class StateHandlers {
         }
       }
 
-      // Existing auction start logic
-      //
-      const auctionStartTime = Number(
-        await roundContract.get_auction_start_date(),
-      );
-
-      console.log("DEBUGGING: auctionStartTime", auctionStartTime);
+      // Auction start logic with proper time validation
+      const auctionStartTime = Number(await roundContract.get_auction_start_date());
+      this.logger.debug(`Auction start time: ${auctionStartTime}`);
+      
       const latestBlock = await this.provider.getBlock("latest");
       if (!latestBlock) {
-        console.error("No latest block found");
+        this.logger.error("No latest block found");
         return;
       }
+      
       const latestStarknetBlock = rpcToStarknetBlock(latestBlock);
-      console.log(
-        "DEBUGGING: latest starknet block timestamp" +
-          latestStarknetBlock.timestamp,
-      );
-      console.log("DEBUGGING: now unix" + new Date().getTime() / 1000);
-
-      const latestBlockStarknet = await this.provider.getBlock("latest");
-      if (!latestBlockStarknet) {
-        console.error("No latest block found");
+      this.logger.debug(`Current timestamp: ${latestStarknetBlock.timestamp}`);
+      
+      // Check if it's time to start the auction
+      if (latestStarknetBlock.timestamp < auctionStartTime) {
+        this.logger.info(
+          `Waiting for auction start time. Time left: ${formatTimeLeft(
+            latestStarknetBlock.timestamp,
+            auctionStartTime,
+          )}`,
+        );
         return;
       }
-      const latestBlockStarknetFormatted =
-        rpcToStarknetBlock(latestBlockStarknet);
-
-      //if (this.latestFossilBlock.timestamp < auctionStartTime) {
-      //  this.logger.info(
-      //    `Waiting for auction start time. Time left: ${formatTimeLeft(
-      //      this.latestFossilBlock.timestamp,
-      //      auctionStartTime,
-      //    )}`,
-      //  );
-      //  return;
-      //}
 
       this.logger.info("Starting auction...");
 
