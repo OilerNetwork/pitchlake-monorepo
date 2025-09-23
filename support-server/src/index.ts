@@ -26,7 +26,7 @@ class ArchitectureSupportServer {
       await Promise.all([
         runner.initialize(),
         runTWAPUpdate()(),
-        runStateTransition()(),
+        //runStateTransition()(),
       ]);
       runner.startListening();
 
