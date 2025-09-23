@@ -148,7 +148,7 @@ export class TestRunner {
         //    const reservePriceRange = 3600 * 24 * 90;
         //
         //    const job_request: JobRequest = {
-        //      identifiers: ["PITCH_LAKE_V1"],
+        //      identifiers: ["PITCHLAKE_V1"],
         //      params: {
         //        twap: [
         //          parseInt(optionSettlementDate.toString()) - twapRange,
@@ -204,7 +204,7 @@ export class TestRunner {
         // const volatilityRange = 3600 * 24 * 90;
         // const reservePriceRange = 3600 * 24 * 90;
         // const job_request: JobRequest = {
-        //   identifiers: ["PITCH_LAKE_V1"],
+        //   identifiers: ["PITCHLAKE_V1"],
         //   params: {
         //     twap: [
         //       parseInt(optionSettlementDate.toString()) - twapRange,

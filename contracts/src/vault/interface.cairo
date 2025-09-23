@@ -2,7 +2,7 @@ use starknet::{ClassHash, ContractAddress};
 use pitch_lake::option_round::interface::{
     ConstructorArgs as OptionRoundConstructorArgs, IOptionRoundDispatcher,
     IOptionRoundDispatcherTrait, OptionRoundState, PricingData, OptionRoundEvent,
-    PricingDataSet, AuctionStarted, BidPlaced, BidUpdated, AuctionEnded, 
+    PricingDataSet, AuctionStarted, BidPlaced, BidUpdated, AuctionEnded,
     OptionRoundSettled, OptionsExercised, UnusedBidsRefunded, OptionsMinted,
 };
 
@@ -198,7 +198,7 @@ pub struct Params {
 // Job request sent to Fossil
 // vault_address: Which vault is the data for
 // timestamp: Upper bound timestamp of gas data used in data calculation
-// program_id: 'PITCH_LAKE_V1'
+// program_id: 'PITCHLAKE_V1'
 #[derive(Copy, Drop, PartialEq)]
 pub struct JobRequest {
     pub vault_address: ContractAddress,
@@ -326,7 +326,7 @@ impl SerdeVerifierData of Serde<VerifierData> {
 
 // - program_id & vault_address: validate that this Verifier result is intended for this specific
 // Vault; i.e,
-// assert program_id == 'PITCH_LAKE_V1' && vault_address == this.address
+// assert program_id == 'PITCHLAKE_V1' && vault_address == this.address
 
 // - timestamp: validates that the job request was not created in the future/before headers are
 // provable
@@ -348,7 +348,7 @@ impl SerdeVerifierData of Serde<VerifierData> {
 // (and every month has exactly 30 days for simplicity):
 //
 //    let march_job_request = PitchlakeRequest {
-//      program_id: 'PITCH_LAKE_V1',
+//      program_id: 'PITCHLAKE_V1',
 //      vault_address: prod.vault.address,
 //      timestamp: "March 30, 00:15:30".to_unix_timestamp(), // ~15 min after the settlement date
 //      twap_price_bounds: (

@@ -184,7 +184,7 @@ func loadVaultConfig() (deployment.VaultConfig, error) {
 	// Program ID
 	config.ProgramID = os.Getenv("PROGRAM_ID")
 	if config.ProgramID == "" {
-		config.ProgramID = "0x50495443485f4c414b455f5631" // PITCH_LAKE_V1
+		config.ProgramID = "0x50495443484c414b455f5631" // PITCHLAKE_V1
 	}
 
 	// Proving delay

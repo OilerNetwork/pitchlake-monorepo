@@ -12,7 +12,7 @@ export class OptionRoundFacade {
             : Number(await this.optionRoundContract.get_option_settlement_date());
         const DAY = 24 * 3600;
         const job_request = {
-            identifiers: ["PITCH_LAKE_V1"],
+            identifiers: ["PITCHLAKE_V1"],
             params: {
                 twap: [upperBound - 30 * DAY, upperBound],
                 volatility: [upperBound - 90 * DAY, upperBound],

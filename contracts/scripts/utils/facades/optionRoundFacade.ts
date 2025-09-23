@@ -34,7 +34,7 @@ export class OptionRoundFacade {
 
     const DAY = 24 * 3600;
     const job_request: JobRequest = {
-      identifiers: ["PITCH_LAKE_V1"],
+      identifiers: ["PITCHLAKE_V1"],
       params: {
         twap: [upperBound - 30 * DAY, upperBound],
         volatility: [upperBound - 90 * DAY, upperBound],
