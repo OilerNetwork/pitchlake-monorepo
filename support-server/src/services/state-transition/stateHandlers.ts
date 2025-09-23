@@ -222,6 +222,9 @@ export class StateHandlers {
       return;
     }
     try {
+      // Mine block on devnet first to ensure accurate timestamps
+      await mineBlockHelper(this.provider, this.account, vaultContract, this.logger);
+      
       const auctionEndTimeRaw = await roundContract.get_auction_end_date();
       const auctionEndTime = Number(auctionEndTimeRaw);
       this.logger.debug(`Auction end time: ${auctionEndTime}`);
