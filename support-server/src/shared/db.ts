@@ -121,6 +121,17 @@ export class DB {
     }
   }
 
+  async deleteJobRequest(vaultAddress: string) {
+    try {
+      const query = `DELETE FROM job_requests WHERE vault_address = $1`;
+      await this.pitchlakePool.query(query, [vaultAddress]);
+      return true;
+    } catch (error) {
+      console.error("Error deleting job request:", error);
+      return false;
+    }
+  }
+
   async clearAllJobRequests() {
     try {
       const query = `DELETE FROM job_requests`;
