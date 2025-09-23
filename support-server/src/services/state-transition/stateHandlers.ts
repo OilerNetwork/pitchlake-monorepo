@@ -250,10 +250,31 @@ export class StateHandlers {
         return;
       }
 
-    this.logger.info("Auction ended successfully", {
-      transactionHash: transaction_hash,
-    });
+      // Execute transaction with proper error handling
+      try {
+        const { transaction_hash } = await vaultContract.end_auction();
+        this.logger.info(`Auction end transaction submitted: ${transaction_hash}`);
+        
+        // Wait for transaction confirmation with timeout
+        const receipt = await this.provider.waitForTransaction(transaction_hash, {
+          retryInterval: 2000,
+          successStates: ["ACCEPTED_ON_L2", "ACCEPTED_ON_L1"]
+        });
+        
+        this.logger.info("Auction ended successfully", {
+          transactionHash: transaction_hash,
+          receipt: JSON.stringify(receipt)
+        });
+        
+      } catch (error) {
+        this.logger.error("Failed to end auction:", error);
+        // Don't throw - let the service continue with other vaults
+        return;
+      }
+      
     } catch (error) {
+      this.logger.error("Error handling Auctioning state:", error);
+      // Don't throw - let the service continue with other vaults
     }
   }
 
