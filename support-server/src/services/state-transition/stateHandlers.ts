@@ -206,9 +206,6 @@ export class StateHandlers {
     roundContract: Contract,
     vaultContract: Contract,
   ) {
-    const auctionEndTimeRaw = await roundContract.get_auction_end_date();
-    const auctionEndTime = Number(auctionEndTimeRaw);
-
     const latestBlock = await this.provider.getBlock("latest");
     if (!latestBlock) {
       console.error("No latest block found");
@@ -224,6 +221,10 @@ export class StateHandlers {
       );
       return;
     }
+    try {
+      const auctionEndTimeRaw = await roundContract.get_auction_end_date();
+      const auctionEndTime = Number(auctionEndTimeRaw);
+      this.logger.debug(`Auction end time: ${auctionEndTime}`);
 
     this.logger.info("Ending auction...");
 
@@ -240,6 +241,8 @@ export class StateHandlers {
     this.logger.info("Auction ended successfully", {
       transactionHash: transaction_hash,
     });
+    } catch (error) {
+    }
   }
 
   async handleRunningState(
