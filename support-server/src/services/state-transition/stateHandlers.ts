@@ -206,21 +206,6 @@ export class StateHandlers {
     roundContract: Contract,
     vaultContract: Contract,
   ) {
-    const latestBlock = await this.provider.getBlock("latest");
-    if (!latestBlock) {
-      console.error("No latest block found");
-      return;
-    }
-    const latestStarknetBlock = rpcToStarknetBlock(latestBlock);
-    if (latestStarknetBlock.timestamp < auctionEndTime) {
-      this.logger.info(
-        `Waiting for auction end time. Time left: ${formatTimeLeft(
-          latestStarknetBlock.timestamp,
-          auctionEndTime,
-        )}`,
-      );
-      return;
-    }
     try {
       // Mine block on devnet first to ensure accurate timestamps
       await mineBlockHelper(this.provider, this.account, vaultContract, this.logger);
@@ -230,6 +215,23 @@ export class StateHandlers {
       this.logger.debug(`Auction end time: ${auctionEndTime}`);
 
     this.logger.info("Ending auction...");
+      const latestBlock = await this.provider.getBlock("latest");
+      if (!latestBlock) {
+        this.logger.error("No latest block found");
+        return;
+      }
+      
+      const latestStarknetBlock = rpcToStarknetBlock(latestBlock);
+      this.logger.debug(`Current timestamp: ${latestStarknetBlock.timestamp}`);
+      
+      if (latestStarknetBlock.timestamp < auctionEndTime) {
+        this.logger.info(
+          `Waiting for auction end time. Time left: ${formatTimeLeft(
+            latestStarknetBlock.timestamp,
+            auctionEndTime,
+          )}`,
+        );
+        return;
 
     const { suggestedMaxFee: estimatedMaxFee } =
       await this.account.estimateInvokeFee({
