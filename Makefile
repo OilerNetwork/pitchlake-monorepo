@@ -53,15 +53,17 @@ sync-addresses: ## Sync contract addresses from Fossil to Pitchlake
 .PHONY: start-all
 start-all: ## Start all services (Fossil first, then Pitchlake services)
 	@echo "🚀 Starting all services..."
-	@echo "📋 Step 1: Starting Fossil services (primary chain)..."
+	@echo "📋 Step 1: Building Fossil message handler image..."
+	@cd fossil-monorepo && ./scripts/build-message-handler-image-docker.sh
+	@echo "📋 Step 2: Starting Fossil services (primary chain)..."
 	@cd fossil-monorepo && $(MAKE) dev-up
-	@echo "📋 Step 2: Syncing contract addresses to Pitchlake..."
+	@echo "📋 Step 3: Syncing contract addresses to Pitchlake..."
 	@$(MAKE) sync-addresses
-	@echo "📋 Step 3: Rebuilding Pitchlake services with updated env..."
+	@echo "📋 Step 4: Rebuilding Pitchlake services with updated env..."
 	@$(MAKE) build-all
-	@echo "📋 Step 4: Running Pitchlake migrations..."
+	@echo "📋 Step 5: Running Pitchlake migrations..."
 	@$(MAKE) migrate
-	@echo "📋 Step 5: Starting Pitchlake services..."
+	@echo "📋 Step 6: Starting Pitchlake services..."
 	@docker-compose up -d
 	@echo "⏳ Waiting for services to be healthy..."
 	@sleep 10
