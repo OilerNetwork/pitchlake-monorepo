@@ -6,6 +6,30 @@ import { JobRequest, JobStatus } from "../../types/types";
 import { rpcToStarknetBlock } from "../../utils/rpcClient";
 import { ABI as erc20ABI } from "../../abi/erc20";
 import { DB } from "../../shared/db";
+
+
+const mineBlockHelper = async (provider: RpcProvider, account: Account, vaultContract: Contract, logger: Logger) => {
+  // Only mine blocks on devnet
+  if (process.env.IS_DEVNET !== "true") {
+    return;
+  }
+  
+  try {
+    logger.debug("Mining block on devnet to update timestamp...");
+    const ethAddress = await vaultContract.get_eth_address();
+    const ethAddressHex = "0x" + BigInt(ethAddress).toString(16);
+    const ethContract = new Contract(erc20ABI, ethAddressHex, account);
+    const data = await ethContract.transfer(account.address, 123n);
+    logger.debug(`Devnet block mining transaction: ${data.transaction_hash}`);
+    await provider.waitForTransaction(data.transaction_hash);
+    logger.debug("Block mined successfully on devnet");
+  } catch (error) {
+    logger.error("Failed to mine block on devnet:", error);
+    // Don't throw - this is just for devnet testing
+  }
+}
+
+
 export class StateHandlers {
   private db: DB;
   private logger: Logger;
@@ -24,13 +48,10 @@ export class StateHandlers {
     vaultContract: Contract,
     jobRequest: JobRequest | undefined,
   ) {
-    const ethAddress = await vaultContract.get_eth_address();
-    const ethAddressHex = "0x" + BigInt(ethAddress).toString(16);
-    const ethContract = new Contract(erc20ABI, ethAddressHex, this.account);
-    const data = await ethContract.transfer(this.account.address, 123n);
-    console.log("DEBUGGING: data", data);
-    await this.provider.waitForTransaction(data.transaction_hash);
     try {
+      // Mine block on devnet first to ensure accurate timestamps
+      await mineBlockHelper(this.provider, this.account, vaultContract, this.logger);
+      
       // Check if this is the first round that needs initialization
       const reservePrice = await roundContract.get_reserve_price();
       console.log("DEBUGGING: reservePrice", reservePrice);
