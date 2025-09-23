@@ -159,17 +159,20 @@ export class StateHandlers {
 
       this.logger.info("Starting auction...");
 
-      const { suggestedMaxFee: estimatedMaxFee } =
-        await this.account.estimateInvokeFee([
-          {
-            contractAddress: vaultContract.address,
-            entrypoint: "start_auction",
-            calldata: [],
-          },
-        ]);
-
-      const { transaction_hash } = await vaultContract.start_auction();
-      await this.provider.waitForTransaction(transaction_hash);
+      // Estimate gas fee with error handling
+      let estimatedMaxFee;
+      try {
+        const feeEstimate = await this.account.estimateInvokeFee({
+          contractAddress: vaultContract.address,
+          entrypoint: "start_auction",
+          calldata: [],
+        });
+        estimatedMaxFee = feeEstimate.suggestedMaxFee;
+        this.logger.debug(`Estimated max fee: ${estimatedMaxFee}`);
+      } catch (error) {
+        this.logger.error("Failed to estimate gas fee for start_auction:", error);
+        return;
+      }
 
       this.logger.info("Auction started successfully", {
         transactionHash: transaction_hash,
