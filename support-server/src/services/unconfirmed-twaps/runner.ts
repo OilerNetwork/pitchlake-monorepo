@@ -67,9 +67,26 @@ export class UnconfirmedTWAPsRunner {
           if (shouldRecalibrate) {
             return true; // Signal recalibration needed
           }
+
+          // Add delay between batches for rate limiting
+          if (blockNumber <= currentBlock) {
+            await this.sleep(500);
+          }
         } catch (error) {
           console.error(`Error fetching blocks at ${blockNumber}:`, error);
-          await this.sleep(1000); // Wait before retrying the batch
+
+          // If it's a rate limit error, wait longer
+          if (
+            error &&
+            typeof error === "object" &&
+            "status" in error &&
+            error.status === 429
+          ) {
+            console.warn("Rate limited, waiting 5 seconds before retrying...");
+            await this.sleep(5000);
+          } else {
+            await this.sleep(1000); // Wait before retrying the batch
+          }
           continue;
         }
       }
@@ -90,6 +107,21 @@ export class UnconfirmedTWAPsRunner {
           }
         } catch (error) {
           console.error("Error handling new block:", error);
+
+          // If it's a rate limit error, wait before processing next block
+          if (
+            error &&
+            typeof error === "object" &&
+            "status" in error &&
+            error.status === 429
+          ) {
+            console.warn(
+              "Rate limited in real-time processing, waiting 2 seconds...",
+            );
+            await this.sleep(2000);
+          }
+        } finally {
+          isProcessing = false;
         }
       },
     });
