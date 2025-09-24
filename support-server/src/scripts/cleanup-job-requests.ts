@@ -1,13 +1,25 @@
 #!/usr/bin/env ts-node
 
+import { config } from 'dotenv';
 import { DB } from '../shared/db';
+
+// Load environment variables from .env file (root directory)
+config({ path: '../.env' });
 
 async function cleanupJobRequests() {
   console.log('🧹 Starting job requests cleanup...');
   
-  // Set environment variables for local database connections
-  process.env.FOSSIL_DB_URL = 'postgresql://fossil_user:fossil_password@localhost:5436/fossil';
-  process.env.PITCHLAKE_DB_URL = 'postgresql://pitchlake_user:pitchlake_password@localhost:5437/pitchlake';
+  // Validate required environment variables
+  if (!process.env.PITCHLAKE_DB_URL) {
+    console.error('❌ Error: PITCHLAKE_DB_URL environment variable is not set');
+    console.error('💡 Make sure you have a .env file with the correct database connection string');
+    console.error('💡 Current working directory:', process.cwd());
+    process.exit(1);
+  }
+  
+  // Mask password in connection string for logging
+  const maskedUrl = process.env.PITCHLAKE_DB_URL.replace(/:[^:@]+@/, ':***@');
+  console.log(`📊 Using database: ${maskedUrl}`);
   
   try {
     const db = new DB();

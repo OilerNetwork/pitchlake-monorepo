@@ -307,3 +307,12 @@ reset-fossil: ## Reset Fossil database
 list-jobs:
 	@echo "Listing all jobs in job_requests table..."
 	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "SELECT * FROM job_requests;" || echo "Failed to list jobs. Make sure the container is running."
+
+.PHONY: clean-job-requests
+clean-job-requests: ## Clean up job requests from the database
+	@echo "🧹 Cleaning up job requests from the database..."
+	@echo "📋 Ensuring databases are running..."
+	@docker-compose up -d pitchlake-db fossil-db
+	@echo "⏳ Waiting for databases to be ready..."
+	@sleep 5
+	@cd support-server && npx ts-node src/scripts/cleanup-job-requests.ts

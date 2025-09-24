@@ -121,11 +121,6 @@ clean-project:
 	@echo "✅ Project resources cleaned!"
 
 
-# Clean job requests from database
-clean-job-requests: check-dbs
-	@echo "🧹 Cleaning up job requests from the database..."
-	@npx ts-node src/scripts/cleanup-job-requests.ts
-
 # Development setup: start databases and run migrations
 dev: create-network start-dbs migrate-all
 	@echo "Development environment ready!"
