@@ -231,14 +231,6 @@ export class StateHandlers {
     roundId: number,
   ) {
     try {
-      // If we have a job request in auctioning state, it means the previous job completed
-      // but wasn't marked as completed by Fossil. Clean it up.
-      if (jobRequest) {
-        this.logger.warn(
-          `Cleaning up completed job for vault ${vaultContract.address} (in auctioning state, so previous job must have completed)`,
-        );
-        await this.db.deleteJobRequest(vaultContract.address);
-      }
 
       const auctionEndTimeRaw = await roundContract.get_auction_end_date();
       const auctionEndTime = Number(auctionEndTimeRaw);
