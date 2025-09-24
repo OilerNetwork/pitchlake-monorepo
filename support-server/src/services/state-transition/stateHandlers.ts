@@ -96,8 +96,6 @@ export class StateHandlers {
             this.logger.info(
               `Latest job request for vault ${vaultContract.address} round 0 failed, will send new request`,
             );
-            // Clean up failed job before sending new one
-            await this.db.deleteJobRequest(vaultContract.address);
           }
         }
 
@@ -138,23 +136,16 @@ export class StateHandlers {
             this.logger,
           );
 
-          await this.db.upsertJobRequest(
+          await this.db.insertJobRequest(
             vaultContract.address,
             response.job_id,
             response.status as JobStatus,
+            0, // Round 0 for initialization
           );
           return; // Exit here to let the cron handle the state transition in the next iteration
         }
       } else {
-        // Reserve price is non-zero, so this is NOT a first round initialization
-        // If we have a job request, it must be from a previous settlement that completed
-        // but wasn't marked as completed by Fossil. Clean it up.
-        if (jobRequest) {
-          this.logger.warn(
-            `Cleaning up completed settlement job for vault ${vaultContract.address} (reserve price is set, so no initialization needed)`,
-          );
-          await this.db.deleteJobRequest(vaultContract.address);
-        }
+        this.logger.info("Reserve price is set - not a first round initialization");
       }
 
       // Auction start logic with proper time validation
