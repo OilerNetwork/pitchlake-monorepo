@@ -191,6 +191,8 @@ The system uses multiple environment files for different deployment scenarios:
 | `FOSSIL_API_URL` | Fossil API endpoint | `http://localhost:3000` |
 | `PITCHLAKE_DB_URL` | Pitchlake database connection | `postgres://user:pass@localhost:5433/db` |
 | `FOSSIL_DB_URL` | Fossil database connection | `postgres://user:pass@localhost:5432/db` |
+| `IS_DEVNET` | Enable devnet mode (block mining) | `false` |
+| `INITIAL_BLOCK_NUMBER` | Starting block for TWAP processing | `0` |
 | `BLOCK_BATCH_SIZE` | Number of blocks to process in each batch | `500` |
 
 ## 🔧 Fossil Monorepo Integration
