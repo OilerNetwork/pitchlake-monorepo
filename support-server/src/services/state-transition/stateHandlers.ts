@@ -56,7 +56,7 @@ export class StateHandlers {
   async handleOpenState(
     roundContract: Contract,
     vaultContract: Contract,
-    jobRequest: JobRequest | undefined,
+    roundId: number,
   ) {
     try {
       // Check if this is the first round that needs initialization
@@ -233,7 +233,7 @@ export class StateHandlers {
   async handleAuctioningState(
     roundContract: Contract,
     vaultContract: Contract,
-    jobRequest: JobRequest | undefined,
+    roundId: number,
   ) {
     try {
       // If we have a job request in auctioning state, it means the previous job completed
@@ -319,7 +319,7 @@ export class StateHandlers {
   async handleRunningState(
     roundContract: Contract,
     vaultContract: Contract,
-    jobRequest: JobRequest | undefined,
+    roundId: number,
   ): Promise<void> {
     try {
       const settlementTime = Number(
