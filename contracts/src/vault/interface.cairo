@@ -1,10 +1,10 @@
-use starknet::{ClassHash, ContractAddress};
 use pitch_lake::option_round::interface::{
+    AuctionEnded, AuctionStarted, BidPlaced, BidUpdated,
     ConstructorArgs as OptionRoundConstructorArgs, IOptionRoundDispatcher,
-    IOptionRoundDispatcherTrait, OptionRoundState, PricingData, OptionRoundEvent,
-    PricingDataSet, AuctionStarted, BidPlaced, BidUpdated, AuctionEnded,
-    OptionRoundSettled, OptionsExercised, UnusedBidsRefunded, OptionsMinted,
+    IOptionRoundDispatcherTrait, OptionRoundEvent, OptionRoundSettled, OptionRoundState,
+    OptionsExercised, OptionsMinted, PricingData, PricingDataSet, UnusedBidsRefunded,
 };
+use starknet::{ClassHash, ContractAddress};
 
 // @dev Constructor arguments
 #[derive(Drop, Serde)]
@@ -175,7 +175,9 @@ pub trait IVault<TContractState> {
     fn fossil_callback(
         ref self: TContractState, job_request: Span<felt252>, result: Span<felt252>,
     ) -> u256;
-    fn emit_option_round_event(ref self: TContractState, round_id: u64, option_round_event: OptionRoundEvent);
+    fn emit_option_round_event(
+        ref self: TContractState, round_id: u64, option_round_event: OptionRoundEvent,
+    );
 }
 
 // Off-chain job request that is sent to Fossil (to be calculated then verified by the Pitchlake

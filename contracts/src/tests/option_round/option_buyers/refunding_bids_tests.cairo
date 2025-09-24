@@ -119,7 +119,10 @@ fn test_refunding_bids_events() {
                         // Check refunding bids emits the correct event
                         let refund_amount = current_round.refund_bid(*bidder);
                         assert_event_unused_bids_refunded(
-                            vault.contract_address(), current_round.get_round_id(), *bidder, refund_amount,
+                            vault.contract_address(),
+                            current_round.get_round_id(),
+                            *bidder,
+                            refund_amount,
                         );
                     },
                     Option::None => { break; },

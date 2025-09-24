@@ -75,7 +75,13 @@ fn test_exercise_options_events() {
             clear_event_logs(array![vault.contract_address()]);
             let payout_amount = current_round.exercise_options(*ob);
             assert_event_options_exercised(
-                vault.contract_address(), eth.contract_address, current_round.get_round_id(), *ob, bid_count, 0_u256, payout_amount,
+                vault.contract_address(),
+                eth.contract_address,
+                current_round.get_round_id(),
+                *ob,
+                bid_count,
+                0_u256,
+                payout_amount,
             );
         },
         Option::None => {},
@@ -87,7 +93,13 @@ fn test_exercise_options_events() {
                 clear_event_logs(array![vault.contract_address()]);
                 let payout_amount = current_round.exercise_options(*ob);
                 assert_event_options_exercised(
-                    vault.contract_address(), eth.contract_address, current_round.get_round_id(), *ob, bid_count, bid_count, payout_amount,
+                    vault.contract_address(),
+                    eth.contract_address,
+                    current_round.get_round_id(),
+                    *ob,
+                    bid_count,
+                    bid_count,
+                    payout_amount,
                 );
             },
             Option::None => { break (); },
