@@ -4,9 +4,11 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 	"pitchlake-backend/db"
 	"pitchlake-backend/server/api/general"
 	"pitchlake-backend/server/api/home"
+	"pitchlake-backend/server/api/integrations"
 	"pitchlake-backend/server/api/vault"
 )
 
@@ -36,8 +38,14 @@ func NewDBServer(ctx context.Context) *dbServer {
 		ctx:    ctx,
 		cancel: cancel,
 	}
+	// Create FossilAPI instance
+	fossilAPI := integrations.NewFossilAPI(
+		os.Getenv("FOSSIL_API_KEY"),
+		os.Getenv("FOSSIL_API_URL"),
+	)
+
 	homeRouter := home.NewHomeRouter(&dbs.serveMux, &dbs.log)
-	vaultRouter := vault.NewVaultRouter(&dbs.serveMux, &dbs.log)
+	vaultRouter := vault.NewVaultRouter(&dbs.serveMux, &dbs.log, fossilAPI)
 	generalRouter := general.NewGeneralRouter(&dbs.serveMux, &dbs.log)
 	go dbs.listener(ctx, vaultRouter.Subscribers.List, homeRouter.Subscribers.List, generalRouter.Subscribers.List)
 	return dbs

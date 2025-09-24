@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"pitchlake-backend/server/api/integrations"
 	"pitchlake-backend/server/types"
 
 	"github.com/coder/websocket"
@@ -33,13 +34,15 @@ func (router *VaultRouter) sendJobRequestHandler(w http.ResponseWriter, r *http.
 	}
 }
 
-func NewVaultRouter(serveMux *http.ServeMux, logger *log.Logger) *VaultRouter {
+func NewVaultRouter(serveMux *http.ServeMux, logger *log.Logger, fossilAPI *integrations.FossilAPI) *VaultRouter {
 	router := &VaultRouter{
 		Subscribers: SubscribersWithLock{
 			List: make(map[string][]*types.SubscriberVault),
 		},
-		log: logger,
+		log:       logger,
+		fossilAPI: fossilAPI,
 	}
 	serveMux.HandleFunc("/subscribeVault", router.subscribeVaultHandler)
+	serveMux.HandleFunc("/sendJobRequest", router.sendJobRequestHandler)
 	return router
 }

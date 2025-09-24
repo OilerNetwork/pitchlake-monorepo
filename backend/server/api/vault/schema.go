@@ -3,6 +3,7 @@ package vault
 import (
 	"log"
 	"pitchlake-backend/models"
+	"pitchlake-backend/server/api/integrations"
 	"pitchlake-backend/server/types"
 	"sync"
 
@@ -18,6 +19,7 @@ type VaultRouter struct {
 	Subscribers             SubscribersWithLock
 	log                     *log.Logger
 	pool                    pgxpool.Pool
+	fossilAPI               *integrations.FossilAPI
 }
 
 type InitialPayloadVault struct {
