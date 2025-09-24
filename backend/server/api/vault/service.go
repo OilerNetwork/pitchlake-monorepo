@@ -18,6 +18,11 @@ import (
 	"github.com/coder/websocket"
 )
 
+const (
+	// DEFAULT_STUCK_JOB_TIMEOUT is the default maximum time a job can be pending before being considered stuck
+	DEFAULT_STUCK_JOB_TIMEOUT = 10 * time.Minute
+)
+
 func (router *VaultRouter) subscribeVault(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	var mu sync.Mutex
 	var c *websocket.Conn
@@ -294,16 +299,30 @@ func (router *VaultRouter) sendJobRequest(ctx context.Context, w http.ResponseWr
 			refreshedJob = latestJob
 		}
 
-		// If job is pending, return it
+		// If job is pending, check if it's stuck
 		if refreshedJob.Status == models.JobStatusPending {
-			response := models.SendJobRequestResponse{
-				JobID:   refreshedJob.JobID,
-				Status:  refreshedJob.Status,
-				Message: "Job request is already pending",
+			// Check if the job has been pending for too long
+			if router.isJobStuck(refreshedJob) {
+				log.Printf("Job %s has been pending for too long, marking as failed", refreshedJob.JobID)
+				
+				// Mark the stuck job as failed
+				err = jobRepo.UpdateJobRequestStatus(ctx, refreshedJob.JobID, models.JobStatusFailed)
+				if err != nil {
+					log.Printf("Error marking stuck job as failed: %v", err)
+				}
+				
+				// Continue to send a new job below
+			} else {
+				// Job is still valid and pending
+				response := models.SendJobRequestResponse{
+					JobID:   refreshedJob.JobID,
+					Status:  refreshedJob.Status,
+					Message: "Job request is already pending",
+				}
+				w.Header().Set("Content-Type", "application/json")
+				json.NewEncoder(w).Encode(response)
+				return nil
 			}
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(response)
-			return nil
 		}
 
 		// If job is completed, return it
@@ -376,4 +395,28 @@ func (router *VaultRouter) refreshJobStatus(ctx context.Context, job *models.Job
 	}
 
 	return job, nil
+}
+
+// isJobStuck checks if a job has been pending for longer than the stuck timeout
+func (router *VaultRouter) isJobStuck(job *models.JobRequest) bool {
+	// Parse the created_at timestamp
+	createdAt, err := time.Parse(time.RFC3339, job.CreatedAt)
+	if err != nil {
+		log.Printf("Error parsing job created_at timestamp: %v", err)
+		// If we can't parse the timestamp, consider it stuck to be safe
+		return true
+	}
+	
+	// Get the stuck timeout from environment variable or use default
+	stuckTimeout := router.getStuckJobTimeout()
+	
+	// Check if the job has been pending for longer than the timeout
+	return time.Since(createdAt) > stuckTimeout
+}
+
+// getStuckJobTimeout returns the configured stuck job timeout
+func (router *VaultRouter) getStuckJobTimeout() time.Duration {
+	// This could be made configurable via environment variable in the future
+	// For now, return the default
+	return DEFAULT_STUCK_JOB_TIMEOUT
 }
