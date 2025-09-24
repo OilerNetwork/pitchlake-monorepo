@@ -85,12 +85,6 @@ export const sendMockFossilRequest = async (
   logger.info("Sending request to Mock Verifier");
   logger.debug({ request: fossilRequest });
 
-  const { MOCK_VERIFIER_ADDRESS } = process.env;
-  
-  if (!MOCK_VERIFIER_ADDRESS) {
-    throw new Error("MOCK_VERIFIER_ADDRESS is required when USE_MOCK_VERIFIER=true");
-  }
-
   try {
     // Extract data from the original job request
     const { program_id, vault_address, params } = fossilRequest;
@@ -128,8 +122,15 @@ export const sendMockFossilRequest = async (
       MAX_RETURN // max return
     ];
     
+    // Get the automator's account address (which is acting as the mock verifier)
+    const automatorAddress = vaultContract.provider.account?.address;
+    if (!automatorAddress) {
+      throw new Error("No account connected to vault contract provider");
+    }
+    
     logger.info("Calling fossil_callback directly on vault contract", {
       vaultAddress: vaultContract.address,
+      automatorAddress: automatorAddress,
       jobRequest: jobRequestSerialized,
       result: resultSerialized
     });
@@ -148,7 +149,7 @@ export const sendMockFossilRequest = async (
     const mockResponse = {
       job_id: `mock_job_${Date.now()}`,
       status: "completed", // Since we're calling directly, it's immediately completed
-      verifier_address: MOCK_VERIFIER_ADDRESS,
+      verifier_address: automatorAddress,
       transaction_hash: transaction_hash
     };
 

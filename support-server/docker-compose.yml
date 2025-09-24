@@ -26,7 +26,6 @@ services:
       
       # Mock Verifier Configuration
       - USE_MOCK_VERIFIER=${USE_MOCK_VERIFIER:-false}
-      - MOCK_VERIFIER_ADDRESS=${MOCK_VERIFIER_ADDRESS}
       
       # Cron Schedules
       - CRON_SCHEDULE=${CRON_SCHEDULE:-*/5 * * * * *}
