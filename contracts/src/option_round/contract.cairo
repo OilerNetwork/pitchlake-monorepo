@@ -702,15 +702,7 @@ pub mod OptionRound {
             // @dev Return the exercised amount
             exercised_amount
         }
-        fn emit_option_round_event(ref self: ContractState, option_round_event: OptionRoundEvent) {
-            // @dev Get the round dispatcher to validate the round exists
-            let vault = self.get_vault_dispatcher();
-            let round_id = self.get_round_id();
-            vault.emit_option_round_event(round_id, option_round_event);
-        }
     }
-
-    // @dev General function to emit any option round event from the vault
 
     // *************************************************************************
     //                          INTERNAL FUNCTIONS
@@ -718,6 +710,15 @@ pub mod OptionRound {
 
     #[generate_trait]
     impl InternalImpl of OptionRoundInternalTrait {
+        // @dev Used by an option round to emit events through the vault contract (for indexer
+        // purposes)
+        fn emit_option_round_event(ref self: ContractState, option_round_event: OptionRoundEvent) {
+            // @dev Get the round dispatcher to validate the round exists
+            let vault = self.get_vault_dispatcher();
+            let round_id = self.get_round_id();
+            vault.emit_option_round_event(round_id, option_round_event);
+        }
+
         // @dev Transitions the round's state to `to_state` if the proper conditions are met
         fn transition_state_to(ref self: ContractState, to_state: OptionRoundState) {
             // @dev Assert the caller is the vault

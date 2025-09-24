@@ -1,9 +1,4 @@
-use pitch_lake::option_round::interface::{
-    AuctionEnded, AuctionStarted, BidPlaced, BidUpdated,
-    ConstructorArgs as OptionRoundConstructorArgs, IOptionRoundDispatcher,
-    IOptionRoundDispatcherTrait, OptionRoundEvent, OptionRoundSettled, OptionRoundState,
-    OptionsExercised, OptionsMinted, PricingData, PricingDataSet, UnusedBidsRefunded,
-};
+use pitch_lake::option_round::interface::OptionRoundEvent;
 use starknet::{ClassHash, ContractAddress};
 
 // @dev Constructor arguments
@@ -175,6 +170,8 @@ pub trait IVault<TContractState> {
     fn fossil_callback(
         ref self: TContractState, job_request: Span<felt252>, result: Span<felt252>,
     ) -> u256;
+
+    // @dev Used by an option round to emit events through the vault contract (for indexer purposes)
     fn emit_option_round_event(
         ref self: TContractState, round_id: u64, option_round_event: OptionRoundEvent,
     );

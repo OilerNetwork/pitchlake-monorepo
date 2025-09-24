@@ -290,8 +290,4 @@ pub trait IOptionRound<TContractState> {
 
     // Convert options won from auction into erc20 tokens
     fn mint_options(ref self: TContractState) -> u256;
-
-    // @dev Emit an option round event
-    // @param option_round_event: The option round event to emit
-    fn emit_option_round_event(ref self: TContractState, option_round_event: OptionRoundEvent);
 }

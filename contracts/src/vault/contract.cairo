@@ -7,10 +7,8 @@ pub mod Vault {
     use pitch_lake::library::constants::{BPS_i128, BPS_u128, BPS_u256};
     use pitch_lake::library::pricing_utils::{calculate_cap_level, calculate_strike_price};
     use pitch_lake::option_round::interface::{
-        AuctionEnded, AuctionStarted, BidPlaced, BidUpdated,
         ConstructorArgs as OptionRoundConstructorArgs, IOptionRoundDispatcher,
-        IOptionRoundDispatcherTrait, OptionRoundEvent, OptionRoundSettled, OptionRoundState,
-        OptionsExercised, OptionsMinted, PricingData, PricingDataSet, UnusedBidsRefunded,
+        IOptionRoundDispatcherTrait, OptionRoundEvent, OptionRoundState, PricingData,
     };
     use pitch_lake::vault::interface::{
         ConstructorArgs, IVault, JobRequest, L1Data, OffchainJobRequest, Params, VerifierData,
@@ -19,9 +17,7 @@ pub mod Vault {
         Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
     use starknet::syscalls::deploy_syscall;
-    use starknet::{
-        ClassHash, ContractAddress, get_block_timestamp, get_caller_address, get_contract_address,
-    };
+    use starknet::{ClassHash, ContractAddress, get_caller_address, get_contract_address};
 
     // *************************************************************************
     //                              STORAGE
@@ -682,6 +678,7 @@ pub mod Vault {
 
             total_payout
         }
+
         fn emit_option_round_event(
             ref self: ContractState, round_id: u64, option_round_event: OptionRoundEvent,
         ) {
