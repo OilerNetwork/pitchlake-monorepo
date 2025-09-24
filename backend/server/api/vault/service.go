@@ -97,10 +97,10 @@ func (router *VaultRouter) subscribeVault(ctx context.Context, w http.ResponseWr
 	payload.PayloadType = "initial"
 
 	//Create repositories
-	vaultRepo := repositories.NewVaultRepository(&router.pool)
-	optionRoundRepo := repositories.NewOptionRepository(&router.pool)
-	optionBuyerRepo := repositories.NewOptionBuyerRepository(&router.pool)
-	lpRepo := repositories.NewLiquidityRepository(&router.pool)
+	vaultRepo := repositories.NewVaultRepository(router.pool)
+	optionRoundRepo := repositories.NewOptionRepository(router.pool)
+	optionBuyerRepo := repositories.NewOptionBuyerRepository(router.pool)
+	lpRepo := repositories.NewLiquidityRepository(router.pool)
 
 	vaultState, err := vaultRepo.GetVaultStateByID(ctx, s.VaultAddress)
 
@@ -281,7 +281,7 @@ func (router *VaultRouter) sendJobRequest(ctx context.Context, w http.ResponseWr
 	}
 
 	// Create job request repository
-	jobRepo := repositories.NewJobRequestRepository(&router.pool)
+	jobRepo := repositories.NewJobRequestRepository(router.pool)
 
 	// Get the latest job request for this vault and round
 	latestJob, err := jobRepo.GetLatestJobRequestByVaultAndRound(ctx, req.FossilRequest.VaultAddress, req.RoundID)

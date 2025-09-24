@@ -42,7 +42,7 @@ func NewVaultRouter(serveMux *http.ServeMux, logger *log.Logger, fossilAPI *inte
 		},
 		log:       logger,
 		fossilAPI: fossilAPI,
-		pool:      *pool,
+		pool:      pool,
 	}
 	serveMux.HandleFunc("/subscribeVault", router.subscribeVaultHandler)
 	serveMux.HandleFunc("/sendJobRequest", router.sendJobRequestHandler)
