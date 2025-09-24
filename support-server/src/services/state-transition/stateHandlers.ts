@@ -66,39 +66,43 @@ export class StateHandlers {
       if (reservePrice === 0n) {
         this.logger.info("First round detected - needs initialization");
 
-        // Check if we already have a pending or completed job for this vault
-        if (jobRequest?.status === JobStatus.Pending) {
-          this.logger.info(
-            `Job request for vault ${vaultContract.address} is pending`,
-          );
-          return;
-        }
+        // Check for latest job request for round 0 (initialization)
+        const jobRequest = await this.db.getLatestJobRequestByVaultAndRound(vaultContract.address, 0);
 
-        if (jobRequest?.status === JobStatus.Completed) {
-          this.logger.info(
-            `Job request for vault ${vaultContract.address} is completed, proceeding with auction start`,
-          );
-          // Clean up completed job and proceed to auction start
-          await this.db.deleteJobRequest(vaultContract.address);
+        if (jobRequest) {
+          // Refresh job status from Fossil
+          const refreshedJobRequest = await this.refreshJobStatus(jobRequest);
 
-          // Double-check that reserve price is now set (safety check)
-          const updatedReservePrice = await roundContract.get_reserve_price();
-          if (updatedReservePrice === 0n) {
-            this.logger.warn(
-              `Job completed but reserve price still 0 for vault ${vaultContract.address}. This may be a timing issue.`,
-            );
-            // Continue anyway - the next poll will handle it
-          }
-        } else {
-          // No job or failed job - send new request
-          if (jobRequest?.status === JobStatus.Failed) {
+          if (refreshedJobRequest.status === JobStatus.Pending) {
             this.logger.info(
-              `Previous job request for vault ${vaultContract.address} failed, retrying`,
+              `Job request for vault ${vaultContract.address} round 0 is pending`,
+            );
+            return;
+          }
+
+          if (refreshedJobRequest.status === JobStatus.Completed) {
+            this.logger.info(
+              `Job request for vault ${vaultContract.address} round 0 is completed, proceeding with auction start`,
+            );
+            // Double-check that reserve price is now set (safety check)
+            const updatedReservePrice = await roundContract.get_reserve_price();
+            if (updatedReservePrice === 0n) {
+              this.logger.warn(
+                `Job completed but reserve price still 0 for vault ${vaultContract.address}. This may be a timing issue.`,
+              );
+              // Continue anyway - the next poll will handle it
+            }
+          } else if (refreshedJobRequest.status === JobStatus.Failed) {
+            this.logger.info(
+              `Latest job request for vault ${vaultContract.address} round 0 failed, will send new request`,
             );
             // Clean up failed job before sending new one
             await this.db.deleteJobRequest(vaultContract.address);
           }
+        }
 
+        // If no job request or latest was failed, send new request
+        if (!jobRequest || jobRequest.status === JobStatus.Failed) {
           // Check if we're past the proving delay for initialization
           const deploymentTime = Number(
             await roundContract.get_deployment_date(),
@@ -123,7 +127,7 @@ export class StateHandlers {
           }
 
           this.logger.info(
-            `Sending new job request for vault ${vaultContract.address}`,
+            `Sending new job request for vault ${vaultContract.address} round 0`,
           );
 
           const requestData =
