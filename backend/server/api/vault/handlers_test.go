@@ -5,12 +5,18 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"pitchlake-backend/server/api/integrations"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func TestNewVaultRouter(t *testing.T) {
 	serveMux := http.NewServeMux()
 	logger := log.Default()
-	router := NewVaultRouter(serveMux, logger)
+	fossilAPI := &integrations.FossilAPI{}
+	var pool *pgxpool.Pool // nil for testing
+	router := NewVaultRouter(serveMux, logger, fossilAPI, pool)
 
 	if router == nil {
 		t.Error("Expected router to be created")
@@ -43,7 +49,9 @@ func TestSubscribeVaultHandler(t *testing.T) {
 func TestVaultRouterInitialization(t *testing.T) {
 	serveMux := http.NewServeMux()
 	logger := log.Default()
-	router := NewVaultRouter(serveMux, logger)
+	fossilAPI := &integrations.FossilAPI{}
+	var pool *pgxpool.Pool // nil for testing
+	router := NewVaultRouter(serveMux, logger, fossilAPI, pool)
 
 	// Check that the endpoint is registered
 	req, err := http.NewRequest("GET", "/subscribeVault", nil)
