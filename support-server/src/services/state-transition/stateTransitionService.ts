@@ -59,6 +59,65 @@ export class StateTransitionService {
     }
   };
 
+  async refreshJobStatuses() {
+    // Get all job requests from DB
+    const jobRequests = await this.db.getJobRequestsPitchlake();
+    this.logger.debug(`Found ${jobRequests.length} existing job requests`);
+
+    // Update statuses in parallel with error handling
+    const jobRequestsUpdated = await Promise.all(
+      jobRequests.map(async (jobRequest) => {
+        try {
+          const updatedData: JobRequest = { ...jobRequest };
+
+          // Only check status for non-failed jobs
+          if (jobRequest.status !== JobStatus.Failed) {
+            // Fetch latest status from fossil
+            const jobStatus = await getJobStatus(jobRequest.job_id);
+
+            // If status has changed, update DB
+            if (jobStatus.status !== jobRequest.status) {
+              this.logger.info(
+                `Job ${jobRequest.job_id} status changed from ${jobRequest.status} to ${jobStatus.status}`,
+              );
+
+              await this.db.updateJobRequest(
+                jobRequest.vaultAddress,
+                jobRequest.job_id,
+                jobStatus.status as JobStatus,
+              );
+              updatedData.status = jobStatus.status as JobStatus;
+
+              // Clean up completed jobs immediately after status update
+              if (jobStatus.status === JobStatus.Completed) {
+                this.logger.info(
+                  `Cleaning up completed job ${jobRequest.job_id} for vault ${jobRequest.vaultAddress}`,
+                );
+                await this.db.deleteJobRequest(jobRequest.vaultAddress);
+                return null; // Mark for removal from the list
+              }
+            }
+          }
+
+          return updatedData;
+        } catch (error) {
+          this.logger.error(
+            `Error updating job request ${jobRequest.job_id}:`,
+            error,
+          );
+          return jobRequest; // Return original if update fails
+        }
+      }),
+    );
+
+    // Filter out null entries (completed jobs that were cleaned up)
+    const activeJobRequests = jobRequestsUpdated.filter(
+      (jobRequest) => jobRequest !== null,
+    ) as JobRequest[];
+
+    return activeJobRequests;
+  }
+
   async runStateTransition() {
     if (!VAULT_ADDRESSES) {
       this.logger.warn("No vault addresses configured");
@@ -78,52 +137,7 @@ export class StateTransitionService {
       }
       this.logger.debug(`Latest block: ${latestBlock.block_number}`);
 
-      // Get and update job requests with proper error handling
-      const jobRequests = await this.db.getJobRequestsPitchlake();
-      this.logger.debug(`Found ${jobRequests.length} existing job requests`);
-
-      const jobRequestsUpdated = await Promise.all(
-        jobRequests.map(async (jobRequest) => {
-          try {
-            const updatedData: JobRequest = { ...jobRequest };
-
-            // Only check status for non-failed jobs
-            if (jobRequest.status !== JobStatus.Failed) {
-              const jobStatus = await getJobStatus(jobRequest.job_id);
-
-              if (jobStatus.status !== jobRequest.status) {
-                this.logger.info(
-                  `Job ${jobRequest.job_id} status changed from ${jobRequest.status} to ${jobStatus.status}`,
-                );
-
-                await this.db.updateJobRequest(
-                  jobRequest.vaultAddress,
-                  jobRequest.job_id,
-                  jobStatus.status as JobStatus,
-                );
-                updatedData.status = jobStatus.status as JobStatus;
-
-                // Clean up completed jobs immediately after status update
-                if (jobStatus.status === JobStatus.Completed) {
-                  this.logger.info(
-                    `Cleaning up completed job ${jobRequest.job_id} for vault ${jobRequest.vaultAddress}`,
-                  );
-                  await this.db.deleteJobRequest(jobRequest.vaultAddress);
-                  return null; // Mark for removal from the list
-                }
-              }
-            }
-
-            return updatedData;
-          } catch (error) {
-            this.logger.error(
-              `Error updating job request ${jobRequest.job_id}:`,
-              error,
-            );
-            return jobRequest; // Return original if update fails
-          }
-        }),
-      );
+      const jobRequestsUpdated = await this.refreshJobStatuses();
 
       // Filter out null entries (completed jobs that were cleaned up)
       const activeJobRequests = jobRequestsUpdated.filter(
