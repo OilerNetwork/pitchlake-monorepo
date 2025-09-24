@@ -399,19 +399,16 @@ func (router *VaultRouter) refreshJobStatus(ctx context.Context, job *models.Job
 
 // isJobStuck checks if a job has been pending for longer than the stuck timeout
 func (router *VaultRouter) isJobStuck(job *models.JobRequest) bool {
-	// Parse the created_at timestamp
-	createdAt, err := time.Parse(time.RFC3339, job.CreatedAt)
-	if err != nil {
-		log.Printf("Error parsing job created_at timestamp: %v", err)
-		// If we can't parse the timestamp, consider it stuck to be safe
-		return true
-	}
-	
 	// Get the stuck timeout from environment variable or use default
 	stuckTimeout := router.getStuckJobTimeout()
 	
+	// Convert both times to UTC for proper comparison
+	now := time.Now().UTC()
+	createdAt := job.CreatedAt.UTC()
+	timeSince := now.Sub(createdAt)
+	
 	// Check if the job has been pending for longer than the timeout
-	return time.Since(createdAt) > stuckTimeout
+	return timeSince > stuckTimeout
 }
 
 // getStuckJobTimeout returns the configured stuck job timeout

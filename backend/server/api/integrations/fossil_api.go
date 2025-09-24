@@ -66,7 +66,11 @@ func (f *FossilAPI) SendFossilRequest(request models.FossilRequest) (*struct {
 		return nil, err
 	}
 
-	if resp.StatusCode != http.StatusOK {
+	// Log the response for debugging
+	fmt.Printf("Fossil API Response - Status: %d, Body: %s\n", resp.StatusCode, string(body))
+
+	// Check if the response is successful (200-299 range)
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return nil, fmt.Errorf("fossil API error: %s", string(body))
 	}
 
@@ -76,7 +80,7 @@ func (f *FossilAPI) SendFossilRequest(request models.FossilRequest) (*struct {
 	}
 
 	if err := json.Unmarshal(body, &response); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse fossil API response: %v, body: %s", err, string(body))
 	}
 
 	return &response, nil

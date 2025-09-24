@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type AllowedPayload interface {
 	IsAllowedPayload() // Dummy method
 }
@@ -149,7 +151,7 @@ type JobRequest struct {
 	Status      JobStatus `json:"status"`
 	VaultAddress string   `json:"vault_address"`
 	RoundID     int       `json:"round_id"`
-	CreatedAt   string    `json:"created_at"`
+	CreatedAt   time.Time `json:"created_at"`
 }
 
 type SendJobRequestResponse struct {

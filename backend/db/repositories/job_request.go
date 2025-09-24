@@ -38,9 +38,11 @@ func (r *JobRequestRepository) GetLatestJobRequestByVaultAndRound(ctx context.Co
 	`
 
 	var job models.JobRequest
+	var createdAt time.Time
 	err := r.pool.QueryRow(ctx, query, vaultAddress, roundID).Scan(
-		&job.JobID, &job.Status, &job.VaultAddress, &job.RoundID, &job.CreatedAt,
+		&job.JobID, &job.Status, &job.VaultAddress, &job.RoundID, &createdAt,
 	)
+	job.CreatedAt = createdAt
 
 	if err == pgx.ErrNoRows {
 		return nil, nil // No job found
@@ -66,7 +68,7 @@ func (r *JobRequestRepository) InsertJobRequest(ctx context.Context, vaultAddres
 		VALUES ($1, $2, $3, $4, $5)
 	`
 
-	_, err := r.pool.Exec(ctx, query, vaultAddress, jobID, status, roundID, time.Now())
+	_, err := r.pool.Exec(ctx, query, vaultAddress, jobID, status, roundID, time.Now().UTC())
 	if err != nil {
 		return fmt.Errorf("error inserting job request: %w", err)
 	}
