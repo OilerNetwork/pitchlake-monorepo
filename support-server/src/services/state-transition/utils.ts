@@ -76,3 +76,89 @@ export const sendFossilRequest = async (
     throw error;
   }
 };
+
+export const sendMockFossilRequest = async (
+  fossilRequest: FossilRequest,
+  vaultContract: Contract,
+  logger: Logger,
+) => {
+  logger.info("Sending request to Mock Verifier");
+  logger.debug({ request: fossilRequest });
+
+  const { MOCK_VERIFIER_ADDRESS } = process.env;
+  
+  if (!MOCK_VERIFIER_ADDRESS) {
+    throw new Error("MOCK_VERIFIER_ADDRESS is required when USE_MOCK_VERIFIER=true");
+  }
+
+  try {
+    // Extract data from the original job request
+    const { program_id, vault_address, params } = fossilRequest;
+    
+    // Get proving delay from vault
+    const provingDelay = await vaultContract.get_proving_delay();
+    
+    // Calculate timestamp: upper bound + proving delay + tolerance
+    // For now, using a tolerance of 60 seconds (can be made configurable later)
+    const tolerance = 60; // seconds
+    const timestamp = Number(params.reserve_price[1]) + Number(provingDelay) + tolerance;
+    
+    // Hardcoded values as specified
+    const RESERVE_PRICE = "34028236692093846346337460743176821145600000000";
+    const TWAP = "680564733841876926926749214863536422912000000000";
+    const MAX_RETURN = "113416112894748789872342756657008344878";
+    
+    // Serialize job request: [vault_address, timestamp, program_id]
+    const jobRequestSerialized = [
+      vault_address, // vault address
+      timestamp.toString(), // timestamp
+      program_id // program id
+    ];
+    
+    // Serialize result: [reserve_price_lower, reserve_price_upper, reserve_price, twap_lower, twap_upper, twap, max_return_lower, max_return_upper, max_return]
+    const resultSerialized = [
+      params.reserve_price[0].toString(), // reserve price lower bound
+      params.reserve_price[1].toString(), // reserve price upper bound
+      RESERVE_PRICE, // reserve price
+      params.twap[0].toString(), // twap lower bound
+      params.twap[1].toString(), // twap upper bound
+      TWAP, // twap
+      params.max_return[0].toString(), // max return lower bound
+      params.max_return[1].toString(), // max return upper bound
+      MAX_RETURN // max return
+    ];
+    
+    logger.info("Calling fossil_callback directly on vault contract", {
+      vaultAddress: vaultContract.address,
+      jobRequest: jobRequestSerialized,
+      result: resultSerialized
+    });
+    
+    // Call fossil_callback directly on the vault contract
+    const { transaction_hash } = await vaultContract.fossil_callback(
+      jobRequestSerialized,
+      resultSerialized
+    );
+    
+    logger.info("Mock verifier callback sent successfully", {
+      transactionHash: transaction_hash
+    });
+    
+    // Return a mock response similar to Fossil API
+    const mockResponse = {
+      job_id: `mock_job_${Date.now()}`,
+      status: "completed", // Since we're calling directly, it's immediately completed
+      verifier_address: MOCK_VERIFIER_ADDRESS,
+      transaction_hash: transaction_hash
+    };
+
+    logger.info(
+      "Mock verifier request completed. Response: " + JSON.stringify(mockResponse),
+    );
+    return mockResponse;
+    
+  } catch (error) {
+    logger.error("Error in mock verifier request:", error);
+    throw error;
+  }
+};
