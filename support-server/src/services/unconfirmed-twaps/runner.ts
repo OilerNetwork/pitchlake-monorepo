@@ -55,7 +55,7 @@ export class UnconfirmedTWAPsRunner {
       let blockNumber = Number(lastProcessedBlock);
       while (blockNumber <= currentBlock) {
         try {
-          const length = Math.min(currentBlock - blockNumber + 1, 500);
+          const length = Math.min(currentBlock - blockNumber + 1, this.config.blockBatchSize);
           const blocks = await this.rpcClient.getBlocks(blockNumber, length);
           const shouldRecalibrate =
             await this.blockProcessor.processBlocks(blocks);

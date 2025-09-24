@@ -191,6 +191,7 @@ The system uses multiple environment files for different deployment scenarios:
 | `FOSSIL_API_URL` | Fossil API endpoint | `http://localhost:3000` |
 | `PITCHLAKE_DB_URL` | Pitchlake database connection | `postgres://user:pass@localhost:5433/db` |
 | `FOSSIL_DB_URL` | Fossil database connection | `postgres://user:pass@localhost:5432/db` |
+| `BLOCK_BATCH_SIZE` | Number of blocks to process in each batch | `500` |
 
 ## 🔧 Fossil Monorepo Integration
 
