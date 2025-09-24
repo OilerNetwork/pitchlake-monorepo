@@ -193,7 +193,7 @@ const setupTest = (overrides = {}) => {
   };
 };
 
-const renderWithProviders = (ui: React.ReactElement) => {
+const renderWithProviders = (ui: React.ReactElement<any>) => {
   return render(
     <div data-testid="help-provider">
       <div data-testid="transaction-provider">{ui}</div>

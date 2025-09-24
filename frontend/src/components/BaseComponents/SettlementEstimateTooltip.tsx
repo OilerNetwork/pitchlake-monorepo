@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import Hoverable from "./Hoverable";
 
 interface StateTransitionTooltipProps {
   msg: string;

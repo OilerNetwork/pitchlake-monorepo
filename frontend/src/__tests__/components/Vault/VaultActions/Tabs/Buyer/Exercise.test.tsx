@@ -72,7 +72,7 @@ describe("Exercise Component", () => {
   const mockShowConfirmation = jest.fn();
   const mockExerciseOptions = jest.fn();
 
-  const renderWithProviders = (ui: React.ReactElement) => {
+  const renderWithProviders = (ui: React.ReactElement<any>) => {
     return render(<HelpProvider>{ui}</HelpProvider>);
   };
 

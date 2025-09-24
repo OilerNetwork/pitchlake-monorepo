@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useMemo } from "react";
+import React, { ReactNode, useMemo } from "react";
 import { formatEther } from "ethers";
 import { ExerciseOptionsIcon } from "@/components/Icons";
 import ActionButton from "@/components/Vault/Utils/ActionButton";
@@ -6,7 +6,6 @@ import { useAccount } from "@starknet-react/core";
 import { formatNumber, formatNumberText } from "@/lib/utils";
 import { useTransactionContext } from "@/context/TransactionProvider";
 import useErc20Balance from "@/hooks/erc20/useErc20Balance";
-import Hoverable from "@/components/BaseComponents/Hoverable";
 import useVaultState from "@/hooks/vault/states/useVaultState";
 import useRoundState from "@/hooks/vault/states/useRoundState";
 import useOBState from "@/hooks/vault/states/useOBState";

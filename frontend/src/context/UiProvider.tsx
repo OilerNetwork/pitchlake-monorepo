@@ -8,7 +8,7 @@ interface UiContextProps {
   isWalletLoginOpen: boolean;
   openWalletLogin: () => void;
   closeWalletLogin: () => void;
-  walletLoginRef: React.RefObject<HTMLDivElement>;
+  walletLoginRef: React.RefObject<HTMLDivElement | null>;
   toggleWalletLogin: () => void;
 }
 

@@ -1,9 +1,7 @@
-import { useNewContext } from "@/context/NewProvider";
 import { vaultABI } from "@/lib/abi";
 import { LiquidityProviderStateType } from "@/lib/types";
 import { useAccount, useReadContract } from "@starknet-react/core";
 import { useMemo } from "react";
-import { BlockTag } from "starknet";
 
 const useLPStateRPC = ({vaultAddress}:{vaultAddress?:string}) => {
  

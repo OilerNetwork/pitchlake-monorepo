@@ -13,7 +13,6 @@ import {
   ShoppingCartIcon,
   TagIcon,
 } from "@/components/Icons";
-import { num } from "starknet";
 import { formatEther, formatUnits } from "ethers";
 import { useNewContext } from "@/context/NewProvider";
 import useVaultStateRPC from "@/hooks/vault/rpc/useVaultStateRPC";

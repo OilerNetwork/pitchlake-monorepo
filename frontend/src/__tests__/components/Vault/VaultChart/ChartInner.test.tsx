@@ -161,7 +161,7 @@ jest.mock("recharts", () => ({
   ),
 }));
 
-const renderWithProviders = (ui: React.ReactElement) => {
+const renderWithProviders = (ui: React.ReactElement<any>) => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {

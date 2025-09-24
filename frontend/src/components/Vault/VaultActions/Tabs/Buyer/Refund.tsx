@@ -5,7 +5,6 @@ import { RepeatEthIcon } from "@/components/Icons";
 import { formatNumber } from "@/lib/utils";
 import { formatEther } from "ethers";
 import { useTransactionContext } from "@/context/TransactionProvider";
-import Hoverable from "@/components/BaseComponents/Hoverable";
 import useVaultState from "@/hooks/vault/states/useVaultState";
 import useOBState from "@/hooks/vault/states/useOBState";
 import useVaultActions from "@/hooks/vault/actions/useVaultActions";
