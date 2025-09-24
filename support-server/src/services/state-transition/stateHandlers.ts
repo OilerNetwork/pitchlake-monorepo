@@ -1,6 +1,6 @@
 import { Account, Contract, RpcProvider, CairoCustomEnum } from "starknet";
 import { Logger } from "winston";
-import { formatRawFossilRequest, formatTimeLeft } from "./utils";
+import { formatRawFossilRequest, formatTimeLeft, getJobStatus } from "./utils";
 import { sendFossilRequest } from "./utils";
 import { JobRequest, JobStatus } from "../../types/types";
 import { rpcToStarknetBlock } from "../../utils/rpcClient";
@@ -17,6 +17,40 @@ export class StateHandlers {
     this.logger = logger;
     this.provider = provider;
     this.account = account;
+  }
+
+  private async refreshJobStatus(jobRequest: JobRequest): Promise<JobRequest> {
+    try {
+      if (jobRequest.status === JobStatus.Failed) {
+        return jobRequest; // Don't refresh failed jobs
+      }
+
+      const jobStatus = await getJobStatus(jobRequest.job_id);
+      
+      if (jobStatus.status !== jobRequest.status) {
+        this.logger.info(
+          `Job ${jobRequest.job_id} status changed from ${jobRequest.status} to ${jobStatus.status}`,
+        );
+
+        await this.db.updateJobRequestStatus(
+          jobRequest.job_id,
+          jobStatus.status as JobStatus,
+        );
+
+        return {
+          ...jobRequest,
+          status: jobStatus.status as JobStatus,
+        };
+      }
+
+      return jobRequest;
+    } catch (error) {
+      this.logger.error(
+        `Error refreshing job status for ${jobRequest.job_id}:`,
+        error,
+      );
+      return jobRequest;
+    }
   }
 
   async handleOpenState(
