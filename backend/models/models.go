@@ -124,6 +124,40 @@ type TwapState struct {
 	LastBlockTimestamp uint64         `json:"lastBlockTimestamp"`
 }
 
+// Job Request Models
+type JobStatus string
+
+const (
+	JobStatusPending   JobStatus = "Pending"
+	JobStatusCompleted JobStatus = "Completed"
+	JobStatusFailed    JobStatus = "Failed"
+	JobStatusNotFound  JobStatus = "not_found"
+)
+
+type FossilRequest struct {
+	ProgramID   string `json:"program_id"`
+	VaultAddress string `json:"vault_address"`
+	Params      struct {
+		Twap        [2]uint64 `json:"twap"`
+		MaxReturn   [2]uint64 `json:"max_return"`
+		ReservePrice [2]uint64 `json:"reserve_price"`
+	} `json:"params"`
+}
+
+type JobRequest struct {
+	JobID       string    `json:"job_id"`
+	Status      JobStatus `json:"status"`
+	VaultAddress string   `json:"vault_address"`
+	RoundID     int       `json:"round_id"`
+	CreatedAt   string    `json:"created_at"`
+}
+
+type SendJobRequestResponse struct {
+	JobID       string    `json:"job_id"`
+	Status      JobStatus `json:"status"`
+	Message     string    `json:"message"`
+}
+
 func (Bid) IsAllowedPayload()                    {}
 func (VaultState) IsAllowedPayload()             {}
 func (LiquidityProviderState) IsAllowedPayload() {}
@@ -132,3 +166,6 @@ func (OptionBuyer) IsAllowedPayload()            {}
 func (QueuedLiquidity) IsAllowedPayload()        {}
 func (Block) IsAllowedPayload()                  {}
 func (TwapState) IsAllowedPayload()              {}
+func (FossilRequest) IsAllowedPayload()          {}
+func (JobRequest) IsAllowedPayload()             {}
+func (SendJobRequestResponse) IsAllowedPayload() {}
