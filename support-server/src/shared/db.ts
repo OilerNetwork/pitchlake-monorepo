@@ -80,13 +80,15 @@ export class DB {
 
   async getJobRequestsPitchlake() {
     const query = `
-    SELECT job_id, status, vault_address FROM job_requests
+    SELECT job_id, status, vault_address, round_id, created_at FROM job_requests
     `;
     const result = await this.pitchlakePool.query(query);
     const jobRequests: JobRequest[] = result.rows.map((row) => ({
       job_id: row.job_id,
       status: row.status as JobStatus,
       vaultAddress: row.vault_address,
+      roundId: row.round_id,
+      createdAt: new Date(row.created_at),
     }));
     return jobRequests;
   }
@@ -104,27 +106,21 @@ export class DB {
       [vaultAddress, job_id, status]
     );
   }
-  async updateJobRequest(
-    vaultAddress: string,
-    job_id: string,
-    status: JobStatus
-  ) {
+  async updateJobRequestStatus(job_id: string, status: JobStatus) {
     try {
-      const query = `
-    UPDATE job_requests SET status = $1, job_id = $2 WHERE vault_address = $3
-    `;
-      await this.pitchlakePool.query(query, [status, job_id, vaultAddress]);
+      const query = `UPDATE job_requests SET status = $1 WHERE job_id = $2`;
+      await this.pitchlakePool.query(query, [status, job_id]);
       return true;
     } catch (error) {
-      console.error("Error updating job request:", error);
+      console.error("Error updating job request status:", error);
       return false;
     }
   }
 
-  async deleteJobRequest(vaultAddress: string) {
+  async deleteJobRequest(vaultAddress: string, roundId: number) {
     try {
-      const query = `DELETE FROM job_requests WHERE vault_address = $1`;
-      await this.pitchlakePool.query(query, [vaultAddress]);
+      const query = `DELETE FROM job_requests WHERE vault_address = $1 AND round_id = $2`;
+      await this.pitchlakePool.query(query, [vaultAddress, roundId]);
       return true;
     } catch (error) {
       console.error("Error deleting job request:", error);
