@@ -26,7 +26,7 @@ export class StateHandlers {
       }
 
       const jobStatus = await getJobStatus(jobRequest.job_id);
-      
+
       if (jobStatus.status !== jobRequest.status) {
         this.logger.info(
           `Job ${jobRequest.job_id} status changed from ${jobRequest.status} to ${jobStatus.status}`,
@@ -67,7 +67,10 @@ export class StateHandlers {
         this.logger.info("First round detected - needs initialization");
 
         // Check for latest job request for round 0 (initialization)
-        const jobRequest = await this.db.getLatestJobRequestByVaultAndRound(vaultContract.address, 0);
+        const jobRequest = await this.db.getLatestJobRequestByVaultAndRound(
+          vaultContract.address,
+          0,
+        );
 
         if (jobRequest) {
           // Refresh job status from Fossil
@@ -84,14 +87,6 @@ export class StateHandlers {
             this.logger.info(
               `Job request for vault ${vaultContract.address} round 0 is completed, proceeding with auction start`,
             );
-            // Double-check that reserve price is now set (safety check)
-            const updatedReservePrice = await roundContract.get_reserve_price();
-            if (updatedReservePrice === 0n) {
-              this.logger.warn(
-                `Job completed but reserve price still 0 for vault ${vaultContract.address}. This may be a timing issue.`,
-              );
-              // Continue anyway - the next poll will handle it
-            }
           } else if (refreshedJobRequest.status === JobStatus.Failed) {
             this.logger.info(
               `Latest job request for vault ${vaultContract.address} round 0 failed, will send new request`,
@@ -145,7 +140,9 @@ export class StateHandlers {
           return; // Exit here to let the cron handle the state transition in the next iteration
         }
       } else {
-        this.logger.info("Reserve price is set - not a first round initialization");
+        this.logger.info(
+          "Reserve price is set - not a first round initialization",
+        );
       }
 
       // Auction start logic with proper time validation
@@ -231,7 +228,6 @@ export class StateHandlers {
     roundId: number,
   ) {
     try {
-
       const auctionEndTimeRaw = await roundContract.get_auction_end_date();
       const auctionEndTime = Number(auctionEndTimeRaw);
       this.logger.debug(`Auction end time: ${auctionEndTime}`);
@@ -336,7 +332,10 @@ export class StateHandlers {
       this.logger.info("Settlement time reached");
 
       // Check for latest job request for current round (settlement)
-      const jobRequest = await this.db.getLatestJobRequestByVaultAndRound(vaultContract.address, roundId);
+      const jobRequest = await this.db.getLatestJobRequestByVaultAndRound(
+        vaultContract.address,
+        roundId,
+      );
 
       if (jobRequest) {
         // Refresh job status from Fossil
