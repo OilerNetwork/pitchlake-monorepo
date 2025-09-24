@@ -335,21 +335,32 @@ export class StateHandlers {
 
       this.logger.info("Settlement time reached");
 
-      // Check if we already have a pending job for settlement
-      if (jobRequest?.status === JobStatus.Pending) {
-        this.logger.info(
-          `Settlement job request for vault ${vaultContract.address} is pending`,
-        );
-        return;
-      }
+      // Check for latest job request for current round (settlement)
+      const jobRequest = await this.db.getLatestJobRequestByVaultAndRound(vaultContract.address, roundId);
 
-      // Handle failed jobs - retry by sending new request
-      if (jobRequest?.status === JobStatus.Failed) {
-        this.logger.info(
-          `Settlement job request for vault ${vaultContract.address} failed, retrying`,
-        );
-        // Clean up failed job before sending new one
-        await this.db.deleteJobRequest(vaultContract.address);
+      if (jobRequest) {
+        // Refresh job status from Fossil
+        const refreshedJobRequest = await this.refreshJobStatus(jobRequest);
+
+        if (refreshedJobRequest.status === JobStatus.Pending) {
+          this.logger.info(
+            `Settlement job request for vault ${vaultContract.address} round ${roundId} is pending`,
+          );
+          return;
+        }
+
+        if (refreshedJobRequest.status === JobStatus.Completed) {
+          this.logger.info(
+            `Settlement job request for vault ${vaultContract.address} round ${roundId} is completed`,
+          );
+          return;
+        }
+
+        if (refreshedJobRequest.status === JobStatus.Failed) {
+          this.logger.info(
+            `Latest settlement job request for vault ${vaultContract.address} round ${roundId} failed, will send new request`,
+          );
+        }
       }
 
       // Check if we're past the proving delay for settlement
@@ -366,33 +377,37 @@ export class StateHandlers {
         return;
       }
 
-      // Send settlement request with proper error handling
-      try {
-        const rawRequestData =
-          await vaultContract.get_request_to_settle_round();
-        const requestData = formatRawFossilRequest(rawRequestData);
+      // If no job request or latest was failed, send new settlement request
+      if (!jobRequest || jobRequest.status === JobStatus.Failed) {
+        // Send settlement request with proper error handling
+        try {
+          const rawRequestData =
+            await vaultContract.get_request_to_settle_round();
+          const requestData = formatRawFossilRequest(rawRequestData);
 
-        const response = await sendFossilRequest(
-          requestData,
-          vaultContract,
-          this.logger,
-        );
+          const response = await sendFossilRequest(
+            requestData,
+            vaultContract,
+            this.logger,
+          );
 
-        // Store the settlement job request for tracking
-        await this.db.upsertJobRequest(
-          vaultContract.address,
-          response.job_id,
-          response.status as JobStatus,
-        );
+          // Store the settlement job request for tracking
+          await this.db.insertJobRequest(
+            vaultContract.address,
+            response.job_id,
+            response.status as JobStatus,
+            roundId, // Current round for settlement
+          );
 
-        this.logger.info("Settlement request sent successfully", {
-          jobId: response.job_id,
-          status: response.status,
-        });
-      } catch (error) {
-        this.logger.error("Failed to send settlement request:", error);
-        // Don't throw - let the service continue with other vaults
-        return;
+          this.logger.info("Settlement request sent successfully", {
+            jobId: response.job_id,
+            status: response.status,
+          });
+        } catch (error) {
+          this.logger.error("Failed to send settlement request:", error);
+          // Don't throw - let the service continue with other vaults
+          return;
+        }
       }
     } catch (error) {
       this.logger.error("Error handling Running state:", error);
