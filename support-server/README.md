@@ -113,6 +113,8 @@ Copy `env.example` to `.env` and configure these essential variables:
 | `VAULT_ADDRESSES` | Comma-separated vault addresses | Yes |
 | `FOSSIL_API_KEY` | Fossil API key | Yes |
 | `FOSSIL_API_URL` | Fossil API URL | Yes |
+| `USE_MOCK_VERIFIER` | Use mock verifier instead of Fossil API | No |
+| `MOCK_VERIFIER_ADDRESS` | Mock verifier contract address (required if USE_MOCK_VERIFIER=true) | No |
 | `IS_DEVNET` | Enable devnet mode (block mining) | No |
 | `INITIAL_BLOCK_NUMBER` | Starting block for TWAP processing | No |
 | `BLOCK_BATCH_SIZE` | Number of blocks to process in each batch | No |

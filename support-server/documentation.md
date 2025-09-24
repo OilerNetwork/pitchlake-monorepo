@@ -204,6 +204,8 @@ CREATE TABLE driver_events (
 | `VAULT_ADDRESSES` | Yes | Comma-separated vault addresses | - |
 | `FOSSIL_API_KEY` | Yes | Fossil API key | - |
 | `FOSSIL_API_URL` | Yes | Fossil API URL | - |
+| `USE_MOCK_VERIFIER` | No | Use mock verifier instead of Fossil API | `false` |
+| `MOCK_VERIFIER_ADDRESS` | No | Mock verifier contract address (required if USE_MOCK_VERIFIER=true) | - |
 | `CRON_SCHEDULE` | No | TWAP update schedule | `*/5 * * * * *` |
 | `CRON_SCHEDULE_STATE` | No | State transition schedule | `*/30 * * * * *` |
 | `LOG_LEVEL` | No | Logging level | `info` |
@@ -237,6 +239,39 @@ CREATE TABLE driver_events (
   - Smaller values are more conservative but slower
 - **Usage**: Adjust based on RPC provider rate limits and system performance
 - **Code Location**: `runner.ts` - used in block processing loop
+
+#### `USE_MOCK_VERIFIER`
+- **Purpose**: Enables mock verifier mode for testing and development
+- **Behavior**: 
+  - When set to `true`, uses mock verifier instead of Fossil API for job requests
+  - Requires `MOCK_VERIFIER_ADDRESS` to be set
+  - Bypasses actual Fossil API calls for testing purposes
+- **Usage**: Set to `true` for local testing without Fossil API dependency
+- **Code Location**: `stateHandlers.ts` - determines which request function to call
+
+#### `MOCK_VERIFIER_ADDRESS`
+- **Purpose**: Contract address for the mock verifier when `USE_MOCK_VERIFIER=true`
+- **Behavior**: 
+  - Required when `USE_MOCK_VERIFIER=true`
+  - Used as the target address for mock verifier calls
+  - Should be a valid StarkNet contract address
+  - The mock verifier directly calls `fossil_callback()` on the vault contract
+- **Usage**: Set to the deployed mock verifier contract address for testing
+- **Code Location**: `utils.ts` - used in mock verifier request function
+
+#### Mock Verifier Implementation
+When `USE_MOCK_VERIFIER=true`, the system bypasses the Fossil API and directly calls the `fossil_callback()` function on the vault contract. The mock verifier:
+
+1. **Extracts data** from the original job request (vault address, program ID, timestamp ranges)
+2. **Calculates timestamp** using: `upper_bound + proving_delay + tolerance` (60 seconds)
+3. **Uses hardcoded values** for pricing data:
+   - Reserve Price: `34028236692093846346337460743176821145600000000`
+   - TWAP: `680564733841876926926749214863536422912000000000`
+   - Max Return: `113416112894748789872342756657008344878`
+4. **Serializes data** into the required format for `fossil_callback()`
+5. **Calls the vault** directly using the automator's account
+
+This allows for local testing without requiring the full Fossil infrastructure.
 
 ### Configuration Validation
 
