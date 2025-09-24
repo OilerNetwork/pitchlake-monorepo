@@ -47,7 +47,7 @@ pub const ROUND_TRANSITION_DURATION: u64 = 3 * HOUR;
 pub const AUCTION_DURATION: u64 = 8 * HOUR;
 pub const ROUND_DURATION: u64 = 30 * DAY;
 pub const PROVING_DELAY: u64 = 10 * MINUTE;
-pub const PROGRAM_ID: felt252 = 'PITCH_LAKE_V1';
+pub const PROGRAM_ID: felt252 = 'PITCHLAKE_V1';
 
 pub fn PITCHLAKE_VERIFIER() -> ContractAddress {
     'FOSSIL VERIFIER'.try_into().unwrap()

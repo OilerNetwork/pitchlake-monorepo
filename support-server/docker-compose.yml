@@ -33,6 +33,11 @@ services:
       
       # Optional: Demo mode
       - USE_DEMO_DATA=${USE_DEMO_DATA:-false}
+      
+      # Development/Testing
+      - IS_DEVNET=${IS_DEVNET:-false}
+      - INITIAL_BLOCK_NUMBER=${INITIAL_BLOCK_NUMBER:-0}
+      - BLOCK_BATCH_SIZE=${BLOCK_BATCH_SIZE:-500}
     
     volumes:
       - ./logs:/app/logs

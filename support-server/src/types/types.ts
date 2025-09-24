@@ -18,6 +18,8 @@ export type JobRequest = {
   job_id: string;
   status: JobStatus;
   vaultAddress: string;
+  roundId: number;
+  createdAt: Date;
 }
 
 enum OptionRoundState {

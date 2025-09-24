@@ -51,10 +51,11 @@ echo -e "${GREEN}✅ Found Fossil env files${NC}"
 # Extract contract addresses from fossil .env.local
 echo -e "${BLUE}📋 Extracting contract addresses...${NC}"
 
-# Extract vault addresses from fossil .env.local
-VAULT_12MIN=$(grep "^PITCHLAKE_VAULT_12MIN=" "$FOSSIL_ENV_LOCAL" | cut -d'=' -f2 | tr -d ' ')
-VAULT_3H=$(grep "^PITCHLAKE_VAULT_3H=" "$FOSSIL_ENV_LOCAL" | cut -d'=' -f2 | tr -d ' ')
-VAULT_1M=$(grep "^PITCHLAKE_VAULT_1M=" "$FOSSIL_ENV_LOCAL" | cut -d'=' -f2 | tr -d ' ')
+# Extract vault addresses from fossil .env.docker (used by Docker services)
+VAULT_12MIN=$(grep "^PITCHLAKE_VAULT_12MIN=" "$FOSSIL_ENV_DOCKER" | cut -d'=' -f2 | tr -d ' ')
+VAULT_3H=$(grep "^PITCHLAKE_VAULT_3H=" "$FOSSIL_ENV_DOCKER" | cut -d'=' -f2 | tr -d ' ')
+VAULT_1M=$(grep "^PITCHLAKE_VAULT_1M=" "$FOSSIL_ENV_DOCKER" | cut -d'=' -f2 | tr -d ' ')
+VAULT_5M=$(grep "^PITCHLAKE_VAULT_5M=" "$FOSSIL_ENV_DOCKER" | cut -d'=' -f2 | tr -d ' ')
 
 # Extract StarkNet RPC URLs from both fossil files
 STARKNET_RPC_LOCAL=$(grep "^STARKNET_RPC_URL=" "$FOSSIL_ENV_LOCAL" | cut -d'=' -f2 | tr -d ' ')
@@ -109,9 +110,9 @@ if [ -z "$FOSSIL_API_KEY" ]; then
     exit 1
 fi
 
-# Validate that we got the addresses
+# Validate that we got the required addresses (5M is optional)
 if [ -z "$VAULT_12MIN" ] || [ -z "$VAULT_3H" ] || [ -z "$VAULT_1M" ]; then
-    echo -e "${RED}❌ Error: Could not extract vault addresses from Fossil .env.local${NC}"
+    echo -e "${RED}❌ Error: Could not extract vault addresses from Fossil .env.docker${NC}"
     exit 1
 fi
 
@@ -119,6 +120,9 @@ echo -e "${GREEN}✅ Extracted contract addresses:${NC}"
 echo -e "   📦 12min Vault: ${YELLOW}$VAULT_12MIN${NC}"
 echo -e "   📦 3h Vault: ${YELLOW}$VAULT_3H${NC}"
 echo -e "   📦 1m Vault: ${YELLOW}$VAULT_1M${NC}"
+if [ -n "$VAULT_5M" ]; then
+    echo -e "   📦 5m Vault: ${YELLOW}$VAULT_5M${NC}"
+fi
 
 # Create .env.local and .env.docker from .env.example (only if they don't exist)
 echo -e "${BLUE}📝 Setting up .env.local and .env.docker files...${NC}"
@@ -157,9 +161,14 @@ update_env_var() {
     fi
 }
 
-# Update vault addresses in both files
-update_env_var "VAULT_ADDRESSES" "${VAULT_12MIN},${VAULT_3H},${VAULT_1M}" "$PITCHLAKE_ENV_LOCAL"
-update_env_var "VAULT_ADDRESSES" "${VAULT_12MIN},${VAULT_3H},${VAULT_1M}" "$PITCHLAKE_ENV_DOCKER"
+# Update vault addresses in both files (include 5M if available)
+VAULT_LIST="${VAULT_12MIN},${VAULT_3H},${VAULT_1M}"
+if [ -n "$VAULT_5M" ]; then
+    VAULT_LIST="${VAULT_LIST},${VAULT_5M}"
+fi
+
+update_env_var "VAULT_ADDRESSES" "$VAULT_LIST" "$PITCHLAKE_ENV_LOCAL"
+update_env_var "VAULT_ADDRESSES" "$VAULT_LIST" "$PITCHLAKE_ENV_DOCKER"
 # update_env_var "STARKNET_ACCOUNT_ADDRESS" "$STARKNET_ACCOUNT_ADDRESS" "$PITCHLAKE_ENV_LOCAL"
 # update_env_var "STARKNET_ACCOUNT_ADDRESS" "$STARKNET_ACCOUNT_ADDRESS" "$PITCHLAKE_ENV_DOCKER"
 # update_env_var "STARKNET_PRIVATE_KEY" "$STARKNET_PRIVATE_KEY" "$PITCHLAKE_ENV_LOCAL"
@@ -182,7 +191,7 @@ rm -f "$PITCHLAKE_ENV_DOCKER.bak"
 
 echo -e "${GREEN}✅ Successfully updated .env.local and .env.docker with vault addresses, RPC URLs, API key, and offchain processor URL${NC}"
 echo -e "${BLUE}📋 Updated variables:${NC}"
-echo -e "   🔗 VAULT_ADDRESSES: ${YELLOW}${VAULT_12MIN},${VAULT_3H},${VAULT_1M}${NC}"
+echo -e "   🔗 VAULT_ADDRESSES: ${YELLOW}$VAULT_LIST${NC}"
 echo -e "   🌐 STARKNET_RPC (local): ${YELLOW}$STARKNET_RPC_LOCAL${NC}"
 echo -e "   🐳 STARKNET_RPC (docker): ${YELLOW}$STARKNET_RPC_DOCKER${NC}"
 echo -e "   🔑 FOSSIL_API_KEY: ${YELLOW}$FOSSIL_API_KEY${NC}"

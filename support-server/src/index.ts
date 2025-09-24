@@ -3,15 +3,18 @@ import { setupLogger } from "./shared/logger";
 import * as cron from "node-cron";
 import { UnconfirmedTWAPsRunner } from "./services/unconfirmed-twaps";
 
-dotenv.config()
-import { runStateTransition, runTWAPUpdate } from "./services/scheduler/scheduler";
-const logger = setupLogger('Main');
+dotenv.config();
+import {
+  runStateTransition,
+  runTWAPUpdate,
+} from "./services/scheduler/scheduler";
+const logger = setupLogger("Main");
 
 class ArchitectureSupportServer {
   constructor() {}
 
   async start(): Promise<void> {
-    const { CRON_SCHEDULE_STATE, CRON_SCHEDULE_TWAP } = process.env;
+    const { CRON_SCHEDULE_STATE, CRON_SCHEDULE } = process.env;
 
     // Validate environment variables and set up services
 
@@ -23,17 +26,16 @@ class ArchitectureSupportServer {
       await Promise.all([
         runner.initialize(),
         runTWAPUpdate()(),
-        runStateTransition()()
+        //runStateTransition()(),
       ]);
-
-      logger.info("All services started successfully");
       runner.startListening();
 
-      //Schedule cron
-      //cron.schedule(CRON_SCHEDULE_TWAP as string, runTWAPUpdate() );
-      
+      // Start all services
+      cron.schedule(CRON_SCHEDULE_STATE as string, runStateTransition());
+
       // Handle graceful shutdown
       this.setupGracefulShutdown();
+      logger.info("All services started successfully");
     } catch (error) {
       logger.error("Failed to start server:", error);
       throw error;

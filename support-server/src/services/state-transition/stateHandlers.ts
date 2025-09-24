@@ -1,11 +1,11 @@
-import { Account, Contract, RpcProvider } from "starknet";
+import { Account, Contract, RpcProvider, CairoCustomEnum } from "starknet";
 import { Logger } from "winston";
-import { formatRawFossilRequest, formatTimeLeft } from "./utils";
+import { formatRawFossilRequest, formatTimeLeft, getJobStatus } from "./utils";
 import { sendFossilRequest } from "./utils";
 import { JobRequest, JobStatus } from "../../types/types";
 import { rpcToStarknetBlock } from "../../utils/rpcClient";
-import { ABI as erc20ABI } from "../../abi/erc20";
 import { DB } from "../../shared/db";
+
 export class StateHandlers {
   private db: DB;
   private logger: Logger;
@@ -19,167 +19,306 @@ export class StateHandlers {
     this.account = account;
   }
 
+  private async refreshJobStatus(jobRequest: JobRequest): Promise<JobRequest> {
+    try {
+      if (jobRequest.status === JobStatus.Failed) {
+        return jobRequest; // Don't refresh failed jobs
+      }
+
+      const jobStatus = await getJobStatus(jobRequest.job_id);
+
+      if (jobStatus.status !== jobRequest.status) {
+        this.logger.info(
+          `Job ${jobRequest.job_id} status changed from ${jobRequest.status} to ${jobStatus.status}`,
+        );
+
+        await this.db.updateJobRequestStatus(
+          jobRequest.job_id,
+          jobStatus.status as JobStatus,
+        );
+
+        return {
+          ...jobRequest,
+          status: jobStatus.status as JobStatus,
+        };
+      }
+
+      return jobRequest;
+    } catch (error) {
+      this.logger.error(
+        `Error refreshing job status for ${jobRequest.job_id}:`,
+        error,
+      );
+      return jobRequest;
+    }
+  }
+
   async handleOpenState(
     roundContract: Contract,
     vaultContract: Contract,
-    jobRequest: JobRequest | undefined,
+    roundId: number,
   ) {
-    const ethAddress = await vaultContract.get_eth_address();
-    const ethAddressHex = "0x" + BigInt(ethAddress).toString(16);
-    const ethContract = new Contract(erc20ABI, ethAddressHex, this.account);
-    const data = await ethContract.transfer(this.account.address, 123n);
-    console.log("DEBUGGING: data", data);
-    await this.provider.waitForTransaction(data.transaction_hash);
     try {
       // Check if this is the first round that needs initialization
       const reservePrice = await roundContract.get_reserve_price();
-      console.log("DEBUGGING: reservePrice", reservePrice);
+      this.logger.debug(`Reserve price: ${reservePrice}`);
+
       if (reservePrice === 0n) {
         this.logger.info("First round detected - needs initialization");
-        const requestData =
-          await vaultContract.get_request_to_start_first_round();
-        console.log("DEBUGGING: jobRequest", jobRequest);
-        if (jobRequest?.status === JobStatus.Pending) {
-          this.logger.info(
-            `Job request for vault ${vaultContract.address} is pending`,
-          );
-          return;
-        }
-        this.logger.info(
-          `Job request for vault ${vaultContract.address} is failed, retrying`,
-        );
-        const response = await sendFossilRequest(
-          formatRawFossilRequest(requestData),
-          vaultContract,
-          this.logger,
-        );
-        await this.db.upsertJobRequest(
-          vaultContract.address,
-          response.job_id,
-          response.status as JobStatus,
-        );
-        return;
 
-        // The fossil request takes some time to process, so we'll exit here
-        // and let the cron handle the state transition in the next iteration
+        // Check for latest job request for round 0 (initialization)
+        const jobRequest = await this.db.getLatestJobRequestByVaultAndRound(
+          vaultContract.address,
+          0,
+        );
+
+        if (jobRequest) {
+          // Refresh job status from Fossil
+          const refreshedJobRequest = await this.refreshJobStatus(jobRequest);
+
+          if (refreshedJobRequest.status === JobStatus.Pending) {
+            this.logger.info(
+              `Job request for vault ${vaultContract.address} round 0 is pending`,
+            );
+            return;
+          }
+
+          if (refreshedJobRequest.status === JobStatus.Completed) {
+            this.logger.info(
+              `Job request for vault ${vaultContract.address} round 0 is completed, proceeding with auction start`,
+            );
+          } else if (refreshedJobRequest.status === JobStatus.Failed) {
+            this.logger.info(
+              `Latest job request for vault ${vaultContract.address} round 0 failed, will send new request`,
+            );
+          }
+        }
+
+        // If no job request or latest was failed, send new request
+        if (!jobRequest || jobRequest.status === JobStatus.Failed) {
+          // Check if we're past the proving delay for initialization
+          const deploymentTime = Number(
+            await roundContract.get_deployment_date(),
+          );
+          const provingDelay = Number(await vaultContract.get_proving_delay());
+          const latestBlock = await this.provider.getBlock("latest");
+          if (!latestBlock) {
+            this.logger.error("No latest block found");
+            return;
+          }
+          const latestStarknetBlock = rpcToStarknetBlock(latestBlock);
+
+          const earliestInitTime = deploymentTime + provingDelay;
+          if (latestStarknetBlock.timestamp < earliestInitTime) {
+            this.logger.info(
+              `Waiting for proving delay to pass. Earliest init time: ${earliestInitTime}, current: ${latestStarknetBlock.timestamp}, time left: ${formatTimeLeft(
+                latestStarknetBlock.timestamp,
+                earliestInitTime,
+              )}`,
+            );
+            return;
+          }
+
+          this.logger.info(
+            `Sending new job request for vault ${vaultContract.address} round 0`,
+          );
+
+          const requestData =
+            await vaultContract.get_request_to_start_first_round();
+          const response = await sendFossilRequest(
+            formatRawFossilRequest(requestData),
+            vaultContract,
+            this.logger,
+          );
+
+          await this.db.insertJobRequest(
+            vaultContract.address,
+            response.job_id,
+            response.status as JobStatus,
+            0, // Round 0 for initialization
+          );
+          return; // Exit here to let the cron handle the state transition in the next iteration
+        }
+      } else {
+        this.logger.info(
+          "Reserve price is set - not a first round initialization",
+        );
       }
 
-      // Existing auction start logic
-      //
+      // Auction start logic with proper time validation
       const auctionStartTime = Number(
         await roundContract.get_auction_start_date(),
       );
+      this.logger.debug(`Auction start time: ${auctionStartTime}`);
 
-      console.log("DEBUGGING: auctionStartTime", auctionStartTime);
       const latestBlock = await this.provider.getBlock("latest");
       if (!latestBlock) {
-        console.error("No latest block found");
+        this.logger.error("No latest block found");
         return;
       }
+
       const latestStarknetBlock = rpcToStarknetBlock(latestBlock);
-      console.log(
-        "DEBUGGING: latest starknet block timestamp" +
-          latestStarknetBlock.timestamp,
-      );
-      console.log("DEBUGGING: now unix" + new Date().getTime() / 1000);
+      this.logger.debug(`Current timestamp: ${latestStarknetBlock.timestamp}`);
 
-      const latestBlockStarknet = await this.provider.getBlock("latest");
-      if (!latestBlockStarknet) {
-        console.error("No latest block found");
+      // Check if it's time to start the auction
+      if (latestStarknetBlock.timestamp < auctionStartTime) {
+        this.logger.info(
+          `Waiting for auction start time. Time left: ${formatTimeLeft(
+            latestStarknetBlock.timestamp,
+            auctionStartTime,
+          )}`,
+        );
         return;
       }
-      const latestBlockStarknetFormatted =
-        rpcToStarknetBlock(latestBlockStarknet);
-
-      //if (this.latestFossilBlock.timestamp < auctionStartTime) {
-      //  this.logger.info(
-      //    `Waiting for auction start time. Time left: ${formatTimeLeft(
-      //      this.latestFossilBlock.timestamp,
-      //      auctionStartTime,
-      //    )}`,
-      //  );
-      //  return;
-      //}
 
       this.logger.info("Starting auction...");
 
-      const { suggestedMaxFee: estimatedMaxFee } =
-        await this.account.estimateInvokeFee([
+      // Estimate gas fee with error handling
+      let estimatedMaxFee;
+      try {
+        const feeEstimate = await this.account.estimateInvokeFee({
+          contractAddress: vaultContract.address,
+          entrypoint: "start_auction",
+          calldata: [],
+        });
+        estimatedMaxFee = feeEstimate.suggestedMaxFee;
+        this.logger.debug(`Estimated max fee: ${estimatedMaxFee}`);
+      } catch (error) {
+        this.logger.error(
+          "Failed to estimate gas fee for start_auction:",
+          error,
+        );
+        return;
+      }
+
+      // Execute transaction with proper error handling
+      try {
+        const { transaction_hash } = await vaultContract.start_auction();
+        this.logger.info(
+          `Auction start transaction submitted: ${transaction_hash}`,
+        );
+
+        // Wait for transaction confirmation with timeout
+        const receipt = await this.provider.waitForTransaction(
+          transaction_hash,
           {
-            contractAddress: vaultContract.address,
-            entrypoint: "start_auction",
-            calldata: [],
+            retryInterval: 2000,
+            successStates: ["ACCEPTED_ON_L2", "ACCEPTED_ON_L1"],
           },
-        ]);
+        );
 
-      const { transaction_hash } = await vaultContract.start_auction();
-      await this.provider.waitForTransaction(transaction_hash);
-
-      this.logger.info("Auction started successfully", {
-        transactionHash: transaction_hash,
-      });
+        this.logger.info("Auction started successfully", {
+          transactionHash: transaction_hash,
+          receipt: JSON.stringify(receipt),
+        });
+      } catch (error) {
+        this.logger.error("Failed to start auction:", error);
+        // Don't throw - let the service continue with other vaults
+        return;
+      }
     } catch (error) {
       this.logger.error("Error handling Open state:", error);
-      throw error;
+      // Don't throw - let the service continue with other vaults
     }
   }
 
   async handleAuctioningState(
     roundContract: Contract,
     vaultContract: Contract,
+    roundId: number,
   ) {
-    const auctionEndTimeRaw = await roundContract.get_auction_end_date();
-    const auctionEndTime = Number(auctionEndTimeRaw);
+    try {
+      const auctionEndTimeRaw = await roundContract.get_auction_end_date();
+      const auctionEndTime = Number(auctionEndTimeRaw);
+      this.logger.debug(`Auction end time: ${auctionEndTime}`);
 
-    const latestBlock = await this.provider.getBlock("latest");
-    if (!latestBlock) {
-      console.error("No latest block found");
-      return;
+      const latestBlock = await this.provider.getBlock("latest");
+      if (!latestBlock) {
+        this.logger.error("No latest block found");
+        return;
+      }
+
+      const latestStarknetBlock = rpcToStarknetBlock(latestBlock);
+      this.logger.debug(`Current timestamp: ${latestStarknetBlock.timestamp}`);
+
+      if (latestStarknetBlock.timestamp < auctionEndTime) {
+        this.logger.info(
+          `Waiting for auction end time. Time left: ${formatTimeLeft(
+            latestStarknetBlock.timestamp,
+            auctionEndTime,
+          )}`,
+        );
+        return;
+      }
+
+      this.logger.info("Ending auction...");
+
+      // Estimate gas fee with error handling
+      let estimatedMaxFee;
+      try {
+        const feeEstimate = await this.account.estimateInvokeFee({
+          contractAddress: vaultContract.address,
+          entrypoint: "end_auction",
+          calldata: [],
+        });
+        estimatedMaxFee = feeEstimate.suggestedMaxFee;
+        this.logger.debug(`Estimated max fee: ${estimatedMaxFee}`);
+      } catch (error) {
+        this.logger.error("Failed to estimate gas fee for end_auction:", error);
+        return;
+      }
+
+      // Execute transaction with proper error handling
+      try {
+        const { transaction_hash } = await vaultContract.end_auction();
+        this.logger.info(
+          `Auction end transaction submitted: ${transaction_hash}`,
+        );
+
+        // Wait for transaction confirmation with timeout
+        const receipt = await this.provider.waitForTransaction(
+          transaction_hash,
+          {
+            retryInterval: 2000,
+            successStates: ["ACCEPTED_ON_L2", "ACCEPTED_ON_L1"],
+          },
+        );
+
+        this.logger.info("Auction ended successfully", {
+          transactionHash: transaction_hash,
+          receipt: JSON.stringify(receipt),
+        });
+      } catch (error) {
+        this.logger.error("Failed to end auction:", error);
+        // Don't throw - let the service continue with other vaults
+        return;
+      }
+    } catch (error) {
+      this.logger.error("Error handling Auctioning state:", error);
+      // Don't throw - let the service continue with other vaults
     }
-    const latestStarknetBlock = rpcToStarknetBlock(latestBlock);
-    if (latestStarknetBlock.timestamp < auctionEndTime) {
-      this.logger.info(
-        `Waiting for auction end time. Time left: ${formatTimeLeft(
-          latestStarknetBlock.timestamp,
-          auctionEndTime,
-        )}`,
-      );
-      return;
-    }
-
-    this.logger.info("Ending auction...");
-
-    const { suggestedMaxFee: estimatedMaxFee } =
-      await this.account.estimateInvokeFee({
-        contractAddress: vaultContract.address,
-        entrypoint: "end_auction",
-        calldata: [],
-      });
-
-    const { transaction_hash } = await vaultContract.end_auction();
-    await this.provider.waitForTransaction(transaction_hash);
-
-    this.logger.info("Auction ended successfully", {
-      transactionHash: transaction_hash,
-    });
   }
 
   async handleRunningState(
     roundContract: Contract,
     vaultContract: Contract,
-    jobRequest: JobRequest | undefined,
+    roundId: number,
   ): Promise<void> {
     try {
       const settlementTime = Number(
         await roundContract.get_option_settlement_date(),
       );
+      this.logger.debug(`Settlement time: ${settlementTime}`);
 
       const latestBlock = await this.provider.getBlock("latest");
       if (!latestBlock) {
-        console.error("No latest block found");
+        this.logger.error("No latest block found");
         return;
       }
+
       const latestStarknetBlock = rpcToStarknetBlock(latestBlock);
+      this.logger.debug(`Current timestamp: ${latestStarknetBlock.timestamp}`);
+
       if (latestStarknetBlock.timestamp < settlementTime) {
         this.logger.info(
           `Waiting for settlement time. Time left: ${formatTimeLeft(
@@ -192,19 +331,86 @@ export class StateHandlers {
 
       this.logger.info("Settlement time reached");
 
-      if (jobRequest?.status === JobStatus.Pending) {
+      // Check for latest job request for current round (settlement)
+      const jobRequest = await this.db.getLatestJobRequestByVaultAndRound(
+        vaultContract.address,
+        roundId,
+      );
+
+      if (jobRequest) {
+        // Refresh job status from Fossil
+        const refreshedJobRequest = await this.refreshJobStatus(jobRequest);
+
+        if (refreshedJobRequest.status === JobStatus.Pending) {
+          this.logger.info(
+            `Settlement job request for vault ${vaultContract.address} round ${roundId} is pending`,
+          );
+          return;
+        }
+
+        if (refreshedJobRequest.status === JobStatus.Completed) {
+          this.logger.info(
+            `Settlement job request for vault ${vaultContract.address} round ${roundId} is completed`,
+          );
+          return;
+        }
+
+        if (refreshedJobRequest.status === JobStatus.Failed) {
+          this.logger.info(
+            `Latest settlement job request for vault ${vaultContract.address} round ${roundId} failed, will send new request`,
+          );
+        }
+      }
+
+      // Check if we're past the proving delay for settlement
+      const provingDelay = Number(await vaultContract.get_proving_delay());
+      const earliestSettlementTime = settlementTime + provingDelay;
+
+      if (latestStarknetBlock.timestamp < earliestSettlementTime) {
         this.logger.info(
-          `Job request for vault ${vaultContract.address} is pending`,
+          `Waiting for proving delay to pass for settlement. Earliest settlement time: ${earliestSettlementTime}, current: ${latestStarknetBlock.timestamp}, time left: ${formatTimeLeft(
+            latestStarknetBlock.timestamp,
+            earliestSettlementTime,
+          )}`,
         );
         return;
       }
-      const rawRequestData = await vaultContract.get_request_to_settle_round();
-      const requestData = formatRawFossilRequest(rawRequestData);
 
-      await sendFossilRequest(requestData, vaultContract, this.logger);
+      // If no job request or latest was failed, send new settlement request
+      if (!jobRequest || jobRequest.status === JobStatus.Failed) {
+        // Send settlement request with proper error handling
+        try {
+          const rawRequestData =
+            await vaultContract.get_request_to_settle_round();
+          const requestData = formatRawFossilRequest(rawRequestData);
+
+          const response = await sendFossilRequest(
+            requestData,
+            vaultContract,
+            this.logger,
+          );
+
+          // Store the settlement job request for tracking
+          await this.db.insertJobRequest(
+            vaultContract.address,
+            response.job_id,
+            response.status as JobStatus,
+            roundId, // Current round for settlement
+          );
+
+          this.logger.info("Settlement request sent successfully", {
+            jobId: response.job_id,
+            status: response.status,
+          });
+        } catch (error) {
+          this.logger.error("Failed to send settlement request:", error);
+          // Don't throw - let the service continue with other vaults
+          return;
+        }
+      }
     } catch (error) {
       this.logger.error("Error handling Running state:", error);
-      throw error;
+      // Don't throw - let the service continue with other vaults
     }
   }
 }

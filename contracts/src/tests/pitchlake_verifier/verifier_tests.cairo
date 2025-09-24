@@ -12,9 +12,9 @@ use pitch_lake::vault::interface::{JobRequest, L1Data, VerifierData};
 #[test]
 fn test_job_request_serialization() {
     let job = JobRequest {
-        vault_address: 0xbeef.try_into().unwrap(), timestamp: 1234, program_id: 'PITCH_LAKE_V1',
+        vault_address: 0xbeef.try_into().unwrap(), timestamp: 1234, program_id: 'PITCHLAKE_V1',
     };
-    let mut job_as_span = array![0xbeef, 1234, 'PITCH_LAKE_V1'].span();
+    let mut job_as_span = array![0xbeef, 1234, 'PITCHLAKE_V1'].span();
 
     // Test serialize
     let mut serialized: Array<felt252> = array![];
@@ -25,9 +25,9 @@ fn test_job_request_serialization() {
 #[test]
 fn test_job_request_deserialization() {
     let job = JobRequest {
-        vault_address: 0xbeef.try_into().unwrap(), timestamp: 1234, program_id: 'PITCH_LAKE_V1',
+        vault_address: 0xbeef.try_into().unwrap(), timestamp: 1234, program_id: 'PITCHLAKE_V1',
     };
-    let mut job_as_span = array![0xbeef, 1234, 'PITCH_LAKE_V1'].span();
+    let mut job_as_span = array![0xbeef, 1234, 'PITCHLAKE_V1'].span();
 
     // Test deserialize
     let deserialized: JobRequest = Serde::deserialize(ref job_as_span)

@@ -1,5 +1,5 @@
 import { PoolClient, Pool } from "pg";
-import { JobRequest, JobStatus } from "src/types/types";
+import { JobRequest, JobStatus } from "../types/types";
 
 export class DB {
   private fossilPool: Pool;
@@ -80,46 +80,120 @@ export class DB {
 
   async getJobRequestsPitchlake() {
     const query = `
-    SELECT job_id, status, vault_address FROM job_requests
+    SELECT job_id, status, vault_address, round_id, created_at FROM job_requests
     `;
     const result = await this.pitchlakePool.query(query);
     const jobRequests: JobRequest[] = result.rows.map((row) => ({
       job_id: row.job_id,
       status: row.status as JobStatus,
       vaultAddress: row.vault_address,
+      roundId: row.round_id,
+      createdAt: new Date(row.created_at),
     }));
     return jobRequests;
   }
 
-  async upsertJobRequest(
+  async getLatestJobRequestByVaultAndRound(vaultAddress: string, roundId: number): Promise<JobRequest | null> {
+    const result = await this.pitchlakePool.query(
+      `SELECT vault_address, job_id, status, round_id, created_at 
+       FROM job_requests 
+       WHERE vault_address = $1 AND round_id = $2 
+       ORDER BY created_at DESC 
+       LIMIT 1`,
+      [vaultAddress, roundId]
+    );
+    
+    if (result.rows.length === 0) {
+      return null;
+    }
+    
+    const row = result.rows[0];
+    return {
+      job_id: row.job_id,
+      status: row.status as JobStatus,
+      vaultAddress: row.vault_address,
+      roundId: row.round_id,
+      createdAt: new Date(row.created_at),
+    };
+  }
+
+  async insertJobRequest(
     vaultAddress: string,
     job_id: string,
-    status: JobStatus
+    status: JobStatus,
+    roundId: number
   ) {
     await this.pitchlakePool.query(
-      `
-      INSERT INTO job_requests (vault_address, job_id, status) VALUES ($1, $2, $3)
-      ON CONFLICT (vault_address) DO UPDATE SET status = $3, job_id = $2
-      `,
-      [vaultAddress, job_id, status]
+      `INSERT INTO job_requests (vault_address, job_id, status, round_id) VALUES ($1, $2, $3, $4)`,
+      [vaultAddress, job_id, status, roundId]
     );
   }
-  async updateJobRequest(
-    vaultAddress: string,
-    job_id: string,
-    status: JobStatus
-  ) {
+  async updateJobRequestStatus(job_id: string, status: JobStatus) {
     try {
-      const query = `
-    UPDATE job_requests SET status = $1, job_id = $2 WHERE vault_address = $3
-    `;
-      await this.pitchlakePool.query(query, [status, job_id, vaultAddress]);
+      const query = `UPDATE job_requests SET status = $1 WHERE job_id = $2`;
+      await this.pitchlakePool.query(query, [status, job_id]);
       return true;
     } catch (error) {
-      console.error("Error updating job request:", error);
+      console.error("Error updating job request status:", error);
       return false;
     }
   }
+
+  async deleteJobRequest(vaultAddress: string, roundId: number) {
+    try {
+      const query = `DELETE FROM job_requests WHERE vault_address = $1 AND round_id = $2`;
+      await this.pitchlakePool.query(query, [vaultAddress, roundId]);
+      return true;
+    } catch (error) {
+      console.error("Error deleting job request:", error);
+      return false;
+    }
+  }
+
+  async markJobRequestCompleted(vaultAddress: string, roundId: number) {
+    try {
+      const query = `UPDATE job_requests SET status = $1 WHERE vault_address = $2 AND round_id = $3`;
+      await this.pitchlakePool.query(query, [JobStatus.Completed, vaultAddress, roundId]);
+      return true;
+    } catch (error) {
+      console.error("Error marking job request as completed:", error);
+      return false;
+    }
+  }
+
+  async markLatestPendingJobAsCompleted(vaultAddress: string, roundId: number) {
+    try {
+      const result = await this.pitchlakePool.query(
+        `UPDATE job_requests 
+         SET status = $1 
+         WHERE job_id = (
+           SELECT job_id FROM job_requests 
+           WHERE vault_address = $2 AND round_id = $3 AND status = $4
+           ORDER BY created_at DESC 
+           LIMIT 1
+         )`,
+        [JobStatus.Completed, vaultAddress, roundId, JobStatus.Pending]
+      );
+      return result.rowCount || 0;
+    } catch (error) {
+      console.error("Error marking latest pending job as completed:", error);
+      return 0;
+    }
+  }
+
+
+  async clearAllJobRequests() {
+    try {
+      const query = `DELETE FROM job_requests`;
+      const result = await this.pitchlakePool.query(query);
+      console.log(`Cleared ${result.rowCount} job requests from the database`);
+      return true;
+    } catch (error) {
+      console.error("Error clearing all job requests:", error);
+      return false;
+    }
+  }
+
 
   async getRelevantBlocks(currentTimestamp: number, timeWindow: number) {
     const query = `

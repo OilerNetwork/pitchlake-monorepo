@@ -43,7 +43,7 @@ export const createJobRequest = ({
       "x-api-key": "<REPLACE_ME>",
     },
     body: JSON.stringify({
-      identifiers: ["PITCH_LAKE_V1"],
+      identifiers: ["PITCHLAKE_V1"],
       params: createJobRequestParams(
         targetTimestamp,
         roundDuration,
@@ -76,7 +76,7 @@ export const createJobId = (
 ): string => {
   if (!targetTimestamp || !roundDuration) return "";
 
-  const identifiers = ["PITCH_LAKE_V1"];
+  const identifiers = ["PITCHLAKE_V1"];
   const params = createJobRequestParams(
     targetTimestamp,
     roundDuration,
@@ -98,11 +98,13 @@ export const createJobId = (
   const bytes = stringToBytes(input);
 
   const bytesToNumberBE = (bytes: Uint8Array) => {
-    return BigInt(bytes.reduce((acc, byte) => acc * BigInt(256) + BigInt(byte), BigInt(0)));
+    return BigInt(
+      bytes.reduce((acc, byte) => acc * BigInt(256) + BigInt(byte), BigInt(0)),
+    );
   };
 
   const asNum = bytesToNumberBE(bytes);
-  
+
   const hashResult = poseidonHashSingle(asNum);
   return hashResult.toString();
 };

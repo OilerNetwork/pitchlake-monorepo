@@ -184,7 +184,8 @@ describe("createJobRequestParams", () => {
       twap: [targetTimestamp - roundDuration, targetTimestamp],
       cap_level: [targetTimestamp - 5 * roundDuration, targetTimestamp],
       reserve_price: [targetTimestamp - DAYS150, targetTimestamp],
-      alpha,k
+      alpha,
+      k,
     });
   });
 });
@@ -209,7 +210,7 @@ describe("createJobRequest", () => {
         "x-api-key": "<REPLACE_ME>",
       },
       body: JSON.stringify({
-        identifiers: ["PITCH_LAKE_V1"],
+        identifiers: ["PITCHLAKE_V1"],
         params: createJobRequestParams(
           params.targetTimestamp,
           params.roundDuration,

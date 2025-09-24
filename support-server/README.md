@@ -113,6 +113,9 @@ Copy `env.example` to `.env` and configure these essential variables:
 | `VAULT_ADDRESSES` | Comma-separated vault addresses | Yes |
 | `FOSSIL_API_KEY` | Fossil API key | Yes |
 | `FOSSIL_API_URL` | Fossil API URL | Yes |
+| `IS_DEVNET` | Enable devnet mode (block mining) | No |
+| `INITIAL_BLOCK_NUMBER` | Starting block for TWAP processing | No |
+| `BLOCK_BATCH_SIZE` | Number of blocks to process in each batch | No |
 
 > **Note**: See [documentation.md](./documentation.md#configuration) for complete configuration details and optional variables.
 

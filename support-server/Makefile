@@ -1,4 +1,4 @@
-.PHONY: help start-dbs stop-dbs migrate-pitchlake migrate-fossil migrate-all clean-dbs check-dbs check-migrations
+.PHONY: help start-dbs stop-dbs migrate-pitchlake migrate-fossil migrate-all clean-dbs check-dbs check-migrations clean-job-requests
 
 # Default target
 help:
@@ -15,6 +15,7 @@ help:
 	@echo "  docker-up        - Create network and start all services"
 	@echo "  clean-project    - Clean only this project's resources (safer)"
 	@echo "  clean-network    - Remove pitchlake-network"
+	@echo "  clean-job-requests - Clear all job requests from the database"
 
 # Check if databases are running
 check-dbs:

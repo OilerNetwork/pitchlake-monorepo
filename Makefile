@@ -53,15 +53,17 @@ sync-addresses: ## Sync contract addresses from Fossil to Pitchlake
 .PHONY: start-all
 start-all: ## Start all services (Fossil first, then Pitchlake services)
 	@echo "🚀 Starting all services..."
-	@echo "📋 Step 1: Starting Fossil services (primary chain)..."
+	@echo "📋 Step 1: Building Fossil message handler image..."
+	@cd fossil-monorepo && ./scripts/build-message-handler-image-docker.sh
+	@echo "📋 Step 2: Starting Fossil services (primary chain)..."
 	@cd fossil-monorepo && $(MAKE) dev-up
-	@echo "📋 Step 2: Syncing contract addresses to Pitchlake..."
+	@echo "📋 Step 3: Syncing contract addresses to Pitchlake..."
 	@$(MAKE) sync-addresses
-	@echo "📋 Step 3: Rebuilding Pitchlake services with updated env..."
+	@echo "📋 Step 4: Rebuilding Pitchlake services with updated env..."
 	@$(MAKE) build-all
-	@echo "📋 Step 4: Running Pitchlake migrations..."
+	@echo "📋 Step 5: Running Pitchlake migrations..."
 	@$(MAKE) migrate
-	@echo "📋 Step 5: Starting Pitchlake services..."
+	@echo "📋 Step 6: Starting Pitchlake services..."
 	@docker-compose up -d
 	@echo "⏳ Waiting for services to be healthy..."
 	@sleep 10
@@ -305,3 +307,12 @@ reset-fossil: ## Reset Fossil database
 list-jobs:
 	@echo "Listing all jobs in job_requests table..."
 	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "SELECT * FROM job_requests;" || echo "Failed to list jobs. Make sure the container is running."
+
+.PHONY: clean-job-requests
+clean-job-requests: ## Clean up job requests from the database
+	@echo "🧹 Cleaning up job requests from the database..."
+	@echo "📋 Ensuring databases are running..."
+	@docker-compose up -d pitchlake-db fossil-db
+	@echo "⏳ Waiting for databases to be ready..."
+	@sleep 5
+	@cd support-server && npx ts-node src/scripts/cleanup-job-requests.ts

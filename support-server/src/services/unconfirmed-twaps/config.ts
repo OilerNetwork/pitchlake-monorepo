@@ -3,6 +3,7 @@
 export interface UnconfirmedIndexerConfig {
   mainnetRpcUrl: string;
   useDemoData: boolean;
+  blockBatchSize: number;
   twapRanges: {
     TWELVE_MIN: number;
     THREE_HOURS: number;
@@ -18,6 +19,7 @@ export const TWAP_RANGES = {
 
 export function loadUnconfirmedIndexerConfig(): UnconfirmedIndexerConfig {
   const useDemoData = process.env.USE_DEMO_DATA === 'true';
+  const blockBatchSize = parseInt(process.env.BLOCK_BATCH_SIZE || '500', 10);
   
   if (!useDemoData && !process.env.L1_ALCHEMY_URL) {
     throw new Error("L1_ALCHEMY_URL is required in production mode");
@@ -26,6 +28,7 @@ export function loadUnconfirmedIndexerConfig(): UnconfirmedIndexerConfig {
   return {
     mainnetRpcUrl: process.env.L1_ALCHEMY_URL || 'https://eth-mainnet.alchemyapi.io/v2/demo',
     useDemoData,
+    blockBatchSize,
     twapRanges: TWAP_RANGES
   };
 } 

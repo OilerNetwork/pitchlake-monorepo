@@ -54,7 +54,7 @@ curl -X POST http://localhost:3000/pricing_data \
 	-H 'Content-Type: application/json' \
 	-H 'x-api-key: b2ed9cdc-2dd0-4b81-8ed4-bcefbf29ddc1' \
 	-d '{
-    "identifiers": ["PITCH_LAKE_V1"],
+    "identifiers": ["PITCHLAKE_V1"],
     "params": {
       "twap": ['$((DEPLOYMENT_DATE_INT - 86400))', '$DEPLOYMENT_DATE_INT'],
       "volatility": ['$((DEPLOYMENT_DATE_INT - 259200))', '$DEPLOYMENT_DATE_INT'],
@@ -71,7 +71,7 @@ curl -X POST http://localhost:3000/pricing_data \
 #	-H 'Content-Type: application/json' \
 #	-H 'x-api-key: b2ed9cdc-2dd0-4b81-8ed4-bcefbf29ddc1' \
 #	-d '{
-#    "identifiers": ["PITCH_LAKE_V1"],
+#    "identifiers": ["PITCHLAKE_V1"],
 #    "params": {
 #      "twap": ['1730053616', '1730140016'],
 #      "volatility": ['1729880816', '1730140016'],
