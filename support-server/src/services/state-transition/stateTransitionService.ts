@@ -5,14 +5,12 @@ import { Logger } from "winston";
 import { Account } from "starknet";
 import { JobRequest, JobStatus, OptionRoundState } from "../../types/types";
 import { StateHandlers } from "./stateHandlers";
-import {DB} from "../../shared/db";
+import { DB } from "../../shared/db";
 import { getJobStatus } from "./utils";
+import { ABI as erc20ABI } from "../../abi/erc20";
 
-const {
-  VAULT_ADDRESSES,
-  STARKNET_PRIVATE_KEY,
-  STARKNET_ACCOUNT_ADDRESS,
-} = process.env;
+const { VAULT_ADDRESSES, STARKNET_PRIVATE_KEY, STARKNET_ACCOUNT_ADDRESS } =
+  process.env;
 
 export class StateTransitionService {
   private db: DB;
@@ -21,10 +19,7 @@ export class StateTransitionService {
   private account: Account;
   private stateHandlers: StateHandlers;
 
-  constructor(
-    logger: Logger,
-    provider: RpcProvider,
-  ) {
+  constructor(logger: Logger, provider: RpcProvider) {
     this.logger = logger;
     this.provider = provider;
     this.account = new Account(
@@ -41,12 +36,35 @@ export class StateTransitionService {
     );
   }
 
+  mineBlockHelper = async (vaultContract: Contract) => {
+    // Only mine blocks on devnet
+    if (process.env.IS_DEVNET !== "true") {
+      return;
+    }
+
+    try {
+      this.logger.debug("Mining block on devnet to update timestamp...");
+      const ethAddress = await vaultContract.get_eth_address();
+      const ethAddressHex = "0x" + BigInt(ethAddress).toString(16);
+      const ethContract = new Contract(erc20ABI, ethAddressHex, this.account);
+      const data = await ethContract.transfer(this.account.address, 123n);
+      this.logger.debug(
+        `Devnet block mining transaction: ${data.transaction_hash}`,
+      );
+      await this.provider.waitForTransaction(data.transaction_hash);
+      this.logger.debug("Block mined successfully on devnet");
+    } catch (error) {
+      this.logger.error("Failed to mine block on devnet:", error);
+      // Don't throw - this is just for devnet testing
+    }
+  };
+
   async runStateTransition() {
     if (!VAULT_ADDRESSES) {
       this.logger.warn("No vault addresses configured");
       return;
     }
-    
+
     const vaultAddresses = VAULT_ADDRESSES.split(",").map((addr) =>
       addr.trim(),
     );
@@ -63,83 +81,92 @@ export class StateTransitionService {
       // Get and update job requests with proper error handling
       const jobRequests = await this.db.getJobRequestsPitchlake();
       this.logger.debug(`Found ${jobRequests.length} existing job requests`);
-      
+
       const jobRequestsUpdated = await Promise.all(
         jobRequests.map(async (jobRequest) => {
           try {
             const updatedData: JobRequest = { ...jobRequest };
-            
+
             // Only check status for non-failed jobs
             if (jobRequest.status !== JobStatus.Failed) {
               const jobStatus = await getJobStatus(jobRequest.job_id);
-              
+
               if (jobStatus.status !== jobRequest.status) {
                 this.logger.info(
-                  `Job ${jobRequest.job_id} status changed from ${jobRequest.status} to ${jobStatus.status}`
+                  `Job ${jobRequest.job_id} status changed from ${jobRequest.status} to ${jobStatus.status}`,
                 );
-                
+
                 await this.db.updateJobRequest(
                   jobRequest.vaultAddress,
                   jobRequest.job_id,
-                  jobStatus.status as JobStatus
+                  jobStatus.status as JobStatus,
                 );
                 updatedData.status = jobStatus.status as JobStatus;
-                
+
                 // Clean up completed jobs immediately after status update
                 if (jobStatus.status === JobStatus.Completed) {
                   this.logger.info(
-                    `Cleaning up completed job ${jobRequest.job_id} for vault ${jobRequest.vaultAddress}`
+                    `Cleaning up completed job ${jobRequest.job_id} for vault ${jobRequest.vaultAddress}`,
                   );
                   await this.db.deleteJobRequest(jobRequest.vaultAddress);
                   return null; // Mark for removal from the list
                 }
               }
             }
-            
+
             return updatedData;
           } catch (error) {
             this.logger.error(
               `Error updating job request ${jobRequest.job_id}:`,
-              error
+              error,
             );
             return jobRequest; // Return original if update fails
           }
-        })
+        }),
       );
 
       // Filter out null entries (completed jobs that were cleaned up)
-      const activeJobRequests = jobRequestsUpdated.filter((jobRequest) => jobRequest !== null) as JobRequest[];
+      const activeJobRequests = jobRequestsUpdated.filter(
+        (jobRequest) => jobRequest !== null,
+      ) as JobRequest[];
+
+      // Mine a block on devnet to update timestamps
+      if (vaultAddresses.length > 0) {
+        const vaultContract = new Contract(
+          vaultAbi,
+          vaultAddresses[0],
+          this.account,
+        ).typedv2(vaultAbi);
+        await this.mineBlockHelper(vaultContract);
+      }
 
       // Process each vault with proper error handling
       for (const vaultAddress of vaultAddresses) {
         try {
           const jobRequest = activeJobRequests.find(
-            (jobRequest) => jobRequest.vaultAddress === vaultAddress
+            (jobRequest) => jobRequest.vaultAddress === vaultAddress,
           );
-          
+
           this.logger.debug(
             `Processing vault ${vaultAddress} with job request: ${
-              jobRequest ? `${jobRequest.job_id} (${jobRequest.status})` : 'none'
-            }`
+              jobRequest
+                ? `${jobRequest.job_id} (${jobRequest.status})`
+                : "none"
+            }`,
           );
-          
+
           const vaultContract = new Contract(
             vaultAbi,
             vaultAddress,
             this.account,
           ).typedv2(vaultAbi);
-          
+
           await this.checkAndTransition(vaultContract, jobRequest);
-          
         } catch (error) {
-          this.logger.error(
-            `Error processing vault ${vaultAddress}:`,
-            error
-          );
+          this.logger.error(`Error processing vault ${vaultAddress}:`, error);
           // Continue with next vault instead of stopping the entire process
         }
       }
-      
     } catch (error) {
       this.logger.error("Error in runStateTransition:", error);
       // Don't throw - let the scheduler retry on next run
@@ -188,7 +215,7 @@ export class StateTransitionService {
       const stateRaw = await roundContract.get_state();
       this.logger.debug(`Raw state: ${JSON.stringify(stateRaw)}`);
       const state = (stateRaw as CairoCustomEnum).activeVariant();
-      
+
       // Map string state names to enum values
       const stateEnum = (() => {
         switch (state) {
@@ -205,7 +232,7 @@ export class StateTransitionService {
             return OptionRoundState.Open; // Default fallback
         }
       })();
-      
+
       this.logger.info(`Round ${roundId} is in ${state} state (${stateEnum})`);
 
       // Handle each state with proper error handling
@@ -237,16 +264,15 @@ export class StateTransitionService {
         case OptionRoundState.Settled:
           this.logger.info("Round is settled - no actions possible");
           break;
-          
+
         default:
           this.logger.warn(`Unknown state: ${stateEnum}`);
           break;
       }
-      
     } catch (error) {
       this.logger.error(
         `Error in checkAndTransition for vault ${vaultContract.address}:`,
-        error
+        error,
       );
       // Don't throw - let the service continue with other vaults
     }

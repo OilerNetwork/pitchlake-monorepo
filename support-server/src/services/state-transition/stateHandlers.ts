@@ -4,31 +4,7 @@ import { formatRawFossilRequest, formatTimeLeft } from "./utils";
 import { sendFossilRequest } from "./utils";
 import { JobRequest, JobStatus } from "../../types/types";
 import { rpcToStarknetBlock } from "../../utils/rpcClient";
-import { ABI as erc20ABI } from "../../abi/erc20";
 import { DB } from "../../shared/db";
-
-
-const mineBlockHelper = async (provider: RpcProvider, account: Account, vaultContract: Contract, logger: Logger) => {
-  // Only mine blocks on devnet
-  if (process.env.IS_DEVNET !== "true") {
-    return;
-  }
-  
-  try {
-    logger.debug("Mining block on devnet to update timestamp...");
-    const ethAddress = await vaultContract.get_eth_address();
-    const ethAddressHex = "0x" + BigInt(ethAddress).toString(16);
-    const ethContract = new Contract(erc20ABI, ethAddressHex, account);
-    const data = await ethContract.transfer(account.address, 123n);
-    logger.debug(`Devnet block mining transaction: ${data.transaction_hash}`);
-    await provider.waitForTransaction(data.transaction_hash);
-    logger.debug("Block mined successfully on devnet");
-  } catch (error) {
-    logger.error("Failed to mine block on devnet:", error);
-    // Don't throw - this is just for devnet testing
-  }
-}
-
 
 export class StateHandlers {
   private db: DB;
@@ -49,16 +25,13 @@ export class StateHandlers {
     jobRequest: JobRequest | undefined,
   ) {
     try {
-      // Mine block on devnet first to ensure accurate timestamps
-      await mineBlockHelper(this.provider, this.account, vaultContract, this.logger);
-      
       // Check if this is the first round that needs initialization
       const reservePrice = await roundContract.get_reserve_price();
       this.logger.debug(`Reserve price: ${reservePrice}`);
-      
+
       if (reservePrice === 0n) {
         this.logger.info("First round detected - needs initialization");
-        
+
         // Check if we already have a pending or completed job for this vault
         if (jobRequest?.status === JobStatus.Pending) {
           this.logger.info(
@@ -66,19 +39,19 @@ export class StateHandlers {
           );
           return;
         }
-        
+
         if (jobRequest?.status === JobStatus.Completed) {
           this.logger.info(
             `Job request for vault ${vaultContract.address} is completed, proceeding with auction start`,
           );
           // Clean up completed job and proceed to auction start
           await this.db.deleteJobRequest(vaultContract.address);
-          
+
           // Double-check that reserve price is now set (safety check)
           const updatedReservePrice = await roundContract.get_reserve_price();
           if (updatedReservePrice === 0n) {
             this.logger.warn(
-              `Job completed but reserve price still 0 for vault ${vaultContract.address}. This may be a timing issue.`
+              `Job completed but reserve price still 0 for vault ${vaultContract.address}. This may be a timing issue.`,
             );
             // Continue anyway - the next poll will handle it
           }
@@ -91,9 +64,11 @@ export class StateHandlers {
             // Clean up failed job before sending new one
             await this.db.deleteJobRequest(vaultContract.address);
           }
-          
+
           // Check if we're past the proving delay for initialization
-          const deploymentTime = Number(await roundContract.get_deployment_date());
+          const deploymentTime = Number(
+            await roundContract.get_deployment_date(),
+          );
           const provingDelay = Number(await vaultContract.get_proving_delay());
           const latestBlock = await this.provider.getBlock("latest");
           if (!latestBlock) {
@@ -101,7 +76,7 @@ export class StateHandlers {
             return;
           }
           const latestStarknetBlock = rpcToStarknetBlock(latestBlock);
-          
+
           const earliestInitTime = deploymentTime + provingDelay;
           if (latestStarknetBlock.timestamp < earliestInitTime) {
             this.logger.info(
@@ -112,18 +87,19 @@ export class StateHandlers {
             );
             return;
           }
-          
+
           this.logger.info(
             `Sending new job request for vault ${vaultContract.address}`,
           );
-          
-          const requestData = await vaultContract.get_request_to_start_first_round();
+
+          const requestData =
+            await vaultContract.get_request_to_start_first_round();
           const response = await sendFossilRequest(
             formatRawFossilRequest(requestData),
             vaultContract,
             this.logger,
           );
-          
+
           await this.db.upsertJobRequest(
             vaultContract.address,
             response.job_id,
@@ -137,25 +113,27 @@ export class StateHandlers {
         // but wasn't marked as completed by Fossil. Clean it up.
         if (jobRequest) {
           this.logger.warn(
-            `Cleaning up completed settlement job for vault ${vaultContract.address} (reserve price is set, so no initialization needed)`
+            `Cleaning up completed settlement job for vault ${vaultContract.address} (reserve price is set, so no initialization needed)`,
           );
           await this.db.deleteJobRequest(vaultContract.address);
         }
       }
 
       // Auction start logic with proper time validation
-      const auctionStartTime = Number(await roundContract.get_auction_start_date());
+      const auctionStartTime = Number(
+        await roundContract.get_auction_start_date(),
+      );
       this.logger.debug(`Auction start time: ${auctionStartTime}`);
-      
+
       const latestBlock = await this.provider.getBlock("latest");
       if (!latestBlock) {
         this.logger.error("No latest block found");
         return;
       }
-      
+
       const latestStarknetBlock = rpcToStarknetBlock(latestBlock);
       this.logger.debug(`Current timestamp: ${latestStarknetBlock.timestamp}`);
-      
+
       // Check if it's time to start the auction
       if (latestStarknetBlock.timestamp < auctionStartTime) {
         this.logger.info(
@@ -170,9 +148,11 @@ export class StateHandlers {
       // Re-check state before executing action to avoid race conditions
       const currentStateRaw = await roundContract.get_state();
       const currentState = (currentStateRaw as CairoCustomEnum).activeVariant();
-      
+
       if (currentState !== "Open") {
-        this.logger.info(`State changed from Open to ${currentState}, skipping auction start`);
+        this.logger.info(
+          `State changed from Open to ${currentState}, skipping auction start`,
+        );
         return;
       }
 
@@ -189,32 +169,38 @@ export class StateHandlers {
         estimatedMaxFee = feeEstimate.suggestedMaxFee;
         this.logger.debug(`Estimated max fee: ${estimatedMaxFee}`);
       } catch (error) {
-        this.logger.error("Failed to estimate gas fee for start_auction:", error);
+        this.logger.error(
+          "Failed to estimate gas fee for start_auction:",
+          error,
+        );
         return;
       }
 
       // Execute transaction with proper error handling
       try {
         const { transaction_hash } = await vaultContract.start_auction();
-        this.logger.info(`Auction start transaction submitted: ${transaction_hash}`);
-        
+        this.logger.info(
+          `Auction start transaction submitted: ${transaction_hash}`,
+        );
+
         // Wait for transaction confirmation with timeout
-        const receipt = await this.provider.waitForTransaction(transaction_hash, {
-          retryInterval: 2000,
-          successStates: ["ACCEPTED_ON_L2", "ACCEPTED_ON_L1"]
-        });
-        
+        const receipt = await this.provider.waitForTransaction(
+          transaction_hash,
+          {
+            retryInterval: 2000,
+            successStates: ["ACCEPTED_ON_L2", "ACCEPTED_ON_L1"],
+          },
+        );
+
         this.logger.info("Auction started successfully", {
           transactionHash: transaction_hash,
-          receipt: JSON.stringify(receipt)
+          receipt: JSON.stringify(receipt),
         });
-        
       } catch (error) {
         this.logger.error("Failed to start auction:", error);
         // Don't throw - let the service continue with other vaults
         return;
       }
-      
     } catch (error) {
       this.logger.error("Error handling Open state:", error);
       // Don't throw - let the service continue with other vaults
@@ -227,18 +213,15 @@ export class StateHandlers {
     jobRequest: JobRequest | undefined,
   ) {
     try {
-      // Mine block on devnet first to ensure accurate timestamps
-      await mineBlockHelper(this.provider, this.account, vaultContract, this.logger);
-      
       // If we have a job request in auctioning state, it means the previous job completed
       // but wasn't marked as completed by Fossil. Clean it up.
       if (jobRequest) {
         this.logger.warn(
-          `Cleaning up completed job for vault ${vaultContract.address} (in auctioning state, so previous job must have completed)`
+          `Cleaning up completed job for vault ${vaultContract.address} (in auctioning state, so previous job must have completed)`,
         );
         await this.db.deleteJobRequest(vaultContract.address);
       }
-      
+
       const auctionEndTimeRaw = await roundContract.get_auction_end_date();
       const auctionEndTime = Number(auctionEndTimeRaw);
       this.logger.debug(`Auction end time: ${auctionEndTime}`);
@@ -248,10 +231,10 @@ export class StateHandlers {
         this.logger.error("No latest block found");
         return;
       }
-      
+
       const latestStarknetBlock = rpcToStarknetBlock(latestBlock);
       this.logger.debug(`Current timestamp: ${latestStarknetBlock.timestamp}`);
-      
+
       if (latestStarknetBlock.timestamp < auctionEndTime) {
         this.logger.info(
           `Waiting for auction end time. Time left: ${formatTimeLeft(
@@ -265,9 +248,11 @@ export class StateHandlers {
       // Re-check state before executing action to avoid race conditions
       const currentStateRaw = await roundContract.get_state();
       const currentState = (currentStateRaw as CairoCustomEnum).activeVariant();
-      
+
       if (currentState !== "Auctioning") {
-        this.logger.info(`State changed from Auctioning to ${currentState}, skipping auction end`);
+        this.logger.info(
+          `State changed from Auctioning to ${currentState}, skipping auction end`,
+        );
         return;
       }
 
@@ -291,25 +276,28 @@ export class StateHandlers {
       // Execute transaction with proper error handling
       try {
         const { transaction_hash } = await vaultContract.end_auction();
-        this.logger.info(`Auction end transaction submitted: ${transaction_hash}`);
-        
+        this.logger.info(
+          `Auction end transaction submitted: ${transaction_hash}`,
+        );
+
         // Wait for transaction confirmation with timeout
-        const receipt = await this.provider.waitForTransaction(transaction_hash, {
-          retryInterval: 2000,
-          successStates: ["ACCEPTED_ON_L2", "ACCEPTED_ON_L1"]
-        });
-        
+        const receipt = await this.provider.waitForTransaction(
+          transaction_hash,
+          {
+            retryInterval: 2000,
+            successStates: ["ACCEPTED_ON_L2", "ACCEPTED_ON_L1"],
+          },
+        );
+
         this.logger.info("Auction ended successfully", {
           transactionHash: transaction_hash,
-          receipt: JSON.stringify(receipt)
+          receipt: JSON.stringify(receipt),
         });
-        
       } catch (error) {
         this.logger.error("Failed to end auction:", error);
         // Don't throw - let the service continue with other vaults
         return;
       }
-      
     } catch (error) {
       this.logger.error("Error handling Auctioning state:", error);
       // Don't throw - let the service continue with other vaults
@@ -322,9 +310,6 @@ export class StateHandlers {
     jobRequest: JobRequest | undefined,
   ): Promise<void> {
     try {
-      // Mine block on devnet first to ensure accurate timestamps
-      await mineBlockHelper(this.provider, this.account, vaultContract, this.logger);
-      
       const settlementTime = Number(
         await roundContract.get_option_settlement_date(),
       );
@@ -335,10 +320,10 @@ export class StateHandlers {
         this.logger.error("No latest block found");
         return;
       }
-      
+
       const latestStarknetBlock = rpcToStarknetBlock(latestBlock);
       this.logger.debug(`Current timestamp: ${latestStarknetBlock.timestamp}`);
-      
+
       if (latestStarknetBlock.timestamp < settlementTime) {
         this.logger.info(
           `Waiting for settlement time. Time left: ${formatTimeLeft(
@@ -358,7 +343,7 @@ export class StateHandlers {
         );
         return;
       }
-      
+
       // Handle failed jobs - retry by sending new request
       if (jobRequest?.status === JobStatus.Failed) {
         this.logger.info(
@@ -367,11 +352,11 @@ export class StateHandlers {
         // Clean up failed job before sending new one
         await this.db.deleteJobRequest(vaultContract.address);
       }
-      
+
       // Check if we're past the proving delay for settlement
       const provingDelay = Number(await vaultContract.get_proving_delay());
       const earliestSettlementTime = settlementTime + provingDelay;
-      
+
       if (latestStarknetBlock.timestamp < earliestSettlementTime) {
         this.logger.info(
           `Waiting for proving delay to pass for settlement. Earliest settlement time: ${earliestSettlementTime}, current: ${latestStarknetBlock.timestamp}, time left: ${formatTimeLeft(
@@ -381,32 +366,35 @@ export class StateHandlers {
         );
         return;
       }
-      
+
       // Send settlement request with proper error handling
       try {
-        const rawRequestData = await vaultContract.get_request_to_settle_round();
+        const rawRequestData =
+          await vaultContract.get_request_to_settle_round();
         const requestData = formatRawFossilRequest(rawRequestData);
-        
-        const response = await sendFossilRequest(requestData, vaultContract, this.logger);
-        
+
+        const response = await sendFossilRequest(
+          requestData,
+          vaultContract,
+          this.logger,
+        );
+
         // Store the settlement job request for tracking
         await this.db.upsertJobRequest(
           vaultContract.address,
           response.job_id,
           response.status as JobStatus,
         );
-        
+
         this.logger.info("Settlement request sent successfully", {
           jobId: response.job_id,
-          status: response.status
+          status: response.status,
         });
-        
       } catch (error) {
         this.logger.error("Failed to send settlement request:", error);
         // Don't throw - let the service continue with other vaults
         return;
       }
-      
     } catch (error) {
       this.logger.error("Error handling Running state:", error);
       // Don't throw - let the service continue with other vaults
