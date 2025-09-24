@@ -1,5 +1,5 @@
 import { PoolClient, Pool } from "pg";
-import { JobRequest, JobStatus } from "src/types/types";
+import { JobRequest, JobStatus } from "../types/types";
 
 export class DB {
   private fossilPool: Pool;

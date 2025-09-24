@@ -3,10 +3,9 @@ import { ABI as OptionRoundAbi } from "../../abi/optionRound";
 import { ABI as vaultAbi } from "../../abi/vault";
 import { Logger } from "winston";
 import { Account } from "starknet";
-import { JobRequest, JobStatus, OptionRoundState } from "../../types/types";
+import { OptionRoundState } from "../../types/types";
 import { StateHandlers } from "./stateHandlers";
 import { DB } from "../../shared/db";
-import { getJobStatus } from "./utils";
 import { ABI as erc20ABI } from "../../abi/erc20";
 
 const { VAULT_ADDRESSES, STARKNET_PRIVATE_KEY, STARKNET_ACCOUNT_ADDRESS } =
@@ -191,8 +190,8 @@ export class StateTransitionService {
       this.logger.info(`Round ${roundId} is in ${state} state (${stateEnum})`);
 
       // Mark latest pending job for previous round as completed (Fossil doesn't mark them as completed)
-      if (roundId > 0) {
-        await this.markLatestPendingJobAsCompleted(vaultContract.address, roundId - 1);
+      if (Number(roundId) > 0) {
+        await this.markLatestPendingJobAsCompleted(vaultContract.address, Number(roundId) - 1);
       }
 
       // Handle each state with proper error handling
@@ -202,7 +201,7 @@ export class StateTransitionService {
           await this.stateHandlers.handleOpenState(
             roundContract,
             vaultContract,
-            roundId,
+            Number(roundId),
           );
           break;
 
@@ -210,7 +209,7 @@ export class StateTransitionService {
           await this.stateHandlers.handleAuctioningState(
             roundContract,
             vaultContract,
-            roundId,
+            Number(roundId),
           );
           break;
 
@@ -218,7 +217,7 @@ export class StateTransitionService {
           await this.stateHandlers.handleRunningState(
             roundContract,
             vaultContract,
-            roundId,
+            Number(roundId),
           );
           break;
 
