@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"fmt"
+	"junoplugin/models"
 	"log"
 
 	"github.com/jackc/pgx/v5"
@@ -14,6 +15,25 @@ type DB struct {
 	tx   pgx.Tx
 	ctx  context.Context
 	url  string
+}
+
+type DBInterface interface {
+	BeginTx()
+	CommitTx()
+	RollbackTx()
+	GetVaultRegistry() ([]*models.VaultRegistry, error)
+	InsertBlock(block *models.StarknetBlocks) error
+	GetLastBlock() (*models.StarknetBlocks, error)
+	GetBlock(hash string) (*models.StarknetBlocks, error)
+	GetNextBlock(hash string) (*models.StarknetBlocks, error)
+	GetVaultRegistryByAddress(address string) (models.VaultRegistry, error)
+	GetLastIndexedBlockVault(address string) (uint64, error)
+	StoreEvent(txHash, vaultAddress string, blockNumber uint64, blockHash string, eventName string, eventKeys []string, eventData []string) error
+	InsertVault(vault *models.VaultRegistry) error
+	UpdateVaultRegistry(address string, blockHash string) error
+	StoreDriverEvent(eventType string, blockHash string) error
+	StoreVaultCatchupEvent(vaultAddress string, startBlockHash, endBlockHash string) error
+	Shutdown()
 }
 
 func Init(dbUrl string) (*DB, error) {

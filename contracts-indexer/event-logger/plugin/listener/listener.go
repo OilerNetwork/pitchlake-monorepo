@@ -13,24 +13,31 @@ import (
 )
 
 // Service handles listening for new vault registrations
-type Service struct {
+type ListenerService struct {
 	conn         *pgx.Conn
-	vaultManager *vault.Manager
+	vaultManager vault.VaultManagerInterface
 	channel      chan models.VaultRegistry
 	log          *log.Logger
 	ctx          context.Context
 	cancel       context.CancelFunc
 }
 
+// ListenerServiceInterface defines the interface for listener service operations
+type ListenerServiceInterface interface {
+	Start() error
+	Stop()
+	ListenerNewVault(channel chan<- models.VaultRegistry)
+}
+
 // NewService creates a new listener service
-func NewListenerService(vaultManager *vault.Manager) *Service {
+func NewListenerService(vaultManager vault.VaultManagerInterface) *ListenerService {
 	ctx, cancel := context.WithCancel(context.Background())
 	dbUrl := os.Getenv("DB_URL")
 	conn, err := pgx.Connect(ctx, dbUrl)
 	if err != nil {
 		fmt.Errorf("unable to connect to database: %w", err)
 	}
-	return &Service{
+	return &ListenerService{
 		vaultManager: vaultManager,
 		channel:      make(chan models.VaultRegistry),
 		log:          log.Default(),
@@ -41,7 +48,7 @@ func NewListenerService(vaultManager *vault.Manager) *Service {
 }
 
 // Start starts the listener service
-func (ls *Service) Start() error {
+func (ls *ListenerService) Start() error {
 	ls.log.Println("Starting vault registry listener")
 	if ls.conn == nil {
 		return nil
@@ -53,7 +60,7 @@ func (ls *Service) Start() error {
 }
 
 // listen listens for new vault registrations
-func (ls *Service) listen() {
+func (ls *ListenerService) listen() {
 	ls.log.Println("Starting to listen for vault notifications...")
 
 	// Start the database listener in a goroutine
@@ -78,13 +85,13 @@ func (ls *Service) listen() {
 }
 
 // Stop stops the listener service
-func (ls *Service) Stop() {
+func (ls *ListenerService) Stop() {
 	ls.log.Println("Stopping vault registry listener")
 	ls.cancel() // This will signal the context to cancel
 	close(ls.channel)
 }
 
-func (ls *Service) ListenerNewVault(channel chan<- models.VaultRegistry) {
+func (ls *ListenerService) ListenerNewVault(channel chan<- models.VaultRegistry) {
 	_, err := ls.conn.Exec(context.Background(), "LISTEN vault_insert")
 	if err != nil {
 		log.Printf("Failed to start listening: %v", err)

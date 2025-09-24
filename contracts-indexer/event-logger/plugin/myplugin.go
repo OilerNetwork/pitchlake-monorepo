@@ -15,7 +15,7 @@ import (
 // pitchlakePlugin is the main plugin struct that implements the JunoPlugin interface
 type pitchlakePlugin struct {
 	core     *pluginCore.PluginCore
-	listener *listener.Service
+	listener *listener.ListenerService
 	log      *log.Logger
 }
 

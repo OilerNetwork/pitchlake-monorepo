@@ -18,10 +18,10 @@ import (
 // PluginCore orchestrates all plugin components
 type PluginCore struct {
 	config         *config.Config
-	db             *db.DB
-	network        *network.Network
-	vaultManager   *vault.Manager
-	blockProcessor *block.Processor
+	db             db.DBInterface
+	network        network.NetworkInterface
+	vaultManager   vault.VaultManagerInterface
+	blockProcessor block.ProcessorInterface
 	log            *log.Logger
 	synced         bool
 }
@@ -68,7 +68,6 @@ func NewPluginCore() (*PluginCore, error) {
 		lastBlockDB,
 		cfg.Cursor,
 	)
-
 
 	return &PluginCore{
 		config:         cfg,
@@ -138,11 +137,11 @@ func (pc *PluginCore) RevertBlock(
 }
 
 // GetVaultManager returns the vault manager
-func (pc *PluginCore) GetVaultManager() *vault.Manager {
+func (pc *PluginCore) GetVaultManager() vault.VaultManagerInterface {
 	return pc.vaultManager
 }
 
 // GetDB returns the database instance
-func (pc *PluginCore) GetDB() *db.DB {
+func (pc *PluginCore) GetDB() db.DBInterface {
 	return pc.db
 }

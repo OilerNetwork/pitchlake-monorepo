@@ -11,24 +11,33 @@ import (
 	"github.com/NethermindEth/juno/core"
 	"github.com/NethermindEth/juno/core/felt"
 	junoplugin "github.com/NethermindEth/juno/plugin"
+	"github.com/NethermindEth/starknet.go/rpc"
 )
 
 // Processor handles block processing logic
 type Processor struct {
 	db           *db.DB
 	network      *network.Network
-	vaultManager *vault.Manager
+	vaultManager vault.VaultManagerInterface
 	lastBlockDB  *models.StarknetBlocks
 	cursor       uint64
 	mu           sync.Mutex
 	log          *log.Logger
 }
 
+// ProcessorInterface defines the interface for block processor operations
+type ProcessorInterface interface {
+	ProcessNewBlock(block *core.Block, stateUpdate *core.StateUpdate, newClasses map[felt.Felt]core.Class) error
+	RevertBlock(from, to *junoplugin.BlockAndStateUpdate, reverseStateDiff *core.StateDiff) error
+	GetLastBlock() *models.StarknetBlocks
+	UpdateLastBlock(block *models.StarknetBlocks)
+}
+
 // NewProcessor creates a new block processor
 func NewProcessor(
 	db *db.DB,
 	network *network.Network,
-	vaultManager *vault.Manager,
+	vaultManager vault.VaultManagerInterface,
 	lastBlockDB *models.StarknetBlocks,
 	cursor uint64,
 ) *Processor {
@@ -169,8 +178,20 @@ func (bp *Processor) processBlockEvents(block *core.Block) error {
 	for _, receipt := range block.Receipts {
 		for _, event := range receipt.Events {
 			fromAddress := event.From.String()
+			rpcEvent := rpc.EmittedEvent{
+				Event: rpc.Event{
+					FromAddress: event.From,
+					EventContent: rpc.EventContent{
+						Keys: event.Keys,
+						Data: event.Data,
+					},
+				},
+				BlockHash:       block.Hash,
+				BlockNumber:     block.Number,
+				TransactionHash: receipt.TransactionHash,
+			}
 			if bp.vaultManager.IsVaultAddress(fromAddress) {
-				err := bp.vaultManager.ProcessVaultEvent(receipt.TransactionHash.String(), fromAddress, event, block.Number, *block.Hash)
+				err := bp.vaultManager.ProcessVaultEvent(fromAddress, &rpcEvent)
 				if err != nil {
 					bp.log.Println("Error processing vault event", err)
 					return err

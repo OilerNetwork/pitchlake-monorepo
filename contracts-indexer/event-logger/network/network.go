@@ -17,6 +17,13 @@ type Network struct {
 	ctx      context.Context
 }
 
+// NetworkInterface defines the interface for network operations
+type NetworkInterface interface {
+	GetBlockByHash(hash string) (*rpc.BlockTxHashes, error)
+	GetEvents(fromBlock rpc.BlockID, toBlock rpc.BlockID, address *string) (*rpc.EventChunk, error)
+	GetBlocks(fromBlock uint64, toBlock uint64) ([]*models.StarknetBlocks, error)
+}
+
 func NewNetwork() (*Network, error) {
 	provider, err := rpc.NewProvider(os.Getenv("RPC_URL"))
 	if err != nil {
@@ -33,7 +40,7 @@ func (n *Network) GetBlockByHash(hash string) (*rpc.BlockTxHashes, error) {
 	if err != nil {
 		return nil, err
 	}
-	hashFelt := felt.FromBytes(feltString)
+	hashFelt := felt.FromBytes[felt.Felt](feltString)
 	block, err := n.provider.BlockWithTxHashes(n.ctx, rpc.BlockID{Hash: &hashFelt})
 	if err != nil {
 		return nil, err
@@ -57,7 +64,7 @@ func (n *Network) GetEvents(fromBlock rpc.BlockID, toBlock rpc.BlockID, address 
 	}
 	if address != nil {
 		addressBytes, err = utils.HexStringToFelt(*address)
-		addressFelt = felt.FromBytes(addressBytes)
+		addressFelt = felt.FromBytes[felt.Felt](addressBytes)
 		filter.Address = &addressFelt
 
 	}
