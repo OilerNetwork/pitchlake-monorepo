@@ -10,6 +10,7 @@ import (
 	"pitchlake-backend/server/types"
 
 	"github.com/coder/websocket"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func (router *VaultRouter) subscribeVaultHandler(w http.ResponseWriter, r *http.Request) {
@@ -34,13 +35,14 @@ func (router *VaultRouter) sendJobRequestHandler(w http.ResponseWriter, r *http.
 	}
 }
 
-func NewVaultRouter(serveMux *http.ServeMux, logger *log.Logger, fossilAPI *integrations.FossilAPI) *VaultRouter {
+func NewVaultRouter(serveMux *http.ServeMux, logger *log.Logger, fossilAPI *integrations.FossilAPI, pool *pgxpool.Pool) *VaultRouter {
 	router := &VaultRouter{
 		Subscribers: SubscribersWithLock{
 			List: make(map[string][]*types.SubscriberVault),
 		},
 		log:       logger,
 		fossilAPI: fossilAPI,
+		pool:      *pool,
 	}
 	serveMux.HandleFunc("/subscribeVault", router.subscribeVaultHandler)
 	serveMux.HandleFunc("/sendJobRequest", router.sendJobRequestHandler)

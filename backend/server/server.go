@@ -45,7 +45,7 @@ func NewDBServer(ctx context.Context) *dbServer {
 	)
 
 	homeRouter := home.NewHomeRouter(&dbs.serveMux, &dbs.log)
-	vaultRouter := vault.NewVaultRouter(&dbs.serveMux, &dbs.log, fossilAPI)
+	vaultRouter := vault.NewVaultRouter(&dbs.serveMux, &dbs.log, fossilAPI, dbs.db.Pool)
 	generalRouter := general.NewGeneralRouter(&dbs.serveMux, &dbs.log)
 	go dbs.listener(ctx, vaultRouter.Subscribers.List, homeRouter.Subscribers.List, generalRouter.Subscribers.List)
 	return dbs
