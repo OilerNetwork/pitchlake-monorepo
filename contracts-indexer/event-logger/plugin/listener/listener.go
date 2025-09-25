@@ -23,12 +23,13 @@ type Service struct {
 }
 
 // NewService creates a new listener service
-func NewListenerService(vaultManager *vault.Manager) *Service {
+func NewListenerService(vaultManager *vault.Manager) (*Service, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	dbUrl := os.Getenv("DB_URL")
 	conn, err := pgx.Connect(ctx, dbUrl)
 	if err != nil {
-		fmt.Errorf("unable to connect to database: %w", err)
+		cancel()
+		return nil, fmt.Errorf("unable to connect to database: %w", err)
 	}
 	return &Service{
 		vaultManager: vaultManager,
@@ -37,7 +38,7 @@ func NewListenerService(vaultManager *vault.Manager) *Service {
 		ctx:          ctx,
 		cancel:       cancel,
 		conn:         conn,
-	}
+	}, nil
 }
 
 // Start starts the listener service

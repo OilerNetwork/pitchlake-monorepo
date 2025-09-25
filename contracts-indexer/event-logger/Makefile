@@ -144,20 +144,21 @@ migrate-status:
 # Vault management commands
 add-vault:
 	@echo "Adding vault to registry..."
-	@if [ -z "$(VAULT_ADDRESS)" ] || [ -z "$(DEPLOYED_AT)" ]; then \
-		echo "Usage: make add-vault VAULT_ADDRESS=0x... DEPLOYED_AT=0x..."; \
-		echo "Example: make add-vault VAULT_ADDRESS=0x123... DEPLOYED_AT=0x456..."; \
+	@if [ -z "$(VAULT_ADDRESS)" ] || [ -z "$(DEPLOYED_BLOCK_HASH)" ] || [ -z "$(DEPLOYED_BLOCK_NUMBER)" ]; then \
+		echo "Usage: make add-vault VAULT_ADDRESS=0x... DEPLOYED_BLOCK_HASH=0x... DEPLOYED_BLOCK_NUMBER=1..."; \
+		echo "Example: make add-vault VAULT_ADDRESS=0x123... DEPLOYED_BLOCK_HASH=0x456... DEPLOYED_BLOCK_NUMBER=1..."; \
 		exit 1; \
 	fi
 	@echo "Vault Address: $(VAULT_ADDRESS)"
-	@echo "Deployed At: $(DEPLOYED_AT)"
+	@echo "Deployed Block Hash: $(DEPLOYED_BLOCK_HASH)"
+	@echo "Deployed Block Number: $(DEPLOYED_BLOCK_NUMBER)"
 	@echo "⚠️  This will add the vault to the registry and start indexing from deployment block"
 	@read -p "Are you sure you want to continue? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
-	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "INSERT INTO vault_registry (vault_address, deployed_at, last_block_indexed, last_block_processed) VALUES ('$(VAULT_ADDRESS)', '$(DEPLOYED_AT)', NULL, NULL);" || echo "Failed to add vault. Make sure the container is running."
+	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "INSERT INTO vault_registry (vault_address, deployed_block_hash, deployed_block_number, last_block_indexed, last_block_processed) VALUES ('$(VAULT_ADDRESS)', '$(DEPLOYED_BLOCK_HASH)', '$(DEPLOYED_BLOCK_NUMBER)', NULL, NULL);" || echo "Failed to add vault. Make sure the container is running."
 
 list-vaults:
 	@echo "Listing all vaults in registry..."
-	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "SELECT vault_address, deployed_at, last_block_indexed, last_block_processed FROM vault_registry ORDER BY id;" || echo "Failed to list vaults. Make sure the container is running."
+	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "SELECT vault_address, deployed_block_hash, deployed_block_number, last_block_indexed, last_block_processed FROM vault_registry ORDER BY id;" || echo "Failed to list vaults. Make sure the container is running."
 
 list-events:
 	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "SELECT * from events"

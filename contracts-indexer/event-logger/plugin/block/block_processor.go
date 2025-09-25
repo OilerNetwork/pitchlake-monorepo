@@ -19,7 +19,6 @@ type Processor struct {
 	network      *network.Network
 	vaultManager *vault.Manager
 	lastBlockDB  *models.StarknetBlocks
-	cursor       uint64
 	mu           sync.Mutex
 	log          *log.Logger
 }
@@ -30,16 +29,22 @@ func NewProcessor(
 	network *network.Network,
 	vaultManager *vault.Manager,
 	lastBlockDB *models.StarknetBlocks,
-	cursor uint64,
 ) *Processor {
 	return &Processor{
 		db:           db,
 		network:      network,
 		vaultManager: vaultManager,
 		lastBlockDB:  lastBlockDB,
-		cursor:       cursor,
 		log:          log.Default(),
 	}
+}
+
+func (bp *Processor) SetNetwork(network *network.Network) {
+	bp.network = network
+}
+
+func (bp *Processor) SetVaultManager(vaultManager *vault.Manager) {
+	bp.vaultManager = vaultManager
 }
 
 // ProcessNewBlock processes a new block
@@ -48,9 +53,6 @@ func (bp *Processor) ProcessNewBlock(
 	stateUpdate *core.StateUpdate,
 	newClasses map[felt.Felt]core.Class,
 ) error {
-	if block.Number < bp.cursor {
-		return nil
-	}
 
 	bp.mu.Lock()
 	defer bp.mu.Unlock()

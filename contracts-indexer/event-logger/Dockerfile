@@ -1,10 +1,15 @@
 # Stage 1: Build golang dependencies and binaries
-FROM ubuntu:24.04 AS build
+FROM golang:1.25-bookworm AS build
 
-ARG VM_DEBUG
 ARG RUST_VERSION=1.86.0
-RUN apt-get -qq update && \
-    apt-get -qq install curl build-essential gcc git golang upx-ucl libjemalloc-dev libbz2-dev libjemalloc2 -y
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl gcc make git build-essential \
+    libjemalloc-dev libbz2-dev pkg-config \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install Rust
 RUN curl https://sh.rustup.rs -sSf | bash -s -- -y --default-toolchain ${RUST_VERSION} --profile minimal
 ENV PATH="/root/.cargo/bin:${PATH}"
 
@@ -28,12 +33,13 @@ COPY go.mod ./
 COPY go.sum ./
 COPY go.work ./
 COPY Makefile ./
+COPY starknet.go/ ./starknet.go/
 
 RUN go mod tidy
 RUN make build
 
 # Stage 2: Run Juno with the plugin
-FROM ubuntu:24.04
+FROM debian:bookworm-slim
 
 # Install necessary runtime dependencies
 RUN apt-get -qq update && \

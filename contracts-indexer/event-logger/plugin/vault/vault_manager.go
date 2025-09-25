@@ -20,6 +20,7 @@ type Manager struct {
 	vaultRegistryMap map[string]*models.VaultRegistry
 	udcAddress       string
 	log              *log.Logger
+	unsyncedVaults   map[string]*models.VaultRegistry
 }
 
 // NewManager creates a new vault manager
@@ -30,7 +31,50 @@ func NewManager(db *db.DB, network *network.Network, udcAddress string) *Manager
 		vaultRegistryMap: make(map[string]*models.VaultRegistry),
 		udcAddress:       udcAddress,
 		log:              log.Default(),
+		unsyncedVaults:   make(map[string]*models.VaultRegistry),
 	}
+}
+
+func (vm *Manager) LoadVaultFromRegistry(vault *models.VaultRegistry, latestBlock *models.StarknetBlocks) error {
+	// if vault.DeployedBlockNumber > latestBlock.BlockNumber {
+	// 	continue
+	// }
+	if vault.LastBlockIndexed == nil {
+		err := vm.InitializeVault(vault)
+		if err != nil {
+			// vm.log.Printf("failed to initialize vault skipping %s: %v", vault.Address, err)
+			return err
+		}
+	}
+
+	lastBlockIndexed, err := vm.db.GetBlock(*vault.LastBlockIndexed)
+	if err != nil {
+		return err
+	}
+	if lastBlockIndexed.BlockNumber < latestBlock.BlockNumber-1 {
+		if err := vm.CatchupVault(*vault, latestBlock.BlockNumber); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (vm *Manager) SyncUnsyncedVaults(latestBlock *models.StarknetBlocks) error {
+	for _, vault := range vm.unsyncedVaults {
+		if err := vm.SyncVault(vault, latestBlock); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+func (vm *Manager) SyncVault(vault *models.VaultRegistry, latestBlock *models.StarknetBlocks) error {
+	if err := vm.LoadVaultFromRegistry(vault, latestBlock); err != nil {
+		vm.unsyncedVaults[vault.Address] = vault
+		return err
+	}
+	vm.unsyncedVaults[vault.Address] = nil
+	vm.vaultRegistryMap[vault.Address] = vault
+	return nil
 }
 
 // InitializeVaults initializes existing vaults from the database
@@ -43,70 +87,30 @@ func (vm *Manager) LoadVaultsFromRegistry(latestBlock *models.StarknetBlocks) er
 	// Catchup vaults while loading in mem to avoid reiterating later with SyncVaults call
 	if len(vaultRegistry) > 0 {
 		for _, vault := range vaultRegistry {
-			if vault.LastBlockIndexed == nil {
-				vm.InitializeVault(vault)
+			if vault.DeployedBlockNumber > latestBlock.BlockNumber {
+				vm.unsyncedVaults[vault.Address] = vault
+				continue
 			}
-
-			//Do this before the lastBlock escape
-			vm.vaultRegistryMap[vault.Address] = vault
-
-			//Escape if we don't have the latest block, we shouldn't need this if used only after initialization
-			if latestBlock == nil {
-				return nil
-			}
-
-			lastBlockIndexed, err := vm.db.GetBlock(*vault.LastBlockIndexed)
-			if err != nil {
+			if err := vm.SyncVault(vault, latestBlock); err != nil {
 				return err
-			}
-
-			if lastBlockIndexed == nil || lastBlockIndexed.BlockNumber < latestBlock.BlockNumber-1 {
-				if err := vm.CatchupVault(*vault, latestBlock.BlockNumber); err != nil {
-					return fmt.Errorf("failed to catchup vault %s: %w", vault.Address, err)
-				}
-
 			}
 		}
 	}
-
 	vm.log.Printf("Vault addresses: %v", vm.vaultRegistryMap)
 	vm.log.Printf("Last block: %v", latestBlock)
 
 	return nil
 }
 
-func (vm *Manager) SyncVaults(head *models.StarknetBlocks) error {
-	vaultRegistry := &vm.vaultRegistryMap
-	// if err != nil {
-	// 	return fmt.Errorf("failed to get vault registry: %w", err)
-	// }
-	for _, vault := range *vaultRegistry {
-		if vault.LastBlockIndexed == nil {
-			vm.InitializeVault(vault)
-		}
-		if head == nil {
-			log.Printf("No last block found, starting node to find current block")
-			return nil
-		}
-		if *vault.LastBlockIndexed != head.BlockHash {
-			if err := vm.CatchupVault(*vault, head.BlockNumber); err != nil {
-				return fmt.Errorf("failed to catchup vault %s: %w", vault.Address, err)
-			}
-		}
-	}
-
-	return nil
-}
-
 // InitializeVault initializes a new vault
 func (vm *Manager) InitializeVault(vault *models.VaultRegistry) error {
-	deployBlockHash, err := utils.HexStringToFelt(vault.DeployedAt)
+	deployBlockHash, err := utils.HexStringToFelt(vault.DeployedBlockHash)
 	if err != nil {
 		vm.log.Println("Error getting felt", err)
 		return err
 	}
 
-	hash := felt.FromBytes(deployBlockHash)
+	hash := felt.FromBytes[felt.Felt](deployBlockHash)
 
 	// hash.SetString(vault.DeployedAt)
 	deployBlock := rpc.BlockID{
@@ -198,6 +202,7 @@ func (vm *Manager) CatchupVault(vault models.VaultRegistry, toBlock uint64) erro
 		vm.log.Println("From block is greater than to block, wait to catch up")
 		return nil
 	}
+	vm.log.Printf("Getting events from block %v to block %v", fromBlock, toBlock)
 
 	events, err := vm.network.GetEvents(*fromBlock, rpc.BlockID{Number: &toBlock}, &vault.Address)
 	if err != nil {

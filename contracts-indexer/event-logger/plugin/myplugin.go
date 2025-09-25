@@ -14,7 +14,7 @@ import (
 
 // pitchlakePlugin is the main plugin struct that implements the JunoPlugin interface
 type pitchlakePlugin struct {
-	core     *pluginCore.PluginCore
+	core     *pluginCore.PluginFactory
 	listener *listener.Service
 	log      *log.Logger
 }
@@ -41,10 +41,11 @@ func (p *pitchlakePlugin) Init() error {
 	if err := p.core.Initialize(); err != nil {
 		return err
 	}
-
 	// Start the vault registry listener
-	p.listener = listener.NewListenerService(p.core.GetVaultManager())
-	if err := p.listener.Start(); err != nil {
+	if p.listener, err = listener.NewListenerService(p.core.GetVaultManager()); err != nil {
+		return err
+	}
+	if err = p.listener.Start(); err != nil {
 		return err
 	}
 

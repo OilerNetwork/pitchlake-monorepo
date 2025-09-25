@@ -14,7 +14,8 @@ func (db *DB) GetVaultRegistry() ([]*models.VaultRegistry, error) {
 	query := `
 	SELECT
 		vault_address,
-		deployed_at,
+		deployed_block_hash,
+		deployed_block_number,
 		last_block_indexed,
 		last_block_processed
 	FROM vault_registry`
@@ -29,7 +30,7 @@ func (db *DB) GetVaultRegistry() ([]*models.VaultRegistry, error) {
 
 	for rows.Next() {
 		var vault models.VaultRegistry
-		if err := rows.Scan(&vault.Address, &vault.DeployedAt, &vault.LastBlockIndexed, &vault.LastBlockProcessed); err != nil {
+		if err := rows.Scan(&vault.Address, &vault.DeployedBlockHash, &vault.DeployedBlockNumber, &vault.LastBlockIndexed, &vault.LastBlockProcessed); err != nil {
 			return nil, err
 		}
 		vaultRegistry = append(vaultRegistry, &vault)
@@ -72,7 +73,8 @@ func (db *DB) GetVaultRegistryByAddress(address string) (models.VaultRegistry, e
 	query := `
 	SELECT
 		vault_address,
-		deployed_at,
+		deployed_block_hash,
+		deployed_block_number,
 		last_block_indexed,
 		last_block_processed
 	FROM vault_registry
@@ -80,7 +82,8 @@ func (db *DB) GetVaultRegistryByAddress(address string) (models.VaultRegistry, e
 
 	err := db.Pool.QueryRow(context.Background(), query, address).Scan(
 		&vaultRegistry.Address,
-		&vaultRegistry.DeployedAt,
+		&vaultRegistry.DeployedBlockHash,
+		&vaultRegistry.DeployedBlockNumber,
 		&vaultRegistry.LastBlockIndexed,
 		&vaultRegistry.LastBlockProcessed,
 	)
@@ -176,9 +179,9 @@ func (db *DB) StoreEvent(txHash, vaultAddress string, blockNumber uint64, blockH
 func (db *DB) InsertVault(vault *models.VaultRegistry) error {
 	query := `
 	INSERT INTO vault_registry
-	(vault_address, deployed_at, last_block_indexed, last_block_processed)
+	(vault_address, deployed_block_hash, deployed_block_number, last_block_indexed, last_block_processed)
 	VALUES ($1, $2, $3, $4)`
-	_, err := db.tx.Exec(context.Background(), query, vault.Address, vault.DeployedAt, vault.LastBlockIndexed, vault.LastBlockProcessed)
+	_, err := db.tx.Exec(context.Background(), query, vault.Address, vault.DeployedBlockHash, vault.DeployedBlockNumber, vault.LastBlockIndexed, vault.LastBlockProcessed)
 	return err
 }
 

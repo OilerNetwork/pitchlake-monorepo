@@ -33,7 +33,7 @@ func (n *Network) GetBlockByHash(hash string) (*rpc.BlockTxHashes, error) {
 	if err != nil {
 		return nil, err
 	}
-	hashFelt := felt.FromBytes(feltString)
+	hashFelt := felt.FromBytes[felt.Felt](feltString)
 	block, err := n.provider.BlockWithTxHashes(n.ctx, rpc.BlockID{Hash: &hashFelt})
 	if err != nil {
 		return nil, err
@@ -57,7 +57,8 @@ func (n *Network) GetEvents(fromBlock rpc.BlockID, toBlock rpc.BlockID, address 
 	}
 	if address != nil {
 		addressBytes, err = utils.HexStringToFelt(*address)
-		addressFelt = felt.FromBytes(addressBytes)
+		addressFelt = felt.FromBytes[[4]uint64](addressBytes)
+		fmt.Printf("Address felt: %v", addressFelt)
 		filter.Address = &addressFelt
 
 	}

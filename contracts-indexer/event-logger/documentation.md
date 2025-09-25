@@ -85,7 +85,8 @@ CREATE TABLE "starknet_blocks" (
 CREATE TABLE "vault_registry" (
     "id" SERIAL PRIMARY KEY,
     "vault_address" VARCHAR(66) NOT NULL,
-    "deployed_at" VARCHAR(66) NOT NULL,
+    "deployed_block_hash" VARCHAR(66) NOT NULL,
+    "deployed_block_number" VARCHAR(66) NOT NULL,
     "last_block_indexed" VARCHAR(66),
     "last_block_processed" VARCHAR(66)
 );
@@ -617,11 +618,12 @@ type StarknetBlocks struct {
 
 ```go
 type VaultRegistry struct {
-    ID                 uint    `json:"id"`
-    Address            string  `json:"address"`
-    DeployedAt         string  `json:"deployed_at"`
-    LastBlockIndexed   *string `json:"last_block_indexed"`
-    LastBlockProcessed *string `json:"last_block_processed"`
+    ID                  uint    `json:"id"`
+    Address             string  `json:"address"`
+    DeployedBlockHash   string  `json:"deployed_block_hash"`
+    DeployedBlockNumber string  `json:"deployed_block_number"`
+    LastBlockIndexed    *string `json:"last_block_indexed"`
+    LastBlockProcessed  *string `json:"last_block_processed"`
 }
 ```
 
