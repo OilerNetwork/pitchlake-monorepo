@@ -1,2 +1,3 @@
 .env
 /starknet.go
+myplugin.so
