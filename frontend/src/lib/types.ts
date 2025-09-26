@@ -77,6 +77,16 @@ export const RoundStateLabels: { [key in RoundState]: string } = {
   [RoundState.Settled]: "Settled",
 };
 
+export type FossilRequest = {
+  program_id: string | number | bigint;
+  vault_address: string | number | bigint;
+  params: {
+    twap: { 0: string | number | bigint; 1: string | number | bigint };
+    max_return: { 0: string | number | bigint; 1: string | number | bigint };
+    reserve_price: { 0: string | number | bigint; 1: string | number | bigint };
+  };
+};
+
 export type VaultStateType = {
   address: string;
   vaultType: string;
@@ -136,9 +146,7 @@ export type VaultActionsType = {
   endAuction: () => Promise<void>;
   settleOptionRound: () => Promise<void>;
   demoFossilCallback: (fossilArgs: DemoFossilCallParams) => Promise<boolean>;
-  sendFossilRequest: (
-    fossilRequest: SendFossiLRequestParams,
-  ) => Promise<string>;
+  sendFossilRequest: (fossilRequest: FossilRequest | null) => Promise<string>;
 };
 
 export type SendFossiLRequestParams = {
@@ -306,7 +314,6 @@ export interface TabsProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
 }
-
 
 export interface RawBlockData {
   block_number?: number;
