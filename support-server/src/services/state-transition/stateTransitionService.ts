@@ -42,6 +42,7 @@ export class StateTransitionService {
     }
 
     try {
+      this.logger.info("mining block...");
       this.logger.debug("Mining block on devnet to update timestamp...");
       const ethAddress = await vaultContract.get_eth_address();
       const ethAddressHex = "0x" + BigInt(ethAddress).toString(16);
@@ -63,17 +64,20 @@ export class StateTransitionService {
     // This handles the case where Fossil doesn't mark jobs as completed
     // but we know the round has advanced
     try {
-      const count = await this.db.markLatestPendingJobAsCompleted(vaultAddress, roundId);
-      
+      const count = await this.db.markLatestPendingJobAsCompleted(
+        vaultAddress,
+        roundId,
+      );
+
       if (count > 0) {
         this.logger.info(
-          `Marked latest pending job for vault ${vaultAddress} round ${roundId} as completed`
+          `Marked latest pending job for vault ${vaultAddress} round ${roundId} as completed`,
         );
       }
     } catch (error) {
       this.logger.error(
         `Error marking latest pending job as completed for vault ${vaultAddress} round ${roundId}:`,
-        error
+        error,
       );
     }
   }
@@ -128,9 +132,7 @@ export class StateTransitionService {
     }
   }
 
-  async checkAndTransition(
-    vaultContract: Contract,
-  ): Promise<void> {
+  async checkAndTransition(vaultContract: Contract): Promise<void> {
     try {
       const roundId = await vaultContract.get_current_round_id();
       const roundAddress = await vaultContract.get_round_address(roundId);
@@ -191,7 +193,10 @@ export class StateTransitionService {
 
       // Mark latest pending job for previous round as completed (Fossil doesn't mark them as completed)
       if (Number(roundId) > 0) {
-        await this.markLatestPendingJobAsCompleted(vaultContract.address, Number(roundId) - 1);
+        await this.markLatestPendingJobAsCompleted(
+          vaultContract.address,
+          Number(roundId) - 1,
+        );
       }
 
       // Handle each state with proper error handling
