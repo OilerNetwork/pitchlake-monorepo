@@ -144,7 +144,6 @@ const BidItem: React.FC<{
           onClick={() => {
             setBidToEdit(bid);
             setIsEditOpen(true);
-            console.log("clicked on this bid:", bid);
           }}
         >
           <SquarePen size={20} className="text-[#E2E2E2]" stroke="#F5EBB8" />
