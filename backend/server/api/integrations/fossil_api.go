@@ -6,19 +6,43 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 
 	"pitchlake-backend/models"
 )
 
 type FossilAPI struct {
-	apiKey string
-	apiUrl string
+	apiKey      string
+	apiUrl      string
+	mockService *MockFossilService
+	isDevMode   bool
 }
 
 func NewFossilAPI(apiKey string, apiUrl string) *FossilAPI {
+	// Check if we're in dev mode
+	devMode := os.Getenv("DEV_MODE") == "true"
+
+	// print devmod
+	fmt.Printf("Fossil API - Dev Mode: %v\n", devMode)
+
+	var mockService *MockFossilService
+	var err error
+
+	if devMode {
+		// Initialize mock service for development
+		mockService, err = NewMockFossilService()
+		if err != nil {
+			fmt.Printf("Warning: Failed to initialize mock fossil service: %v\n", err)
+			fmt.Printf("Falling back to regular Fossil API\n")
+			devMode = false
+		}
+	}
+
 	return &FossilAPI{
-		apiKey: apiKey,
-		apiUrl: apiUrl,
+		apiKey:      apiKey,
+		apiUrl:      apiUrl,
+		mockService: mockService,
+		isDevMode:   devMode,
 	}
 }
 
@@ -26,8 +50,24 @@ func (f *FossilAPI) RequestPricingData() error {
 	return nil
 }
 
-// SendFossilRequest sends a request to the Fossil API
+// SendFossilRequest sends a request to the Fossil API or mock service
 func (f *FossilAPI) SendFossilRequest(request models.FossilRequest) (*struct {
+	JobID  string `json:"job_id"`
+	Status string `json:"status"`
+}, error) {
+	// If in dev mode and mock service is available, use mock service
+	if f.isDevMode && f.mockService != nil {
+		fmt.Printf("Using mock fossil service for development\n")
+		return f.mockService.SendMockFossilRequest(request)
+	}
+
+	// Otherwise, use the regular Fossil API
+	fmt.Printf("Using regular Fossil API\n")
+	return f.sendRealFossilRequest(request)
+}
+
+// sendRealFossilRequest sends a request to the real Fossil API
+func (f *FossilAPI) sendRealFossilRequest(request models.FossilRequest) (*struct {
 	JobID  string `json:"job_id"`
 	Status string `json:"status"`
 }, error) {
@@ -36,8 +76,8 @@ func (f *FossilAPI) SendFossilRequest(request models.FossilRequest) (*struct {
 		"program_id":    request.ProgramID,
 		"vault_address": request.VaultAddress,
 		"params": map[string]interface{}{
-			"twap":         request.Params.Twap,
-			"max_return":   request.Params.MaxReturn,
+			"twap":          request.Params.Twap,
+			"max_return":    request.Params.MaxReturn,
 			"reserve_price": request.Params.ReservePrice,
 		},
 	}
@@ -87,6 +127,13 @@ func (f *FossilAPI) SendFossilRequest(request models.FossilRequest) (*struct {
 }
 
 func (f *FossilAPI) GetJobStatus(jobId string) (*string, error) {
+	// If in dev mode and this is a mock job, return completed status
+	if f.isDevMode && f.mockService != nil && len(jobId) > 9 && jobId[:9] == "mock_job_" {
+		status := "completed"
+		return &status, nil
+	}
+
+	// Otherwise, query the real Fossil API
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/job_status/%s", f.apiUrl, jobId), nil)
 	if err != nil {
 		return nil, err
