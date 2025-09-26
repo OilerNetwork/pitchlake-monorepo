@@ -29,7 +29,6 @@ func TestMockFossilService_SendMockFossilRequest_Validation(t *testing.T) {
 	os.Setenv("STARKNET_ACCOUNT_ADDRESS", "0x123")
 	os.Setenv("STARKNET_PRIVATE_KEY", "0x456")
 	os.Setenv("STARKNET_PUBLIC_KEY", "0x789")
-	os.Setenv("PROVING_DELAY", "300")
 
 	// This will fail because we don't have a real RPC connection, but we can test validation
 	service, err := NewMockFossilService()
@@ -41,15 +40,15 @@ func TestMockFossilService_SendMockFossilRequest_Validation(t *testing.T) {
 
 	// Test with invalid vault address
 	invalidRequest := models.FossilRequest{
-		ProgramID:   "0x123",
+		ProgramID:    "0x123",
 		VaultAddress: "invalid_address",
 		Params: struct {
-			Twap        [2]uint64 `json:"twap"`
-			MaxReturn   [2]uint64 `json:"max_return"`
+			Twap         [2]uint64 `json:"twap"`
+			MaxReturn    [2]uint64 `json:"max_return"`
 			ReservePrice [2]uint64 `json:"reserve_price"`
 		}{
-			Twap:        [2]uint64{1640995200, 1640998800},
-			MaxReturn:   [2]uint64{100, 200},
+			Twap:         [2]uint64{1640995200, 1640998800},
+			MaxReturn:    [2]uint64{100, 200},
 			ReservePrice: [2]uint64{300, 400},
 		},
 	}
@@ -69,7 +68,7 @@ func TestFossilAPI_DevMode(t *testing.T) {
 	os.Setenv("STARKNET_PUBLIC_KEY", "0x789")
 
 	api := NewFossilAPI("test_key", "http://test.com")
-	
+
 	// In dev mode, it should have a mock service (even if it fails to initialize)
 	if !api.isDevMode {
 		t.Error("Expected dev mode to be true")

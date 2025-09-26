@@ -76,13 +76,8 @@ func (m *MockFossilService) SendMockFossilRequest(request models.FossilRequest) 
 		return nil, fmt.Errorf("invalid vault address: %s", err)
 	}
 
-	// For now, use a hardcoded proving delay or get it from environment
-	// In a real implementation, you would call the contract to get this value
-	provingDelayStr := os.Getenv("PROVING_DELAY")
-	if provingDelayStr == "" {
-		provingDelayStr = "300" // Default 5 minutes in seconds
-	}
-	
+	provingDelayStr := "30"
+
 	provingDelay, err := strconv.ParseUint(provingDelayStr, 10, 64)
 	if err != nil {
 		return nil, fmt.Errorf("invalid proving delay: %s", err)
@@ -106,9 +101,9 @@ func (m *MockFossilService) SendMockFossilRequest(request models.FossilRequest) 
 
 	timestampFelt := new(felt.Felt).SetUint64(timestamp)
 	jobRequestSerialized := []*felt.Felt{
-		vaultAddress,     // vault address
-		timestampFelt,    // timestamp
-		programIDFelt,    // program id
+		vaultAddress,  // vault address
+		timestampFelt, // timestamp
+		programIDFelt, // program id
 	}
 
 	// Serialize result: [reserve_price_lower, reserve_price_upper, reserve_price, twap_lower, twap_upper, twap, max_return_lower, max_return_upper, max_return]
@@ -134,15 +129,15 @@ func (m *MockFossilService) SendMockFossilRequest(request models.FossilRequest) 
 	}
 
 	resultSerialized := []*felt.Felt{
-		reservePriceLowerFelt,  // reserve price lower bound
-		reservePriceUpperFelt,  // reserve price upper bound
-		reservePriceFelt,       // reserve price
-		twapLowerFelt,          // twap lower bound
-		twapUpperFelt,          // twap upper bound
-		twapFelt,               // twap
-		maxReturnLowerFelt,     // max return lower bound
-		maxReturnUpperFelt,     // max return upper bound
-		maxReturnFelt,          // max return
+		reservePriceLowerFelt, // reserve price lower bound
+		reservePriceUpperFelt, // reserve price upper bound
+		reservePriceFelt,      // reserve price
+		twapLowerFelt,         // twap lower bound
+		twapUpperFelt,         // twap upper bound
+		twapFelt,              // twap
+		maxReturnLowerFelt,    // max return lower bound
+		maxReturnUpperFelt,    // max return upper bound
+		maxReturnFelt,         // max return
 	}
 
 	fmt.Printf("Calling fossil_callback directly on vault contract\n")
@@ -160,10 +155,10 @@ func (m *MockFossilService) SendMockFossilRequest(request models.FossilRequest) 
 	calldata := []*felt.Felt{
 		new(felt.Felt).SetUint64(uint64(len(jobRequestSerialized))), // Length of first array
 	}
-	calldata = append(calldata, jobRequestSerialized...) // First array elements
+	calldata = append(calldata, jobRequestSerialized...)                                 // First array elements
 	calldata = append(calldata, new(felt.Felt).SetUint64(uint64(len(resultSerialized)))) // Length of second array
-	calldata = append(calldata, resultSerialized...) // Second array elements
-	
+	calldata = append(calldata, resultSerialized...)                                     // Second array elements
+
 	response, err := m.account.BuildAndSendInvokeTxn(ctx, []rpc.InvokeFunctionCall{
 		{
 			ContractAddress: vaultAddress,
