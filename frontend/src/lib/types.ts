@@ -93,6 +93,9 @@ export type VaultStateType = {
   now: number | bigint | string;
   deploymentDate: string;
   currentRoundAddress: string;
+  provingDelay: number | bigint | string;
+  jobRequestInitRound1: FossilRequest | null;
+  jobRequestSettleRound: FossilRequest | null;
 };
 
 export type LiquidityProviderStateType = {

@@ -28,7 +28,6 @@ const useVaultStateRPC = ({
     args: [],
     watch: true,
   });
-  console.log("alpha", alpha);
   const { data: strikeLevel } = useReadContract({
     ...contractData,
 
@@ -43,27 +42,40 @@ const useVaultStateRPC = ({
     args: [],
     watch: true,
   });
-  // const { data: l1DataProcessorAddress } = useReadContract({
-  //   ...contractData,
+  const { data: provingDelay } = useReadContract({
+    ...contractData,
 
-  //   functionName: "get_l1_data_processor_address",
-  //   args: [],
-  //   watch: true,
-  // });
+    functionName: "get_proving_delay",
+    args: [],
+    watch: true,
+  });
+  const { data: jobRequestInitRound1 } = useReadContract({
+    ...contractData,
+    functionName: "get_request_to_start_first_round",
+    args: [],
+    watch: true,
+  });
+  const { data: jobRequestSettleRound } = useReadContract({
+    ...contractData,
+    functionName: "get_request_to_settle_round",
+    args: [],
+    watch: true,
+  });
+
   const { data: currentRoundId } = useReadContract({
     ...contractData,
 
     functionName: "get_current_round_id",
     args: [],
     watch: true,
-    blockIdentifier:BlockTag.PENDING
+    blockIdentifier: BlockTag.PENDING,
   });
   const { data: lockedBalance } = useReadContract({
     ...contractData,
     functionName: "get_vault_locked_balance",
     args: [],
     watch: true,
-    blockIdentifier:BlockTag.PENDING
+    blockIdentifier: BlockTag.PENDING,
   });
   const { data: unlockedBalance } = useReadContract({
     ...contractData,
@@ -71,7 +83,7 @@ const useVaultStateRPC = ({
     functionName: "get_vault_unlocked_balance",
     args: [],
     watch: true,
-    blockIdentifier:BlockTag.PENDING
+    blockIdentifier: BlockTag.PENDING,
   });
   const { data: stashedBalance } = useReadContract({
     ...contractData,
@@ -79,7 +91,7 @@ const useVaultStateRPC = ({
     functionName: "get_vault_stashed_balance",
     args: [],
     watch: true,
-    blockIdentifier:BlockTag.PENDING
+    blockIdentifier: BlockTag.PENDING,
   });
   const { data: queuedBps } = useReadContract({
     ...contractData,
@@ -87,7 +99,7 @@ const useVaultStateRPC = ({
     functionName: "get_vault_queued_bps",
     args: [],
     watch: true,
-    blockIdentifier:BlockTag.PENDING
+    blockIdentifier: BlockTag.PENDING,
   });
 
   const { data: round1Address } = useReadContract({
@@ -96,12 +108,12 @@ const useVaultStateRPC = ({
     functionName: "get_round_address",
     args: [1],
     watch: false,
-    blockIdentifier:BlockTag.PENDING
+    blockIdentifier: BlockTag.PENDING,
   });
 
   const { data: deploymentDate } = useReadContract({
     ...contractData,
-    address: round1Address?.toString()as `0x${string}`,
+    address: round1Address?.toString() as `0x${string}`,
 
     abi: optionRoundABI,
     functionName: "get_deployment_date",
@@ -156,6 +168,11 @@ const useVaultStateRPC = ({
       vaultType,
       deploymentDate: deploymentDate ? deploymentDate.toString() : 0,
       currentRoundAddress: usableStringCurrentRoundAddress,
+      provingDelay: provingDelay ? provingDelay.toString() : 0,
+      jobRequestInitRound1: jobRequestInitRound1 ? jobRequestInitRound1 : null,
+      jobRequestSettleRound: jobRequestSettleRound
+        ? jobRequestSettleRound
+        : null,
     } as VaultStateType,
     selectedRoundAddress: usableStringSelectedRoundAddress,
   };
