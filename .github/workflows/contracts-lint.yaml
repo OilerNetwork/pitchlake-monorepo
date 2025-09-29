@@ -1,0 +1,57 @@
+name: Contracts Lint
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+    paths:
+      - 'contracts/**/*.cairo'
+      - 'contracts/Scarb.toml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'contracts/**/*.cairo'
+      - 'contracts/Scarb.toml'
+
+jobs:
+  typos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: crate-ci/typos@master
+        with:
+          files: contracts/
+
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: software-mansion/setup-scarb@v1.5.0
+      - name: Check Cairo formatting
+        run: |
+          cd contracts
+          scarb fmt --check
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: software-mansion/setup-scarb@v1.5.0
+      - name: Run Cairo linter
+        run: |
+          cd contracts
+          scarb lint
+          
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: foundry-rs/setup-snfoundry@v4
+      - uses: software-mansion/setup-scarb@v1.5.0
+      - name: Run Cairo tests
+        run: |
+          cd contracts
+          snforge test
