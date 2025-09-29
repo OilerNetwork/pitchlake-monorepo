@@ -86,6 +86,9 @@ describe("useMockVault", () => {
       now: "0",
       deploymentDate: "1",
       currentRoundAddress: "",
+      provingDelay: "300",
+      jobRequestInitRound1: null,
+      jobRequestSettleRound: null,
     });
 
     expect(result.current.lpState).toEqual({

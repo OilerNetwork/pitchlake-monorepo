@@ -181,6 +181,7 @@ const useMockVault = (
   const sendFossilRequest = async (
     fossilRequest: FossilRequest | null,
   ): Promise<string> => {
+    if (!fossilRequest) return "Not Ok";
     return "Ok";
   };
 

@@ -65,7 +65,7 @@ export async function POST(request: Request): Promise<Response> {
   try {
     const nonce = await account.getNonce();
     const tx = await vaultContract.invoke(
-      "fossil_client_callback",
+      "fossil_callback",
       [args.l1_data, args.timestamp],
       { nonce },
     );
