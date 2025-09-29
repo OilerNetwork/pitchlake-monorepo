@@ -1,10 +1,10 @@
-name: Tests
+name: Contract Unit Tests
 
 on:
   push:
     branches:
       - main
-      - develop
+      - staging
   pull_request:
     branches:
       - "**"
@@ -28,6 +28,7 @@ jobs:
 
       - name: Test the code
         run: |
+          cd contracts
           # Run the test and capture the output
           output=$(scarb test 2>&1) || true
 
