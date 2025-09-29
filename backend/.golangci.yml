@@ -1,0 +1,170 @@
+run:
+  modules-download-mode: readonly
+  timeout: 5m
+
+linters:
+  enable:
+    - bodyclose
+    - copyloopvar
+    - dogsled
+    - dupl
+    - exhaustruct
+    - funlen
+    - gochecknoinits
+    - goconst
+    - gocritic
+    - gocyclo
+    - goprintffuncname
+    - gosec
+    - lll
+    - makezero
+    - misspell
+    - mnd
+    - nakedret
+    - nilerr
+    - noctx
+    - nolintlint
+    - prealloc
+    - tparallel
+    - unconvert
+    - unparam
+    - usestdlibvars
+    - usetesting
+    - whitespace
+    - govet
+    - staticcheck
+    - ineffassign
+    - errcheck
+    - gosimple
+    - typecheck
+
+  settings:
+    dupl:
+      threshold: 150
+    funlen:
+      lines: 150
+      statements: 60
+    goconst:
+      min-len: 3
+      min-occurrences: 4
+    gocritic:
+      disabled-checks:
+        - sloppyReassign
+        - dupImport
+        - ifElseChain
+        - octalLiteral
+        - whyNoLint
+        - unnamedResult
+        - importShadow
+      enabled-tags:
+        - diagnostic
+        - experimental
+        - opinionated
+        - performance
+        - style
+    gocyclo:
+      min-complexity: 20
+    gosec:
+      excludes:
+        - G115
+    govet:
+      enable:
+        - nilness
+      settings:
+        printf:
+          funcs:
+            - (github.com/sirupsen/logrus.Logger).Infof
+            - (github.com/sirupsen/logrus.Logger).Warnf
+            - (github.com/sirupsen/logrus.Logger).Errorf
+            - (github.com/sirupsen/logrus.Logger).Fatalf
+    lll:
+      line-length: 160
+    misspell:
+      locale: US
+    mnd:
+      checks:
+        - argument
+        - case
+        - condition
+        - return
+      ignored-numbers:
+        - "0"
+        - "1"
+        - "2"
+        - "3"
+        - "4"
+        - "5"
+        - "8"
+        - "10"
+        - "16"
+        - "18"
+        - "24"
+        - "32"
+        - "64"
+        - "128"
+        - "256"
+        - "1000"
+        - "10000"
+      ignored-functions:
+        - strings.SplitN
+        - time.Hour
+        - time.Second
+        - time.Minute
+    nolintlint:
+      require-explanation: false
+      require-specific: false
+      allow-unused: false
+    staticcheck:
+      checks:
+        - all
+        - -QF1003
+        - -QF1008
+
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - dupl
+          - exhaustruct
+          - funlen
+          - goconst
+          - gocyclo
+          - gosec
+          - lll
+          - mnd
+        path: _test\.go
+      - linters:
+          - funlen
+          - gocyclo
+          - lll
+        path: cmd/
+      - linters:
+          - dupl
+          - funlen
+          - gocyclo
+          - lll
+        path: integration_test\.go
+      - linters:
+          - lll
+        source: '^//go:generate '
+      - path: (.+)\.go$
+        text: target/
+      - path: (.+)\.go$
+        text: state/
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+
+formatters:
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
