@@ -1,6 +1,7 @@
 package general
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -25,7 +26,7 @@ func TestHealthCheckHandler(t *testing.T) {
 	logger := log.Default()
 	router := &GeneralRouter{log: logger}
 
-	req, err := http.NewRequest(http.MethodGet, "/health", nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/health", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -45,7 +46,7 @@ func TestSubscribeGasDataHandler(t *testing.T) {
 	logger := log.Default()
 	router := &GeneralRouter{log: logger}
 
-	req, err := http.NewRequest(http.MethodGet, "/subscribeGas", nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/subscribeGas", nil)
 	if err != nil {
 		t.Fatal(err)
 	}

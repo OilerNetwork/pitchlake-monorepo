@@ -19,7 +19,3 @@ type HomeRouter struct {
 	pool                    pgxpool.Pool
 }
 
-type subscriberHome struct {
-	msgs      chan []byte
-	closeSlow func()
-}

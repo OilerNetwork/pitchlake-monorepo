@@ -13,7 +13,7 @@ func TestMockFossilService_NewMockFossilService(t *testing.T) {
 	os.Unsetenv("STARKNET_RPC_URL")
 	defer func() {
 		if originalEnv != "" {
-			os.Setenv("STARKNET_RPC_URL", originalEnv)
+			t.Setenv("STARKNET_RPC_URL", originalEnv)
 		}
 	}()
 
@@ -25,10 +25,10 @@ func TestMockFossilService_NewMockFossilService(t *testing.T) {
 
 func TestMockFossilService_SendMockFossilRequest_Validation(t *testing.T) {
 	// Set up minimal environment for testing
-	os.Setenv("STARKNET_RPC_URL", "http://localhost:5050")
-	os.Setenv("STARKNET_ACCOUNT_ADDRESS", "0x123")
-	os.Setenv("STARKNET_PRIVATE_KEY", "0x456")
-	os.Setenv("STARKNET_PUBLIC_KEY", "0x789")
+	t.Setenv("STARKNET_RPC_URL", "http://localhost:5050")
+	t.Setenv("STARKNET_ACCOUNT_ADDRESS", "0x123")
+	t.Setenv("STARKNET_PRIVATE_KEY", "0x456")
+	t.Setenv("STARKNET_PUBLIC_KEY", "0x789")
 
 	// This will fail because we don't have a real RPC connection, but we can test validation
 	service, err := NewMockFossilService()
@@ -61,11 +61,11 @@ func TestMockFossilService_SendMockFossilRequest_Validation(t *testing.T) {
 
 func TestFossilAPI_DevMode(t *testing.T) {
 	// Test that FossilAPI correctly detects dev mode
-	os.Setenv("DEV_MODE", "true")
-	os.Setenv("STARKNET_RPC_URL", "http://localhost:5050")
-	os.Setenv("STARKNET_ACCOUNT_ADDRESS", "0x123")
-	os.Setenv("STARKNET_PRIVATE_KEY", "0x456")
-	os.Setenv("STARKNET_PUBLIC_KEY", "0x789")
+	t.Setenv("DEV_MODE", "true")
+	t.Setenv("STARKNET_RPC_URL", "http://localhost:5050")
+	t.Setenv("STARKNET_ACCOUNT_ADDRESS", "0x123")
+	t.Setenv("STARKNET_PRIVATE_KEY", "0x456")
+	t.Setenv("STARKNET_PUBLIC_KEY", "0x789")
 
 	api := NewFossilAPI("test_key", "http://test.com")
 

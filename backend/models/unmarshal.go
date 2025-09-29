@@ -8,7 +8,7 @@ import (
 
 func (lps *LiquidityProviderState) UnmarshalJSON(data []byte) error {
 	// Auxiliary struct to map JSON keys
-	aux := struct {
+	aux := struct { //nolint:exhaustruct
 		VaultAddress    string `json:"vault_address"`
 		Address         string `json:"address"`
 		UnlockedBalance BigInt `json:"unlocked_balance"`
@@ -34,7 +34,7 @@ func (lps *LiquidityProviderState) UnmarshalJSON(data []byte) error {
 }
 func (vs *VaultState) UnmarshalJSON(data []byte) error {
 	// Auxiliary struct to map JSON keys
-	aux := struct {
+	aux := struct { //nolint:exhaustruct
 		CurrentRound          BigInt `json:"current_round"`
 		CurrentRoundAddress   string `json:"current_round_address"`
 		UnlockedBalance       BigInt `json:"unlocked_balance"`
@@ -80,7 +80,7 @@ func (vs *VaultState) UnmarshalJSON(data []byte) error {
 }
 func (b *Bid) UnmarshalJSON(data []byte) error {
 	// Auxiliary struct to map JSON keys
-	aux := struct {
+	aux := struct { //nolint:exhaustruct
 		BuyerAddress string `json:"address"`
 		RoundAddress string `json:"round_address"`
 		BidID        string `json:"bid_id"`
@@ -107,7 +107,7 @@ func (b *Bid) UnmarshalJSON(data []byte) error {
 
 func (ql *QueuedLiquidity) UnmarshalJSON(data []byte) error {
 	// Auxiliary struct to map JSON keys
-	aux := struct {
+	aux := struct { //nolint:exhaustruct
 		Address         string `json:"address"`
 		RoundAddress    string `json:"round_address"`
 		Bps             BigInt `json:"bps"`
@@ -129,7 +129,7 @@ func (ql *QueuedLiquidity) UnmarshalJSON(data []byte) error {
 }
 func (ob *OptionBuyer) UnmarshalJSON(data []byte) error {
 	// Auxiliary struct to map JSON keys
-	aux := struct {
+	aux := struct { //nolint:exhaustruct
 		Address           string `json:"address"`
 		RoundAddress      string `json:"round_address"`
 		MintableOptions   BigInt `json:"mintable_options"`
@@ -158,7 +158,7 @@ func (ob *OptionBuyer) UnmarshalJSON(data []byte) error {
 
 func (or *OptionRound) UnmarshalJSON(data []byte) error {
 	// Auxiliary struct to map JSON keys
-	aux := struct {
+	aux := struct { //nolint:exhaustruct
 		VaultAddress       string `json:"vault_address"`
 		Address            string `json:"address"`
 		RoundID            BigInt `json:"round_id"`
@@ -215,7 +215,7 @@ func (or *OptionRound) UnmarshalJSON(data []byte) error {
 
 func (b *Block) UnmarshalJSON(data []byte) error {
 	// Auxiliary struct to map JSON keys with numeric types
-	aux := struct {
+	aux := struct { //nolint:exhaustruct
 		BlockNumber   uint64      `json:"block_number"`
 		Timestamp     uint64      `json:"timestamp"`
 		BaseFee       json.Number `json:"basefee"`
@@ -246,7 +246,7 @@ func (b *Block) UnmarshalJSON(data []byte) error {
 
 func (t *TwapState) UnmarshalJSON(data []byte) error {
 	// Auxiliary struct to map JSON keys
-	aux := struct {
+	aux := struct { //nolint:exhaustruct
 		WindowType         TwapWindowType `json:"window_type"`
 		WeightedSum        string         `json:"weighted_sum"`
 		TotalSeconds       BigInt         `json:"total_seconds"`

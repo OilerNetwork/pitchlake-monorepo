@@ -157,7 +157,7 @@ func (dbs *dbServer) listener(ctx context.Context, sv map[string][]*types.Subscr
 				case 960:
 					sub.Msgs <- []byte(jsonResponseTwelveMin)
 				case 13200:
-					sub.Msgs <- []byte(jsonResponseThreeHour)
+					sub.Msgs <- jsonResponseThreeHour
 				case 2631600:
 					sub.Msgs <- []byte(jsonResponseThirtyDay)
 				}
@@ -223,7 +223,7 @@ func (dbs *dbServer) listener(ctx context.Context, sv map[string][]*types.Subscr
 				case 960:
 					sub.Msgs <- []byte(jsonResponseTwelveMin)
 				case 13200:
-					sub.Msgs <- []byte(jsonResponseThreeHour)
+					sub.Msgs <- jsonResponseThreeHour
 				case 2631600:
 					sub.Msgs <- []byte(jsonResponseThirtyDay)
 				}

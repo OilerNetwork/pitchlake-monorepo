@@ -20,10 +20,3 @@ type GeneralRouter struct {
 	log                     *log.Logger
 	pool                    pgxpool.Pool
 }
-type subscriberGas struct {
-	StartTimestamp uint64
-	EndTimestamp   uint64
-	RoundDuration  uint64
-	msgs           chan []byte
-	closeSlow      func()
-}

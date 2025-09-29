@@ -15,12 +15,11 @@ import (
 // dbServer enables broadcasting to a set of subscribers.
 
 type dbServer struct {
-	subscriberMessageBuffer int
-	db                      *db.DB
-	log                     log.Logger
-	serveMux                http.ServeMux
-	ctx                     context.Context
-	cancel                  context.CancelFunc
+	db       *db.DB
+	log      log.Logger
+	serveMux http.ServeMux
+	ctx      context.Context
+	cancel   context.CancelFunc
 }
 
 // newdbServer constructs a dbServer with the defaults.
@@ -31,7 +30,7 @@ func NewDBServer(ctx context.Context) *dbServer {
 	if err != nil {
 		log.Fatal("Failed to load db", err)
 	}
-	dbs := &dbServer{
+	dbs := &dbServer{ //nolint:exhaustruct
 		log:    *log.Default(),
 		db:     db,
 		ctx:    ctx,

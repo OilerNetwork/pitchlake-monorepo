@@ -35,7 +35,7 @@ func run() error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 	dbs := server.NewDBServer(ctx)
-	s := &http.Server{
+	s := &http.Server{ //nolint:exhaustruct
 		Addr:         ":8080",
 		Handler:      dbs,
 		ReadTimeout:  time.Second * 10,

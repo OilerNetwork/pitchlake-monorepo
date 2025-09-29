@@ -23,7 +23,7 @@ func (router *HomeRouter) SubscribeHome(ctx context.Context, w http.ResponseWrit
 
 	// allowedOrigin := os.Getenv("FRONTEND_URL")
 	// Accept the WebSocket connection
-	c2, err := websocket.Accept(w, r, &websocket.AcceptOptions{
+	c2, err := websocket.Accept(w, r, &websocket.AcceptOptions{ //nolint:exhaustruct
 		InsecureSkipVerify: true,
 	})
 	if err != nil {
@@ -58,7 +58,11 @@ func (router *HomeRouter) SubscribeHome(ctx context.Context, w http.ResponseWrit
 	}
 	c = c2
 	mu.Unlock()
-	defer c.CloseNow()
+	defer func() {
+		if err := c.CloseNow(); err != nil {
+			log.Printf("Error closing websocket: %v", err)
+		}
+	}()
 
 	vaultRepo := repositories.NewVaultRepository(&router.pool)
 	vaultAddresses, err := vaultRepo.GetVaultAddresses(ctx)
@@ -76,7 +80,9 @@ func (router *HomeRouter) SubscribeHome(ctx context.Context, w http.ResponseWrit
 		return err
 	}
 
-	utils.WriteTimeout(ctx, time.Second*5, c, jsonPayload)
+	if err := utils.WriteTimeout(ctx, time.Second*5, c, jsonPayload); err != nil {
+		log.Printf("Error writing timeout: %v", err)
+	}
 
 	for {
 		select {

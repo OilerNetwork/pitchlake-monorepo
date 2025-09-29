@@ -36,8 +36,8 @@ func (router *VaultRouter) sendJobRequestHandler(w http.ResponseWriter, r *http.
 }
 
 func NewVaultRouter(serveMux *http.ServeMux, logger *log.Logger, fossilAPI *integrations.FossilAPI, pool *pgxpool.Pool) *VaultRouter {
-	router := &VaultRouter{
-		Subscribers: SubscribersWithLock{
+	router := &VaultRouter{ //nolint:exhaustruct
+		Subscribers: SubscribersWithLock{ //nolint:exhaustruct
 			List: make(map[string][]*types.SubscriberVault),
 		},
 		log:       logger,

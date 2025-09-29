@@ -38,7 +38,7 @@ func (b *BigInt) Scan(value interface{}) error {
 }
 
 func (b *BigInt) scanString(s string) error {
-	s = strings.TrimSpace(s)
+	_ = strings.TrimSpace(s) // Trim whitespace but don't use the result
 	return b.validateUint256()
 }
 

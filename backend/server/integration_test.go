@@ -63,7 +63,7 @@ func testGasValidation(t *testing.T) {
 
 			// Test WebSocket connection
 			url := "ws" + server.URL[4:] + "/subscribeGas"
-			conn, _, err := websocket.Dial(context.Background(), url, nil)
+			conn, _, err := websocket.Dial(context.Background(), url, nil) //nolint:bodyclose
 			if err != nil {
 				t.Skipf("Skipping test due to WebSocket connection error: %v", err)
 				return
@@ -140,7 +140,7 @@ func testVaultValidation(t *testing.T) {
 
 			// Test WebSocket connection
 			url := "ws" + server.URL[4:] + "/subscribeVault"
-			conn, _, err := websocket.Dial(context.Background(), url, nil)
+			conn, _, err := websocket.Dial(context.Background(), url, nil) //nolint:bodyclose
 			if err != nil {
 				t.Skipf("Skipping test due to WebSocket connection error: %v", err)
 				return

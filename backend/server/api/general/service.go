@@ -23,7 +23,7 @@ func (router *GeneralRouter) subscribeGasData(ctx context.Context, w http.Respon
 
 	log.Printf("Subscribing to gas data")
 
-	c2, err := websocket.Accept(w, r, &websocket.AcceptOptions{
+	c2, err := websocket.Accept(w, r, &websocket.AcceptOptions{ //nolint:exhaustruct
 		InsecureSkipVerify: true,
 	})
 	if err != nil {
@@ -62,7 +62,11 @@ func (router *GeneralRouter) subscribeGasData(ctx context.Context, w http.Respon
 	c = c2
 	mu.Unlock()
 
-	defer c.CloseNow()
+	defer func() {
+		if err := c.CloseNow(); err != nil {
+			log.Printf("Error closing websocket: %v", err)
+		}
+	}()
 
 	// Create error channel to handle goroutine errors
 	errChan := make(chan error, 1)
@@ -98,7 +102,9 @@ func (router *GeneralRouter) subscribeGasData(ctx context.Context, w http.Respon
 						"details": err.Error(),
 					}
 					errorJson, _ := json.Marshal(errorResponse)
-					c.Write(ctx, websocket.MessageText, errorJson)
+					if err := c.Write(ctx, websocket.MessageText, errorJson); err != nil {
+						log.Printf("Error writing to websocket: %v", err)
+					}
 					errChan <- err
 					return
 				}
@@ -156,7 +162,7 @@ func (router *GeneralRouter) subscribeGasData(ctx context.Context, w http.Respon
 					return
 				}
 				select {
-				case s.Msgs <- []byte(jsonPayload):
+				case s.Msgs <- jsonPayload:
 				case <-readerCtx.Done():
 					return
 				}

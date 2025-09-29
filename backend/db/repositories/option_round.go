@@ -40,7 +40,7 @@ func (r *OptionRepository) GetOptionRoundsByVaultAddress(ctx context.Context, va
 	defer rows.Close()
 
 	for rows.Next() {
-		optionRound := &models.OptionRound{}
+		optionRound := &models.OptionRound{} //nolint:exhaustruct
 		err := rows.Scan(
 			&optionRound.Address,
 			&optionRound.VaultAddress,

@@ -30,7 +30,7 @@ func (router *VaultRouter) subscribeVault(ctx context.Context, w http.ResponseWr
 	// Extract address from the request and add here
 
 	// allowedOrigin := os.Getenv("FRONTEND_URL")
-	c2, err := websocket.Accept(w, r, &websocket.AcceptOptions{
+	c2, err := websocket.Accept(w, r, &websocket.AcceptOptions{ //nolint:exhaustruct
 		InsecureSkipVerify: true,
 	})
 	if err != nil {
@@ -59,7 +59,9 @@ func (router *VaultRouter) subscribeVault(ctx context.Context, w http.ResponseWr
 			"details": err.Error(),
 		}
 		errorJson, _ := json.Marshal(errorResponse)
-		c2.Write(ctx, websocket.MessageText, errorJson)
+		if err := c2.Write(ctx, websocket.MessageText, errorJson); err != nil {
+			log.Printf("Error writing to websocket: %v", err)
+		}
 		return err
 	}
 
@@ -89,7 +91,11 @@ func (router *VaultRouter) subscribeVault(ctx context.Context, w http.ResponseWr
 	}
 	c = c2
 	mu.Unlock()
-	defer c.CloseNow()
+	defer func() {
+		if err := c.CloseNow(); err != nil {
+			log.Printf("Error closing websocket: %v", err)
+		}
+	}()
 
 	// Send initial payload here
 	var payload InitialPayloadVault
@@ -139,7 +145,9 @@ func (router *VaultRouter) subscribeVault(ctx context.Context, w http.ResponseWr
 	if err != nil {
 		return err
 	}
-	utils.WriteTimeout(ctx, time.Second*5, c, jsonPayload)
+	if err := utils.WriteTimeout(ctx, time.Second*5, c, jsonPayload); err != nil {
+		log.Printf("Error writing timeout: %v", err)
+	}
 	go func() {
 		for {
 			var request types.SubscriberVaultRequest
@@ -190,7 +198,7 @@ func (router *VaultRouter) subscribeVault(ctx context.Context, w http.ResponseWr
 			if err != nil {
 				log.Printf("Incorrect response generated: %v", err)
 			}
-			s.Msgs <- []byte(jsonPayload)
+			s.Msgs <- jsonPayload
 			log.Printf("Client Info %v", s)
 			// Handle the received message here
 		}
@@ -250,7 +258,7 @@ func (router *VaultRouter) deleteSubscriberVault(s *types.SubscriberVault) {
 func (router *VaultRouter) sendJobRequest(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return nil
+		return fmt.Errorf("method not allowed: %s", r.Method)
 	}
 
 	var req struct {
@@ -317,7 +325,9 @@ func (router *VaultRouter) sendJobRequest(ctx context.Context, w http.ResponseWr
 					Message: "Job request is already pending",
 				}
 				w.Header().Set("Content-Type", "application/json")
-				json.NewEncoder(w).Encode(response)
+				if err := json.NewEncoder(w).Encode(response); err != nil {
+					log.Printf("Error encoding response: %v", err)
+				}
 				return nil
 			}
 		}
@@ -330,7 +340,9 @@ func (router *VaultRouter) sendJobRequest(ctx context.Context, w http.ResponseWr
 				Message: "Job request is already completed",
 			}
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(response)
+			if err := json.NewEncoder(w).Encode(response); err != nil {
+				log.Printf("Error encoding response: %v", err)
+			}
 			return nil
 		}
 
@@ -358,7 +370,9 @@ func (router *VaultRouter) sendJobRequest(ctx context.Context, w http.ResponseWr
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		log.Printf("Error encoding response: %v", err)
+	}
 	return nil
 }
 

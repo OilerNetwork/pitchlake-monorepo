@@ -110,10 +110,8 @@ func TestValidateSubscriptionMessage(t *testing.T) {
 				if err.Error() != tt.errMsg {
 					t.Errorf("ValidateSubscriptionMessage() error = %v, want %v", err.Error(), tt.errMsg)
 				}
-			} else {
-				if err != nil {
-					t.Errorf("ValidateSubscriptionMessage() unexpected error = %v", err)
-				}
+			} else if err != nil {
+				t.Errorf("ValidateSubscriptionMessage() unexpected error = %v", err)
 			}
 		})
 	}
@@ -204,10 +202,8 @@ func TestValidateGasRequest(t *testing.T) {
 				if err.Error() != tt.errMsg {
 					t.Errorf("ValidateGasRequest() error = %v, want %v", err.Error(), tt.errMsg)
 				}
-			} else {
-				if err != nil {
-					t.Errorf("ValidateGasRequest() unexpected error = %v", err)
-				}
+			} else if err != nil {
+				t.Errorf("ValidateGasRequest() unexpected error = %v", err)
 			}
 		})
 	}
@@ -284,10 +280,8 @@ func TestValidateVaultRequest(t *testing.T) {
 				if err.Error() != tt.errMsg {
 					t.Errorf("ValidateVaultRequest() error = %v, want %v", err.Error(), tt.errMsg)
 				}
-			} else {
-				if err != nil {
-					t.Errorf("ValidateVaultRequest() unexpected error = %v", err)
-				}
+			} else if err != nil {
+				t.Errorf("ValidateVaultRequest() unexpected error = %v", err)
 			}
 		})
 	}

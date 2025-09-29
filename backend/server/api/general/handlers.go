@@ -28,12 +28,14 @@ func (router *GeneralRouter) subscribeGasDataHandler(w http.ResponseWriter, r *h
 
 func (router *GeneralRouter) healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("OK"))
+	if _, err := w.Write([]byte("OK")); err != nil {
+		log.Printf("Error writing response: %v", err)
+	}
 }
 
 func NewGeneralRouter(serveMux *http.ServeMux, logger *log.Logger) *GeneralRouter {
-	router := &GeneralRouter{
-		Subscribers: SubscribersWithLock{
+	router := &GeneralRouter{ //nolint:exhaustruct
+		Subscribers: SubscribersWithLock{ //nolint:exhaustruct
 			List: make(map[*types.SubscriberGas]struct{}),
 		},
 		log: logger,

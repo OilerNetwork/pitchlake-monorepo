@@ -28,8 +28,8 @@ func (router *HomeRouter) subscribeHomeHandler(w http.ResponseWriter, r *http.Re
 }
 
 func NewHomeRouter(serveMux *http.ServeMux, logger *log.Logger) *HomeRouter {
-	router := &HomeRouter{
-		Subscribers: SubscribersWithLock{
+	router := &HomeRouter{ //nolint:exhaustruct
+		Subscribers: SubscribersWithLock{ //nolint:exhaustruct
 			List: make(map[*types.SubscriberHome]struct{}),
 		},
 		log: logger,
