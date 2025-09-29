@@ -23,6 +23,7 @@ jobs:
       - uses: crate-ci/typos@master
         with:
           files: contracts/
+          extra-args: --config contracts/_typos.toml
 
   format:
     runs-on: ubuntu-latest
@@ -42,7 +43,7 @@ jobs:
       - name: Run Cairo linter
         run: |
           cd contracts
-          scarb lint
+          scarb lint --test
           
 
   test:
