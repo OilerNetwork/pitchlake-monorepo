@@ -154,12 +154,12 @@ func (dbs *dbServer) listener(ctx context.Context, sv map[string][]*types.Subscr
 			for sub := range sg {
 				log.Print("Sending payload")
 				switch sub.RoundDuration {
-				case 960:
 					sub.Msgs <- []byte(jsonResponseTwelveMin)
-				case 13200:
+				case constants.RoundDuration16Minutes:
+				case constants.RoundDuration3Hours:
 					sub.Msgs <- jsonResponseThreeHour
-				case 2631600:
 					sub.Msgs <- []byte(jsonResponseThirtyDay)
+				case constants.RoundDuration30Days:
 				}
 			}
 		case "unconfirmed_insert":
@@ -220,12 +220,12 @@ func (dbs *dbServer) listener(ctx context.Context, sv map[string][]*types.Subscr
 			}
 			for sub := range sg {
 				switch sub.RoundDuration {
-				case 960:
 					sub.Msgs <- []byte(jsonResponseTwelveMin)
-				case 13200:
+				case constants.RoundDuration16Minutes:
+				case constants.RoundDuration3Hours:
 					sub.Msgs <- jsonResponseThreeHour
-				case 2631600:
 					sub.Msgs <- []byte(jsonResponseThirtyDay)
+				case constants.RoundDuration30Days:
 				}
 			}
 		case "bids_update":
