@@ -43,11 +43,25 @@ pub impl BidPartialOrdTrait of PartialOrd<Bid> {
     }
 
     fn le(lhs: Bid, rhs: Bid) -> bool {
-        lhs <= rhs
+        if lhs.price < rhs.price {
+            true
+        } else if lhs.price > rhs.price {
+            false
+        } else {
+            assert(lhs.tree_nonce != rhs.tree_nonce, Errors::BidsShouldNotHaveSameTreeNonce);
+            lhs.tree_nonce >= rhs.tree_nonce
+        }
     }
 
     fn ge(lhs: Bid, rhs: Bid) -> bool {
-        lhs >= rhs
+        if lhs.price > rhs.price {
+            true
+        } else if lhs.price < rhs.price {
+            false
+        } else {
+            assert(lhs.tree_nonce != rhs.tree_nonce, Errors::BidsShouldNotHaveSameTreeNonce);
+            lhs.tree_nonce <= rhs.tree_nonce
+        }
     }
 }
 // Allows Bids to be printed using println!
