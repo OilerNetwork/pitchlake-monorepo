@@ -39,6 +39,16 @@ const defaultVaultState = {
   l1DataProcessorAddress: "0x789",
   alpha: "3333",
   strikeLevel: "0",
+  provingDelay: "300",
+  jobRequestSettleRound: {
+    program_id: "0x123456789",
+    vault_address: "0x123",
+    params: {
+      twap: { 0: "1000", 1: "2000" },
+      max_return: { 0: "500", 1: "1000" },
+      reserve_price: { 0: "1500", 1: "2500" },
+    },
+  },
 };
 
 const defaultVaultActions = {
@@ -121,7 +131,12 @@ const renderDemoStateTransition = ({
   // Mock useProgressEstimates
   jest
     .spyOn(useProgressEstimatesModule, "useProgressEstimates")
-    .mockReturnValue(progressEstimates);
+    .mockReturnValue({
+      cronEstimate: progressEstimates.txnEstimate,
+      fossilEstimate: progressEstimates.fossilEstimate,
+      errorEstimate: progressEstimates.errorEstimate,
+      totalEstimate: progressEstimates.txnEstimate + progressEstimates.fossilEstimate + progressEstimates.errorEstimate,
+    });
 
   render(
     <QueryClientProvider client={queryClient}>
@@ -361,12 +376,13 @@ describe("DemoStateTransition", () => {
       await act(() => onConfirm());
 
       expect(defaultVaultActions.sendFossilRequest).toHaveBeenCalledWith({
-        targetTimestamp: 2000,
-        vaultAddress: "0x123",
-        clientAddress: "0x789",
-        roundDuration: 1000,
-        alpha: 3333,
-        k: 0,
+        program_id: expect.any(String),
+        vault_address: expect.any(String),
+        params: {
+          twap: expect.any(Object),
+          max_return: expect.any(Object),
+          reserve_price: expect.any(Object),
+        },
       });
     });
   });
