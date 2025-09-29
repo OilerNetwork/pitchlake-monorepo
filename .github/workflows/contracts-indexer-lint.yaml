@@ -1,0 +1,93 @@
+name: Contracts Indexer Lint
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+    paths:
+      - 'contracts-indexer/**'
+  pull_request:
+    branches:
+      - main
+      - staging
+    paths:
+      - 'contracts-indexer/**'
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: crate-ci/typos@master
+        with:
+          files: contracts-indexer/
+          extra-args: --file-extensions go
+
+  event-processor-lint:
+    name: event-processor lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: contracts-indexer/event-processor/go.mod
+          cache: true
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          working-directory: contracts-indexer/event-processor
+          version: latest
+          args: --timeout=5m
+
+  event-processor-test:
+    name: event-processor test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: contracts-indexer/event-processor/go.mod
+          cache: true
+      - name: Run tests
+        run: |
+          cd contracts-indexer/event-processor
+          go test ./...
+
+  event-logger-lint:
+    name: event-logger lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: contracts-indexer/event-logger/go.mod
+          cache: true
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          working-directory: contracts-indexer/event-logger
+          version: latest
+          args: --timeout=5m
+
+  event-logger-test:
+    name: event-logger test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: contracts-indexer/event-logger/go.mod
+          cache: true
+      - name: Run tests
+        run: |
+          cd contracts-indexer/event-logger
+          go test ./...
