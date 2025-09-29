@@ -14,7 +14,6 @@ import {
   MintOptionsArgs,
   ExerciseOptionsArgs,
   SendFossiLRequestParams,
-  FossilRequest,
 } from "@/lib/types";
 import { useState } from "react";
 import useMockOptionRounds from "./useMockOptionRounds";
@@ -178,12 +177,6 @@ const useMockVault = (
     return true;
   };
 
-  const sendFossilRequest = async (
-    fossilRequest: FossilRequest | null,
-  ): Promise<string> => {
-    if (!fossilRequest) return "Not Ok";
-    return "Ok";
-  };
 
   const placeBid = async (placeBidArgs: PlaceBidArgs): Promise<string> => {
     setBuyerStates((prevState) => {
@@ -255,7 +248,6 @@ const useMockVault = (
     endAuction,
     settleOptionRound,
     demoFossilCallback,
-    sendFossilRequest,
     placeBid,
     updateBid,
     mintOptions,

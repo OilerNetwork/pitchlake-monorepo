@@ -14,7 +14,6 @@ import {
   MintOptionsArgs,
   ExerciseOptionsArgs,
   SendFossiLRequestParams,
-  FossilRequest,
 } from "@/lib/types";
 import { useMemo, useState } from "react";
 import useMockOptionRounds from "./useMockOptionRounds";
@@ -230,11 +229,6 @@ const useMockVault = ({ address }: { address?: string }) => {
     return true;
   };
 
-  const sendFossilRequest = async (
-    fossilRequest: FossilRequest | null,
-  ): Promise<string> => {
-    return "";
-  };
 
   const vaultActions: VaultActionsType = {
     // User actions
@@ -251,7 +245,6 @@ const useMockVault = ({ address }: { address?: string }) => {
     mintOptions,
     exerciseOptions,
     demoFossilCallback,
-    sendFossilRequest,
   };
 
   const selectedRoundAddress = useMemo(() => {
