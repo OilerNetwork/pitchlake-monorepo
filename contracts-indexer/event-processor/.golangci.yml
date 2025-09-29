@@ -1,0 +1,168 @@
+run:
+  timeout: 5m
+  modules-download-mode: readonly
+
+linters-settings:
+  exhaustruct:
+    struct-patterns:
+      - ".*"
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - experimental
+      - opinionated
+      - performance
+      - style
+  funlen:
+    lines: 60
+    statements: 40
+  gocyclo:
+    min-complexity: 30
+  lll:
+    line-length: 120
+  mnd:
+    settings:
+      ignore-numbers: "0,1,2,3,4,5,6,7,8,9,10,100,1000,1024,2048,4096,8192,16384,32768,65536"
+      ignore-functions: "strings.Split,strings.SplitN,strings.SplitAfter,strings.SplitAfterN"
+      ignore-files: ".*_test.go"
+  noctx:
+    enabled: true
+  unconvert:
+    enabled: true
+  unused:
+    enabled: true
+  ineffassign:
+    enabled: true
+  errcheck:
+    enabled: true
+  gosec:
+    enabled: true
+  govet:
+    enabled: true
+  staticcheck:
+    enabled: true
+  gosimple:
+    enabled: true
+  misspell:
+    enabled: true
+  depguard:
+    enabled: false
+  revive:
+    enabled: true
+    rules:
+      - name: exported
+      - name: package-comments
+      - name: var-naming
+      - name: var-declaration
+      - name: package-comments
+      - name: range
+      - name: time-naming
+      - name: var-naming
+      - name: if-return
+      - name: redundant-imports
+      - name: unused-parameter
+      - name: unused-receiver
+      - name: unhandled-error
+      - name: error-return
+      - name: error-naming
+      - name: error-strings
+      - name: receiver-naming
+      - name: function-result-limit
+      - name: cyclomatic
+      - name: cognitive-complexity
+      - name: function-length
+      - name: max-public-structs
+      - name: max-open-files
+      - name: min-len
+      - name: max-len
+      - name: max-lines
+      - name: max-nesting
+      - name: early-return
+      - name: unnecessary-stmt
+      - name: unreachable-code
+      - name: redefines-builtin-id
+      - name: unused-import
+      - name: blank-imports
+      - name: dot-imports
+      - name: package-comments
+      - name: comment-spacing
+      - name: comment-length
+      - name: if-return
+      - name: redundant-imports
+      - name: unused-parameter
+      - name: unused-receiver
+      - name: unhandled-error
+      - name: error-return
+      - name: error-naming
+      - name: error-strings
+      - name: receiver-naming
+      - name: function-result-limit
+      - name: cyclomatic
+      - name: cognitive-complexity
+      - name: function-length
+      - name: max-public-structs
+      - name: max-open-files
+      - name: min-len
+      - name: max-len
+      - name: max-lines
+      - name: max-nesting
+      - name: early-return
+      - name: unnecessary-stmt
+      - name: unreachable-code
+      - name: redefines-builtin-id
+      - name: unused-import
+      - name: blank-imports
+      - name: dot-imports
+      - name: package-comments
+      - name: comment-spacing
+      - name: comment-length
+
+linters:
+  enable:
+    - bodyclose
+    - deadcode
+    - dogsled
+    - dupl
+    - errcheck
+    - exportloopref
+    - exhaustive
+    - exhaustruct
+    - funlen
+    - gochecknoinits
+    - goconst
+    - gocritic
+    - gocyclo
+    - gofmt
+    - goimports
+    - gomnd
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - lll
+    - misspell
+    - nakedret
+    - noctx
+    - nolintlint
+    - revive
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - varcheck
+    - whitespace
+
+  disable:
+    - gochecknoglobals
+    - gocognit
+    - godot
+    - godox
+    - goerr113
+    - gofumpt
+    - gomodguard
+    - interfacer
+    - maligned
