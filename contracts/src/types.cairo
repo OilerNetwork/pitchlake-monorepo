@@ -20,7 +20,6 @@ pub struct Bid {
 // ranked higher Meaning if two bids have the same price, the one that was placed first is ranked
 // higher than the later one
 pub impl BidPartialOrdTrait of PartialOrd<Bid> {
-    /// <
     fn lt(lhs: Bid, rhs: Bid) -> bool {
         if lhs.price < rhs.price {
             true
@@ -32,7 +31,6 @@ pub impl BidPartialOrdTrait of PartialOrd<Bid> {
         }
     }
 
-    /// >
     fn gt(lhs: Bid, rhs: Bid) -> bool {
         if lhs.price > rhs.price {
             true
@@ -44,15 +42,12 @@ pub impl BidPartialOrdTrait of PartialOrd<Bid> {
         }
     }
 
-    /// <=
     fn le(lhs: Bid, rhs: Bid) -> bool {
-        (lhs < rhs) || (lhs == rhs)
+        lhs <= rhs
     }
 
-
-    /// >=
     fn ge(lhs: Bid, rhs: Bid) -> bool {
-        (lhs > rhs) || (lhs == rhs)
+        lhs >= rhs
     }
 }
 // Allows Bids to be printed using println!

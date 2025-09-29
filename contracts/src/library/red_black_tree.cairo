@@ -394,10 +394,8 @@ pub mod RBTreeComponent {
             }
 
             // Check Red-Black properties
-            if self.is_red(node) {
-                if self.is_red(node_data.left) || self.is_red(node_data.right) {
-                    return (false, 0); // Red node cannot have red children
-                }
+            if self.is_red(node) && (self.is_red(node_data.left) || self.is_red(node_data.right)) {
+                return (false, 0); // Red node cannot have red children
             }
 
             if left_black_height != right_black_height {
