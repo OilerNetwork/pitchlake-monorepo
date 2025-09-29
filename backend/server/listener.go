@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"pitchlake-backend/constants"
 	"pitchlake-backend/db/repositories"
 	"pitchlake-backend/models"
 	"pitchlake-backend/server/types"
@@ -154,12 +155,12 @@ func (dbs *dbServer) listener(ctx context.Context, sv map[string][]*types.Subscr
 			for sub := range sg {
 				log.Print("Sending payload")
 				switch sub.RoundDuration {
-					sub.Msgs <- []byte(jsonResponseTwelveMin)
 				case constants.RoundDuration16Minutes:
+					sub.Msgs <- jsonResponseTwelveMin
 				case constants.RoundDuration3Hours:
 					sub.Msgs <- jsonResponseThreeHour
-					sub.Msgs <- []byte(jsonResponseThirtyDay)
 				case constants.RoundDuration30Days:
+					sub.Msgs <- jsonResponseThirtyDay
 				}
 			}
 		case "unconfirmed_insert":
@@ -220,12 +221,12 @@ func (dbs *dbServer) listener(ctx context.Context, sv map[string][]*types.Subscr
 			}
 			for sub := range sg {
 				switch sub.RoundDuration {
-					sub.Msgs <- []byte(jsonResponseTwelveMin)
 				case constants.RoundDuration16Minutes:
+					sub.Msgs <- jsonResponseTwelveMin
 				case constants.RoundDuration3Hours:
 					sub.Msgs <- jsonResponseThreeHour
-					sub.Msgs <- []byte(jsonResponseThirtyDay)
 				case constants.RoundDuration30Days:
+					sub.Msgs <- jsonResponseThirtyDay
 				}
 			}
 		case "bids_update":
@@ -245,7 +246,7 @@ func (dbs *dbServer) listener(ctx context.Context, sv map[string][]*types.Subscr
 			for _, vaults := range sv {
 				for _, s := range vaults {
 					if s.Address == updatedData.Payload.BuyerAddress {
-						s.Msgs <- []byte(response)
+						s.Msgs <- response
 					}
 				}
 			}
@@ -264,7 +265,7 @@ func (dbs *dbServer) listener(ctx context.Context, sv map[string][]*types.Subscr
 			}
 			for _, lp := range sv[updatedData.Payload.VaultAddress] {
 				if lp.Address == updatedData.Payload.Address {
-					lp.Msgs <- []byte(response)
+					lp.Msgs <- response
 				}
 			}
 			fmt.Printf("Received an update on lp_row_update, %s", notification.Payload)
@@ -282,7 +283,7 @@ func (dbs *dbServer) listener(ctx context.Context, sv map[string][]*types.Subscr
 				return
 			}
 			for _, s := range sv[updatedData.Payload.Address] {
-				s.Msgs <- []byte(response)
+				s.Msgs <- response
 			}
 			fmt.Println("Received an update on vault_update")
 		case "ob_update":
@@ -303,7 +304,7 @@ func (dbs *dbServer) listener(ctx context.Context, sv map[string][]*types.Subscr
 			for _, vaults := range sv {
 				for _, s := range vaults {
 					if s.Address == newOptionBuyer.Address && s.UserType == "ob" {
-						s.Msgs <- []byte(response)
+						s.Msgs <- response
 					}
 				}
 			}
@@ -326,7 +327,7 @@ func (dbs *dbServer) listener(ctx context.Context, sv map[string][]*types.Subscr
 			fmt.Printf("Updated OptionRound: %+v\n", updatedData.Payload.Address)
 			if sv[updatedData.Payload.VaultAddress] != nil {
 				for _, s := range sv[updatedData.Payload.VaultAddress] {
-					s.Msgs <- []byte(response)
+					s.Msgs <- response
 				}
 			}
 		}
