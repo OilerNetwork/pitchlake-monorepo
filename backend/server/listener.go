@@ -81,9 +81,8 @@ func (dbs *dbServer) listener(ctx context.Context, sv map[string][]*types.Subscr
 		if err != nil {
 			log.Fatal(err)
 		}
-		//Process notification here
+		// Process notification here
 		switch notification.Channel {
-
 		case "confirmed_insert":
 			fmt.Println("Received a confirmed insert")
 			var updatedData confirmedUpdate
@@ -249,7 +248,6 @@ func (dbs *dbServer) listener(ctx context.Context, sv map[string][]*types.Subscr
 						s.Msgs <- []byte(response)
 					}
 				}
-
 			}
 		case "lp_update":
 			var updatedData NotificationPayloadVault[models.LiquidityProviderState]
@@ -327,7 +325,6 @@ func (dbs *dbServer) listener(ctx context.Context, sv map[string][]*types.Subscr
 			// Print the updated row
 			fmt.Printf("Updated OptionRound: %+v\n", updatedData.Payload.Address)
 			if sv[updatedData.Payload.VaultAddress] != nil {
-
 				for _, s := range sv[updatedData.Payload.VaultAddress] {
 					s.Msgs <- []byte(response)
 				}

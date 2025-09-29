@@ -26,7 +26,6 @@ type dbServer struct {
 // newdbServer constructs a dbServer with the defaults.
 // Create a custom context for the server here and pass it to the db package
 func NewDBServer(ctx context.Context) *dbServer {
-
 	ctx, cancel := context.WithCancel(ctx)
 	db, err := db.NewDB()
 	if err != nil {
@@ -56,12 +55,12 @@ func (dbs *dbServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-	
+
 	// Handle preflight OPTIONS requests
-	if r.Method == "OPTIONS" {
+	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
 	}
-	
+
 	dbs.serveMux.ServeHTTP(w, r)
 }

@@ -21,7 +21,7 @@ func (router *HomeRouter) SubscribeHome(ctx context.Context, w http.ResponseWrit
 	var c *websocket.Conn
 	var closed bool
 
-	//allowedOrigin := os.Getenv("FRONTEND_URL")
+	// allowedOrigin := os.Getenv("FRONTEND_URL")
 	// Accept the WebSocket connection
 	c2, err := websocket.Accept(w, r, &websocket.AcceptOptions{
 		InsecureSkipVerify: true,
@@ -81,7 +81,7 @@ func (router *HomeRouter) SubscribeHome(ctx context.Context, w http.ResponseWrit
 	for {
 		select {
 		case msg := <-s.Msgs:
-			//Loop to write update messages to client
+			// Loop to write update messages to client
 			err := utils.WriteTimeout(ctx, time.Second*5, c, msg)
 			if err != nil {
 				return err
@@ -93,14 +93,12 @@ func (router *HomeRouter) SubscribeHome(ctx context.Context, w http.ResponseWrit
 }
 
 func (router *HomeRouter) AddSubscriberHome(s *types.SubscriberHome) {
-
 	router.Subscribers.mux.Lock()
 	router.Subscribers.List[s] = struct{}{}
 	router.Subscribers.mux.Unlock()
 }
 
 func (router *HomeRouter) DeleteSubscriberHome(s *types.SubscriberHome) {
-
 	router.Subscribers.mux.Lock()
 	delete(router.Subscribers.List, s)
 	router.Subscribers.mux.Unlock()

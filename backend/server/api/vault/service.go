@@ -27,9 +27,9 @@ func (router *VaultRouter) subscribeVault(ctx context.Context, w http.ResponseWr
 	var mu sync.Mutex
 	var c *websocket.Conn
 	var closed bool
-	//Extract address from the request and add here
+	// Extract address from the request and add here
 
-	//allowedOrigin := os.Getenv("FRONTEND_URL")
+	// allowedOrigin := os.Getenv("FRONTEND_URL")
 	c2, err := websocket.Accept(w, r, &websocket.AcceptOptions{
 		InsecureSkipVerify: true,
 	})
@@ -91,12 +91,12 @@ func (router *VaultRouter) subscribeVault(ctx context.Context, w http.ResponseWr
 	mu.Unlock()
 	defer c.CloseNow()
 
-	//Send initial payload here
+	// Send initial payload here
 	var payload InitialPayloadVault
 
 	payload.PayloadType = "initial"
 
-	//Create repositories
+	// Create repositories
 	vaultRepo := repositories.NewVaultRepository(router.pool)
 	optionRoundRepo := repositories.NewOptionRepository(router.pool)
 	optionBuyerRepo := repositories.NewOptionBuyerRepository(router.pool)
@@ -198,7 +198,7 @@ func (router *VaultRouter) subscribeVault(ctx context.Context, w http.ResponseWr
 	for {
 		select {
 		case msg := <-s.Msgs:
-			//Push messages received on the subscriber channel to the client
+			// Push messages received on the subscriber channel to the client
 			err := utils.WriteTimeout(ctx, time.Second*5, c, msg)
 			if err != nil {
 				return err
@@ -210,7 +210,6 @@ func (router *VaultRouter) subscribeVault(ctx context.Context, w http.ResponseWr
 }
 
 func (router *VaultRouter) addSubscriberVault(s *types.SubscriberVault) {
-
 	router.Subscribers.mux.Lock()
 	defer router.Subscribers.mux.Unlock()
 
@@ -220,12 +219,10 @@ func (router *VaultRouter) addSubscriberVault(s *types.SubscriberVault) {
 	}
 
 	router.Subscribers.List[s.VaultAddress] = append(router.Subscribers.List[s.VaultAddress], s)
-
 }
 
 // deleteSubscriber deletes the given subscriber.
 func (router *VaultRouter) deleteSubscriberVault(s *types.SubscriberVault) {
-
 	router.Subscribers.mux.Lock()
 	defer router.Subscribers.mux.Unlock()
 
@@ -304,13 +301,13 @@ func (router *VaultRouter) sendJobRequest(ctx context.Context, w http.ResponseWr
 			// Check if the job has been pending for too long
 			if router.isJobStuck(refreshedJob) {
 				log.Printf("Job %s has been pending for too long, marking as failed", refreshedJob.JobID)
-				
+
 				// Mark the stuck job as failed
 				err = jobRepo.UpdateJobRequestStatus(ctx, refreshedJob.JobID, models.JobStatusFailed)
 				if err != nil {
 					log.Printf("Error marking stuck job as failed: %v", err)
 				}
-				
+
 				// Continue to send a new job below
 			} else {
 				// Job is still valid and pending
@@ -401,12 +398,12 @@ func (router *VaultRouter) refreshJobStatus(ctx context.Context, job *models.Job
 func (router *VaultRouter) isJobStuck(job *models.JobRequest) bool {
 	// Get the stuck timeout from environment variable or use default
 	stuckTimeout := router.getStuckJobTimeout()
-	
+
 	// Convert both times to UTC for proper comparison
 	now := time.Now().UTC()
 	createdAt := job.CreatedAt.UTC()
 	timeSince := now.Sub(createdAt)
-	
+
 	// Check if the job has been pending for longer than the timeout
 	return timeSince > stuckTimeout
 }

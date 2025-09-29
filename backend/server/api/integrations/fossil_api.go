@@ -87,7 +87,7 @@ func (f *FossilAPI) sendRealFossilRequest(request models.FossilRequest) (*struct
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/pricing_data", f.apiUrl), bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/pricing_data", f.apiUrl), bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +134,7 @@ func (f *FossilAPI) GetJobStatus(jobId string) (*string, error) {
 	}
 
 	// Otherwise, query the real Fossil API
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/job_status/%s", f.apiUrl, jobId), nil)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/job_status/%s", f.apiUrl, jobId), nil)
 	if err != nil {
 		return nil, err
 	}

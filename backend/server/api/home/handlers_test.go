@@ -25,7 +25,7 @@ func TestSubscribeHomeHandler(t *testing.T) {
 	logger := log.Default()
 	router := &HomeRouter{log: logger}
 
-	req, err := http.NewRequest("GET", "/subscribeHome", nil)
+	req, err := http.NewRequest(http.MethodGet, "/subscribeHome", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -46,7 +46,7 @@ func TestHomeRouterInitialization(t *testing.T) {
 	router := NewHomeRouter(serveMux, logger)
 
 	// Check that the endpoint is registered
-	req, err := http.NewRequest("GET", "/subscribeHome", nil)
+	req, err := http.NewRequest(http.MethodGet, "/subscribeHome", nil)
 	if err != nil {
 		t.Fatal(err)
 	}

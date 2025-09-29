@@ -31,7 +31,7 @@ func TestSubscribeVaultHandler(t *testing.T) {
 	logger := log.Default()
 	router := &VaultRouter{log: logger}
 
-	req, err := http.NewRequest("GET", "/subscribeVault", nil)
+	req, err := http.NewRequest(http.MethodGet, "/subscribeVault", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -54,7 +54,7 @@ func TestVaultRouterInitialization(t *testing.T) {
 	router := NewVaultRouter(serveMux, logger, fossilAPI, pool)
 
 	// Check that the endpoint is registered
-	req, err := http.NewRequest("GET", "/subscribeVault", nil)
+	req, err := http.NewRequest(http.MethodGet, "/subscribeVault", nil)
 	if err != nil {
 		t.Fatal(err)
 	}

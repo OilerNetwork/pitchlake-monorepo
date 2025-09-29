@@ -15,7 +15,7 @@ import (
 func main() {
 	log.SetFlags(0)
 
-	//Load env
+	// Load env
 	_ = godotenv.Load(".env")
 	err := run()
 	if err != nil {
@@ -32,7 +32,6 @@ func main() {
 // OB Trigger: ob_update
 // OR Trigger:or_update
 func run() error {
-
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 	dbs := server.NewDBServer(ctx)
