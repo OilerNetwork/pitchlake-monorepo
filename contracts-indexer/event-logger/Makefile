@@ -42,7 +42,7 @@ dev: check-fossil-network migrate-up
 	@make docker-build
 	@echo ""
 	@echo "🚀 Development environment ready!"
-	@echo "📊 Database: pitchlake-db (connected via fossil-monorepo_local-network)"
+	@echo "📊 Database: pitchlake-db (connected via pitchlake-network)"
 	@echo "�� Docker image: Built successfully"
 	@echo "📋 Next steps:"
 	@echo "   • Run 'make docker-up' to start the application"
@@ -63,20 +63,19 @@ check-fossil-network:
 
 network-status:
 	@echo "Checking fossil-monorepo_local-network status..."
-	@if docker network ls | grep -q "fossil-monorepo_local-network"; then \
-		echo "✓ fossil-monorepo_local-network exists"; \
-		docker network inspect fossil-monorepo_local-network --format "{{.IPAM.Config}}" 2>/dev/null || echo "Could not inspect network"; \
+	@if docker network ls | grep -q "pitchlake-network"; then \
+		echo "✓ pitchlake-network exists"; \
+		docker network inspect pitchlake-network --format "{{.IPAM.Config}}" 2>/dev/null || echo "Could not inspect network"; \
 	else \
-		echo "✗ fossil-monorepo_local-network does not exist"; \
+		echo "✗ pitchlake-network does not exist"; \
 	fi
 
 # Database commands - using fossil-monorepo pitchlake-db
 check-db:
 	@if docker ps --format "table {{.Names}}" | grep -q "pitchlake-db"; then \
-		echo "✓ pitchlake-db is running and accessible via fossil-monorepo_local-network"; \
+		echo "✓ pitchlake-db is running and accessible via pitchlake-network"; \
 	else \
-		echo "✗ pitchlake-db is not running. Please start the fossil-monorepo first."; \
-		echo "Run: cd ../../fossil-monorepo && make dev-up"; \
+		echo "✗ pitchlake-db is not running. Please start the pitchlake-network first."; \
 	fi
 
 # Migration commands (using pitchlake-db via fossil-monorepo network)

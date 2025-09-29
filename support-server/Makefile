@@ -102,7 +102,7 @@ docker-up: create-network
 # Clean network only
 clean-network:
 	@echo "Removing pitchlake-network..."
-	@if docker network ls | grep -q "fossil-monorepo_local-network"; then \
+	@if docker network ls | grep -q "pitchlake-network"; then \
 		docker network rm pitchlake-network; \
 		echo "Network removed!"; \
 	else \

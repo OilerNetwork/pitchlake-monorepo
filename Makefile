@@ -37,6 +37,48 @@ create-network: ## Create the local-network for Fossil services
 		echo "   ✅ Created local-network"; \
 	fi
 
+.PHONY: connect-fossil-to-pitchlake-network
+connect-fossil-to-pitchlake-network: ## Connect all fossil containers to pitchlake-network
+	@echo "�� Connecting fossil containers to pitchlake-network..."
+	@echo "�� Step 1: Creating pitchlake-network if it doesn't exist..."
+	@if ! docker network ls | grep -q "pitchlake-network"; then \
+		docker network create pitchlake-network; \
+		echo "   ✅ Created pitchlake-network"; \
+	else \
+		echo "   ✅ pitchlake-network already exists"; \
+	fi
+	@echo ""
+	@echo "�� Step 2: Getting list of running fossil containers..."
+	@FOSSIL_CONTAINERS=$$(docker ps --format "{{.Names}}" | grep -E "(katana|proving|offchain|localstack|message-handler)" || true); \
+	if [ -z "$$FOSSIL_CONTAINERS" ]; then \
+		echo "   ⚠️  No fossil containers are currently running"; \
+		echo "   �� Start fossil services first with: cd fossil-monorepo && make dev-up"; \
+		exit 1; \
+	fi; \
+	echo "   Found fossil containers: $$FOSSIL_CONTAINERS"
+	@echo ""
+	@echo "📋 Step 3: Connecting fossil containers to pitchlake-network..."
+	@for container in $$(docker ps --format "{{.Names}}" | grep -E "(katana|proving|offchain|localstack|message-handler)"); do \
+		echo "   🔗 Connecting $$container to pitchlake-network..."; \
+		if docker network connect pitchlake-network $$container 2>/dev/null; then \
+			echo "   ✅ $$container connected successfully"; \
+		else \
+			echo "   ⚠️  $$container may already be connected or connection failed"; \
+		fi; \
+	done
+	@echo ""
+	@echo "📋 Step 4: Verifying connections..."
+	@echo "   🌐 Containers in pitchlake-network:"
+	@docker network inspect pitchlake-network --format "{{range .Containers}}{{.Name}} {{end}}" | tr ' ' '\n' | grep -E "(katana|proving|offchain|localstack|message-handler|fossil|pitchlake)" | sort | uniq || echo "   No fossil containers found in network"
+	@echo ""
+	@echo "✅ Fossil containers connected to pitchlake-network!"
+	@echo ""
+	@echo "�� You can now:"
+	@echo "   - Access fossil services from pitchlake containers using container names"
+	@echo "   - Use 'katana:5050' instead of 'localhost:5050' in pitchlake services"
+	@echo "   - Access fossil databases from pitchlake containers"
+
+
 .PHONY: build-all
 build-all: ## Build all Docker images
 	@echo "🔨 Building all Docker images..."

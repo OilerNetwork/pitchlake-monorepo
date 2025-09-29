@@ -5,7 +5,6 @@ services:
     build: .
     platform: linux/amd64
     container_name: support-server
-    restart: unless-stopped
     environment:
       # Database Connections
       - FOSSIL_DB_URL=${FOSSIL_DB_URL}
@@ -44,17 +43,16 @@ services:
       - ./.env:/app/.env:ro
     
     networks:
-      - fossil-monorepo_local-network
+      - pitchlake-network
     
     depends_on:
       - fossil-db
       - pitchlake-db
 
   fossil-db:
-    image: postgres:15-alpine
+    image: postgres:16
     platform: linux/amd64
     container_name: fossil-db
-    restart: unless-stopped
     environment:
       - POSTGRES_DB=fossil
       - POSTGRES_USER=${FOSSIL_DB_USER:-fossil_user}
@@ -65,13 +63,12 @@ services:
     ports:
       - "5436:5432"
     networks:
-      - fossil-monorepo_local-network
+      - pitchlake-network
 
   pitchlake-db:
-    image: postgres:15-alpine
+    image: postgres:16
     platform: linux/amd64
     container_name: pitchlake-db
-    restart: unless-stopped
     environment:
       - POSTGRES_DB=pitchlake
       - POSTGRES_USER=${PITCHLAKE_DB_USER:-pitchlake_user}
@@ -82,13 +79,14 @@ services:
     ports:
       - "5437:5432"
     networks:
-      - fossil-monorepo_local-network
+      - pitchlake-network
 
 volumes:
   fossil_data:
   pitchlake_data:
 
 networks:
-  fossil-monorepo_local-network:
+  pitchlake-network:
     external: true
     driver: bridge 
+    name: pitchlake-network
