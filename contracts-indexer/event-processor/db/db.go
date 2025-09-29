@@ -31,19 +31,22 @@ func (db *DB) BeginTx() {
 }
 
 func (db *DB) CommitTx() {
-	db.tx.Commit(db.ctx)
+	if err := db.tx.Commit(db.ctx); err != nil {
+		log.Printf("Error committing transaction: %v", err)
+	}
 	db.tx.Conn().Close(db.ctx)
 	db.tx = nil
 }
 
 func (db *DB) RollbackTx() {
-	db.tx.Rollback(db.ctx)
+	if err := db.tx.Rollback(db.ctx); err != nil {
+		log.Printf("Error rolling back transaction: %v", err)
+	}
 	db.tx.Conn().Close(db.ctx)
 	db.tx = nil
 }
 
 func (db *DB) Init() error {
-
 	db.logger = log.New(os.Stdout, "", log.LstdFlags)
 	connStr := os.Getenv("DB_URL")
 	config, err := pgxpool.ParseConfig(connStr)
@@ -107,7 +110,6 @@ func (db *DB) GetBlockByHash(blockHash string) (*models.StarknetBlock, error) {
 }
 
 func (db *DB) GetEventsForVault(vaultAddress string, startBlockHash string, endBlockHash string) ([]models.Event, error) {
-
 	startBlock, err := db.GetBlockByHash(startBlockHash)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get start block: %w", err)
@@ -129,7 +131,7 @@ func (db *DB) GetEventsForVault(vaultAddress string, startBlockHash string, endB
 			event_keys,
 			event_data
 		FROM events
-		WHERE vault_address = $1 AND block_number BETWEEN $2 AND $3;` //Including start and end block
+		WHERE vault_address = $1 AND block_number BETWEEN $2 AND $3;` // Including start and end block
 
 	rows, err := db.tx.Query(context.Background(), query, vaultAddress, startBlock.BlockNumber, endBlock.BlockNumber)
 	if err != nil {
@@ -169,7 +171,6 @@ func (db *DB) Shutdown() {
 }
 
 func (db *DB) GetEventsByBlockHash(blockHash string, orderBy string) ([]models.Event, error) {
-
 	query := `
 		SELECT 
 			from,
@@ -301,11 +302,9 @@ func (db *DB) UpdateVaultBalancesAuctionEnd(
 	// 		"locked_balance":   gorm.Expr("locked_balance-?", unsoldLiquidity),
 	// 		"latest_block":     blockNumber,
 	// 	}).Error
-
 }
 
 func (db *DB) UpdateAllLiquidityProvidersBalancesAuctionStart(vaultAddress string, blockNumber uint64) error {
-
 	query := `UPDATE vault_states
 	SET
 		unlocked_balance = 0,
@@ -336,7 +335,6 @@ func (db *DB) UpdateAllLiquidityProvidersBalancesAuctionEnd(
 	unsoldLiquidity,
 	premiums models.BigInt,
 	blockNumber uint64) error {
-
 	zero := models.BigInt{
 		Int: big.NewInt(0),
 	}
@@ -408,7 +406,6 @@ func (db *DB) UpdateBiddersAuctionEnd(
 			if err != nil {
 				return err
 			}
-
 		} else {
 			refundableAmount := models.BigInt{Int: new(big.Int).Mul(new(big.Int).Sub(bid.Price.Int, clearingPrice.Int), bid.Amount.Int)}
 			log.Printf("REFUNDABLEAMOUNT %v", refundableAmount)
@@ -421,7 +418,6 @@ func (db *DB) UpdateBiddersAuctionEnd(
 			}
 			optionsLeft.Sub(optionsLeft.Int, bid.Amount.Int)
 		}
-
 	}
 	bidsBelow, err := db.GetBidsBelowClearingForRound(roundAddress, clearingPrice, clearingNonce)
 	if err != nil {
@@ -473,7 +469,6 @@ func (db *DB) UpdateVaultBalancesOptionSettle(
 	// 	"locked_balance":   0,
 	// 	"latest_block":     blockNumber,
 	// }).Error
-
 }
 func (db *DB) UpdateAllLiquidityProvidersBalancesOptionSettle(
 	vaultAddress,
@@ -486,7 +481,6 @@ func (db *DB) UpdateAllLiquidityProvidersBalancesOptionSettle(
 	optionsSold models.BigInt,
 	blockNumber uint64,
 ) error {
-
 	query := `UPDATE liquidity_provider_states SET
 	locked_balance = 0,
 	unlocked_balance = unlocked_balance + FLOOR(
@@ -527,7 +521,6 @@ func (db *DB) UpdateAllLiquidityProvidersBalancesOptionSettle(
 		return err
 	}
 	for _, queuedAmount := range queuedAmounts {
-
 		amountToAdd := &models.BigInt{Int: new(big.Int).Div(new(big.Int).Mul(remainingLiquidty.Int, queuedAmount.QueuedLiquidity.Int), (startingLiquidity.Int))}
 		query := `UPDATE liquidity_providers SET
 		stashed_balance = stashed_balance + $1,
@@ -718,7 +711,6 @@ func (db *DB) UpsertQueuedLiquidity(queuedLiquidity *models.QueuedLiquidity) err
 	// }
 
 	// return nil
-
 }
 
 func (db *DB) UpsertLiquidityProviderState(lp *models.LiquidityProviderState, blockNumber uint64) error {
@@ -763,7 +755,6 @@ func (db *DB) UpsertLiquidityProviderState(lp *models.LiquidityProviderState, bl
 	// }
 
 	// return nil
-
 }
 
 func (db *DB) UpdateOptionBuyerFields(
@@ -1327,7 +1318,6 @@ func (db *DB) GetBidsBelowClearingForRound(
 }
 
 func (db *DB) GetAllQueuedLiquidityForRound(roundAddress string) ([]models.QueuedLiquidity, error) {
-
 	var queuedAmounts []models.QueuedLiquidity
 	query := `
 		SELECT 

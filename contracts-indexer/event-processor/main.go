@@ -10,7 +10,7 @@ import (
 func main() {
 	log.SetFlags(0)
 
-	//Load env
+	// Load env
 	_ = godotenv.Load(".env")
 	err := run()
 	if err != nil {
@@ -27,10 +27,13 @@ func main() {
 // OB Trigger: ob_update
 // OR Trigger:or_update
 func run() error {
-
 	db := &db.DB{}
-	db.Init()
-	db.CatchupDriverEvents()
+	if err := db.Init(); err != nil {
+		return err
+	}
+	if err := db.CatchupDriverEvents(); err != nil {
+		return err
+	}
 	db.Listener()
 	return nil
 }

@@ -13,7 +13,7 @@ func (db *DB) DepositIndex(
 	lpAddress string,
 	lpUnlocked, vaultUnlocked models.BigInt,
 	blockNumber uint64) error {
-	//Map the other parameters as well
+	// Map the other parameters as well
 	var newLPState = &(models.LiquidityProviderState{
 		VaultAddress:    vaultAddress,
 		Address:         lpAddress,
@@ -37,7 +37,7 @@ func (db *DB) WithdrawIndex(
 	lpAddress string,
 	lpUnlocked, vaultUnlocked models.BigInt,
 	blockNumber uint64) error {
-	//Map the other parameters as well
+	// Map the other parameters as well
 	if err := db.UpdateLiquidityProviderFields(vaultAddress, lpAddress, map[string]interface{}{
 		"unlocked_balance": lpUnlocked,
 		"latest_block":     blockNumber,
@@ -87,7 +87,6 @@ func (db *DB) StashWithdrawnIndex(
 		"stashed_balance": 0,
 		"latest_block":    blockNumber,
 	}); err != nil {
-
 		return err
 	}
 	if err := db.UpdateVaultFields(vaultAddress, map[string]interface{}{
@@ -100,7 +99,6 @@ func (db *DB) StashWithdrawnIndex(
 }
 
 func (db *DB) RoundDeployedIndex(optionRound models.OptionRound) error {
-
 	if err := db.CreateOptionRound(&optionRound); err != nil {
 		return err
 	}
@@ -125,7 +123,6 @@ func (dbc *DB) PricingDataSetIndex(
 		return err
 	}
 	return nil
-
 }
 func (dbc *DB) AuctionStartedIndex(
 	vaultAddress, roundAddress string,

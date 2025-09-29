@@ -40,7 +40,6 @@ func OptionRoundEmitted(event core.Event) OptionRoundEvent {
 	return optionRoundEvent
 }
 func ContractDeployed(event core.Event) (string, string, string, models.BigInt, models.BigInt, uint64, uint64, uint64) {
-
 	fossilClientAddress := FeltToHexString(event.Data[5].Bytes())
 	ethAddress := FeltToHexString(event.Data[6].Bytes())
 	optionRoundClassHash := FeltToHexString(event.Data[7].Bytes())
@@ -79,7 +78,7 @@ func WithdrawalQueued(event core.Event) (string, models.BigInt, uint64, models.B
 	accountQueuedNow := CombineFeltToBigInt(event.Data[3].Bytes(), event.Data[2].Bytes())
 	vaultQueuedNow := CombineFeltToBigInt(event.Data[5].Bytes(), event.Data[4].Bytes())
 
-	//Change this when using new cont
+	// Change this when using new cont
 	accountQueuedBefore := CombineFeltToBigInt(event.Data[3].Bytes(), event.Data[2].Bytes())
 
 	return lpAddress, bps, roundId, accountQueuedBefore, accountQueuedNow, vaultQueuedNow
@@ -93,7 +92,6 @@ func StashWithdrawn(event core.Event) (string, models.BigInt, models.BigInt) {
 }
 
 func RoundDeployed(event core.Event) models.OptionRound {
-
 	log.Printf("event %v", event)
 	vaultAddress :=
 		event.From.String()
@@ -118,11 +116,9 @@ func RoundDeployed(event core.Event) models.OptionRound {
 		RoundState:       "Open",
 	}
 	return optionRound
-
 }
 
 func AuctionStarted(event core.Event) (models.BigInt, models.BigInt, string) {
-
 	startingLiquidity := CombineFeltToBigInt(event.Data[3].Bytes(), event.Data[2].Bytes())
 	availableOptions := CombineFeltToBigInt(event.Data[5].Bytes(), event.Data[4].Bytes())
 	roundAddress := FeltToHexString(event.Data[7].Bytes())

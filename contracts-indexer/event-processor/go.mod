@@ -1,6 +1,6 @@
 module event-processor
 
-go 1.25.0
+go 1.24
 
 require (
 	github.com/NethermindEth/juno v0.14.1

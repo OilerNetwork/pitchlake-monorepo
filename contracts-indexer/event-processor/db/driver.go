@@ -5,8 +5,7 @@ import (
 )
 
 func (db *DB) CatchupDriverEvents() error {
-
-	//Loop infinitely until no catchup events found
+	// Loop infinitely until no catchup events found
 	for {
 		events, err := db.GetUnprocessedDriverEvents()
 		if err != nil {

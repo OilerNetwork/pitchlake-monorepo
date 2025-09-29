@@ -24,20 +24,17 @@ func CombineFeltToBigInt(highFelt, lowFelt [32]byte) models.BigInt {
 }
 
 func FeltToBigInt(felt [32]byte) models.BigInt {
-
 	byteData := make([]byte, 32)
-	copy(byteData[:], felt[:])
+	copy(byteData, felt[:])
 	return models.BigInt{Int: new(big.Int).SetBytes(byteData)}
 }
 func FeltToHexString(felt [32]byte) string {
-
 	combinedInt := models.BigInt{Int: new(big.Int).SetBytes(felt[:])}
 	// Assuming `f.Value` holds the *big.Int representation of the felt
 	return "0x" + combinedInt.Text(16)
 }
 
 func BigIntToHexString(f big.Int) string {
-
 	// Assuming `f.Value` holds the *big.Int representation of the felt
 	return "0x" + f.Text(16)
 }

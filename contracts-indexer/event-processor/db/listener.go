@@ -37,14 +37,13 @@ func (db *DB) Listener() {
 			log.Printf("Error processing driver_events: %v", err)
 			return
 		}
-		//Process notification here
+		// Process notification here
 	}
 }
 
 func (db *DB) revertVaultEvent(
 	event models.Event,
 ) error {
-
 	junoEvent := adaptors.GetJunoEvent(event)
 	var err error
 	switch event.EventName {
@@ -144,7 +143,6 @@ func (db *DB) revertVaultEvent(
 			map[string]interface{}{
 				"has_refunded": false,
 			})
-
 	}
 	if err != nil {
 		return err
@@ -155,17 +153,16 @@ func (db *DB) revertVaultEvent(
 func (db *DB) processVaultEvent(
 	event models.Event,
 ) error {
-
 	var err error
 	junoEvent := adaptors.GetJunoEvent(event)
 	switch event.EventName {
-	case "Deposit": //Add withdrawQueue and collect queue case based on event
+	case "Deposit": // Add withdrawQueue and collect queue case based on event
 		lpAddress,
 			lpUnlocked,
 			vaultUnlocked := adaptors.DepositOrWithdraw(junoEvent)
 
 		err = db.DepositIndex(event.VaultAddress, lpAddress, lpUnlocked, vaultUnlocked, event.BlockNumber)
-		//Map the other parameters as well
+		// Map the other parameters as well
 	case "Withdrawal":
 		lpAddress,
 			lpUnlocked,
@@ -300,7 +297,6 @@ func (db *DB) processVaultEvent(
 func (db *DB) processOptionRoundEvent(
 	event models.Event,
 ) error {
-
 	junoEvent := adaptors.GetJunoEvent(event)
 	optionRoundEvent := adaptors.OptionRoundEmitted(junoEvent)
 	roundId := junoEvent.Data[0].Uint64()

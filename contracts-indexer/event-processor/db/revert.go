@@ -5,7 +5,7 @@ import (
 )
 
 func (db *DB) DepositOrWithdrawOrStashWithdrawRevert(vaultAddress, lpAddress string, blockNumber uint64) error {
-	//Map the other parameters as well
+	// Map the other parameters as well
 
 	if err := db.RevertVaultState(vaultAddress, blockNumber); err != nil {
 		return err
@@ -23,7 +23,6 @@ func (db *DB) WithdrawalQueuedRevertIndex(
 	bps, accountQueuedBefore, accountQueuedNow, vaultQueuedNow models.BigInt,
 	blockNumber uint64,
 ) error {
-
 	db.RevertVaultState(vaultAddress, blockNumber)
 	db.RevertLPState(vaultAddress, lpAddress, blockNumber)
 
@@ -58,7 +57,6 @@ func (db *DB) WithdrawalQueuedRevertIndex(
 }
 
 func (db *DB) RoundDeployedRevert(roundAddress string) {
-
 	db.DeleteOptionRound(roundAddress)
 }
 
@@ -141,5 +139,4 @@ func (db *DB) BidUpdatedRevert(bidId, roundAddress string, amount models.BigInt,
 	// 	return err.Error
 	// }
 	// return nil
-
 }
