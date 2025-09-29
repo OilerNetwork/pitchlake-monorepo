@@ -23,4 +23,26 @@ cairo_test = "2.12.1"
 [tool.fmt]
 sort-module-level-items = true
 
+[tool.lint]
+# Enable all available lints
+enable = true
+
+[tool.lint.cairo]
+# Cairo-specific lint rules
+unused_imports = true
+unused_variables = true
+unused_functions = true
+unused_parameters = true
+unused_returns = true
+unreachable_code = true
+unused_attributes = true
+unused_macros = true
+unused_traits = true
+unused_impls = true
+unused_structs = true
+unused_enums = true
+unused_constants = true
+unused_types = true
+unused_modules = true
+
 [lib]
