@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"pitchlake-backend/constants"
 	"pitchlake-backend/db/repositories"
 	"pitchlake-backend/models"
 	"pitchlake-backend/server/api/utils"
@@ -145,7 +146,7 @@ func (router *VaultRouter) subscribeVault(ctx context.Context, w http.ResponseWr
 	if err != nil {
 		return err
 	}
-	if err := utils.WriteTimeout(ctx, time.Second*5, c, jsonPayload); err != nil {
+	if err := utils.WriteTimeout(ctx, constants.HTTPWriteTimeout, c, jsonPayload); err != nil {
 		log.Printf("Error writing timeout: %v", err)
 	}
 	go func() {
@@ -207,7 +208,7 @@ func (router *VaultRouter) subscribeVault(ctx context.Context, w http.ResponseWr
 		select {
 		case msg := <-s.Msgs:
 			// Push messages received on the subscriber channel to the client
-			err := utils.WriteTimeout(ctx, time.Second*5, c, msg)
+			err := utils.WriteTimeout(ctx, constants.HTTPWriteTimeout, c, msg)
 			if err != nil {
 				return err
 			}
