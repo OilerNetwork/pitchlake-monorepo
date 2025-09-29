@@ -3,11 +3,14 @@ name: Contract Unit Tests
 on:
   push:
     branches:
-      - main
-      - staging
+      - "**"
+    paths:
+      - "contracts/**"
   pull_request:
     branches:
       - "**"
+    paths:
+      - "contracts/**"
     types:
       - reopened
       - ready_for_review

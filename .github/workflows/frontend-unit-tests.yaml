@@ -3,11 +3,18 @@ name: Frontend Unit Tests
 on:
   push:
     branches:
-      - main
-      - staging
+      - "**"
+    paths:
+      - "frontend/**"
   pull_request:
     branches:
       - "**"
+    paths:
+      - "frontend/**"
+    types:
+      - reopened
+      - ready_for_review
+      - synchronize
 
 jobs:
   frontend-test:

@@ -3,15 +3,18 @@ name: Contracts Lint
 on:
   push:
     branches:
-      - main
-      - staging
+      - "**"
     paths:
-      - 'contracts/**'
+      - "contracts/**"
   pull_request:
     branches:
-      - main
+      - "**"
     paths:
-      - 'contracts/**'
+      - "contracts/**"
+    types:
+      - reopened
+      - ready_for_review
+      - synchronize
 
 jobs:
   typos:
@@ -42,7 +45,6 @@ jobs:
         run: |
           cd contracts
           scarb lint
-          
 
   test:
     runs-on: ubuntu-latest
