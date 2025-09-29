@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"pitchlake-backend/constants"
 	"pitchlake-backend/models"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -85,7 +86,7 @@ func (m *MockFossilService) SendMockFossilRequest(request models.FossilRequest) 
 
 	// Calculate timestamp: upper bound + proving delay + tolerance
 	// For now, using a tolerance of 60 seconds (can be made configurable later)
-	tolerance := uint64(60) // seconds
+	tolerance := uint64(constants.MockFossilToleranceSeconds) // seconds
 	timestamp := request.Params.ReservePrice[1] + provingDelay + tolerance
 
 	// Hardcoded values as specified in the support-server implementation
@@ -146,7 +147,7 @@ func (m *MockFossilService) SendMockFossilRequest(request models.FossilRequest) 
 	fmt.Printf("Result: %v\n", resultSerialized)
 
 	// Call fossil_callback directly on the vault contract
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), constants.MockFossilTimeout)
 	defer cancel()
 
 	// The fossil_callback function expects two separate arrays as parameters

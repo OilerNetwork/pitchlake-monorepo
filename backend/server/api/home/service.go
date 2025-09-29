@@ -7,8 +7,8 @@ import (
 	"net"
 	"net/http"
 	"sync"
-	"time"
 
+	"pitchlake-backend/constants"
 	"pitchlake-backend/db/repositories"
 	"pitchlake-backend/server/api/utils"
 	"pitchlake-backend/server/types"
@@ -80,7 +80,7 @@ func (router *HomeRouter) SubscribeHome(ctx context.Context, w http.ResponseWrit
 		return err
 	}
 
-	if err := utils.WriteTimeout(ctx, time.Second*5, c, jsonPayload); err != nil {
+	if err := utils.WriteTimeout(ctx, constants.HTTPWriteTimeout, c, jsonPayload); err != nil {
 		log.Printf("Error writing timeout: %v", err)
 	}
 
@@ -88,7 +88,7 @@ func (router *HomeRouter) SubscribeHome(ctx context.Context, w http.ResponseWrit
 		select {
 		case msg := <-s.Msgs:
 			// Loop to write update messages to client
-			err := utils.WriteTimeout(ctx, time.Second*5, c, msg)
+			err := utils.WriteTimeout(ctx, constants.HTTPWriteTimeout, c, msg)
 			if err != nil {
 				return err
 			}

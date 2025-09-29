@@ -3,8 +3,8 @@ package repositories
 import (
 	"context"
 	"fmt"
+	"pitchlake-backend/constants"
 	"pitchlake-backend/models"
-	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -26,7 +26,7 @@ func (r *VaultRepository) GetVaultStateByID(ctx context.Context, id string) (*mo
 		return nil, fmt.Errorf("database pool is nil")
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, constants.DatabaseTimeout)
 	defer cancel()
 
 	var vaultState models.VaultState

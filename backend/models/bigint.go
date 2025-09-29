@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"math/big"
+	"pitchlake-backend/constants"
 	"strings"
 )
 
@@ -12,7 +13,7 @@ type BigInt struct {
 }
 
 var (
-	maxUint256 = new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 256), big.NewInt(1))
+	maxUint256 = new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), constants.Uint256BitSize), big.NewInt(1))
 )
 
 // Scan implements the sql.Scanner interface for BigInt

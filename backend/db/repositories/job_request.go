@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"fmt"
+	"pitchlake-backend/constants"
 	"pitchlake-backend/models"
 	"time"
 
@@ -26,7 +27,7 @@ func (r *JobRequestRepository) GetLatestJobRequestByVaultAndRound(ctx context.Co
 		return nil, fmt.Errorf("database pool is nil")
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, constants.DatabaseTimeout)
 	defer cancel()
 
 	query := `
@@ -60,7 +61,7 @@ func (r *JobRequestRepository) InsertJobRequest(ctx context.Context, vaultAddres
 		return fmt.Errorf("database pool is nil")
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, constants.DatabaseTimeout)
 	defer cancel()
 
 	query := `
@@ -82,7 +83,7 @@ func (r *JobRequestRepository) UpdateJobRequestStatus(ctx context.Context, jobID
 		return fmt.Errorf("database pool is nil")
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, constants.DatabaseTimeout)
 	defer cancel()
 
 	query := `UPDATE job_requests SET status = $1 WHERE job_id = $2`

@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"pitchlake-backend/constants"
 	"pitchlake-backend/models"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -18,17 +19,20 @@ func NewBlockRepository(pool *pgxpool.Pool) *BlockRepository {
 }
 
 // GetBlocks retrieves blocks within a time range with sampling
-func (r *BlockRepository) GetBlocks(ctx context.Context, startTimestamp, endTimestamp, roundDuration uint64) ([]models.Block, error) {
+func (r *BlockRepository) GetBlocks(
+	ctx context.Context,
+	startTimestamp, endTimestamp, roundDuration uint64,
+) ([]models.Block, error) {
 	var samplingRate uint64
 	switch roundDuration {
-	case 960:
-		samplingRate = 4
-	case 13200:
-		samplingRate = 5
-	case 2631600:
-		samplingRate = 40
+	case constants.RoundDuration16Minutes:
+		samplingRate = constants.SamplingRate16Minutes
+	case constants.RoundDuration3Hours:
+		samplingRate = constants.SamplingRate3Hours
+	case constants.RoundDuration30Days:
+		samplingRate = constants.SamplingRate30Days
 	default:
-		samplingRate = 1
+		samplingRate = constants.DefaultSamplingRate
 	}
 
 	query := `SELECT block_number, timestamp, basefee, is_confirmed, twelve_min_twap, three_hour_twap, thirty_day_twap 

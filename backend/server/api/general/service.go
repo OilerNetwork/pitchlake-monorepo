@@ -6,12 +6,12 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"pitchlake-backend/constants"
 	"pitchlake-backend/db/repositories"
 	"pitchlake-backend/server/api/utils"
 	"pitchlake-backend/server/types"
 	"pitchlake-backend/server/validations"
 	"sync"
-	"time"
 
 	"github.com/coder/websocket"
 )
@@ -123,11 +123,11 @@ func (router *GeneralRouter) subscribeGasData(ctx context.Context, w http.Respon
 				for _, block := range blocks {
 					var twap string
 					switch request.RoundDuration {
-					case 960:
+					case constants.RoundDuration16Minutes:
 						twap = block.TwelveMinTwap
-					case 13200:
+					case constants.RoundDuration3Hours:
 						twap = block.ThreeHourTwap
-					case 2631600:
+					case constants.RoundDuration30Days:
 						twap = block.ThirtyDayTwap
 					}
 					if block.IsConfirmed {
@@ -175,7 +175,7 @@ func (router *GeneralRouter) subscribeGasData(ctx context.Context, w http.Respon
 		case err := <-errChan:
 			return err
 		case msg := <-s.Msgs:
-			err := utils.WriteTimeout(ctx, time.Second*5, c, msg)
+			err := utils.WriteTimeout(ctx, constants.HTTPWriteTimeout, c, msg)
 			if err != nil {
 				return err
 			}

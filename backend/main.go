@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"pitchlake-backend/constants"
 	"pitchlake-backend/server"
-	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -32,14 +32,14 @@ func main() {
 // OB Trigger: ob_update
 // OR Trigger:or_update
 func run() error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), constants.HTTPStartTimeout)
 	defer cancel()
 	dbs := server.NewDBServer(ctx)
 	s := &http.Server{ //nolint:exhaustruct
 		Addr:         ":8080",
 		Handler:      dbs,
-		ReadTimeout:  time.Second * 10,
-		WriteTimeout: time.Second * 10,
+		ReadTimeout:  constants.HTTPReadTimeout,
+		WriteTimeout: constants.HTTPWriteTimeout,
 	}
 	errc := make(chan error, 1)
 	log.Printf("server started at %v", s.Addr)
