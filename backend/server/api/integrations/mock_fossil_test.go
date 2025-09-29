@@ -1,6 +1,7 @@
 package integrations
 
 import (
+	"context"
 	"os"
 	"testing"
 
@@ -75,7 +76,7 @@ func TestFossilAPI_DevMode(t *testing.T) {
 	}
 
 	// Test GetJobStatus with mock job
-	status, err := api.GetJobStatus("mock_job_123456")
+	status, err := api.GetJobStatus(context.Background(), "mock_job_123456")
 	if err != nil {
 		t.Errorf("Expected no error for mock job status, got: %v", err)
 	}

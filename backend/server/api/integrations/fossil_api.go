@@ -2,6 +2,7 @@ package integrations
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -51,7 +52,7 @@ func (f *FossilAPI) RequestPricingData() error {
 }
 
 // SendFossilRequest sends a request to the Fossil API or mock service
-func (f *FossilAPI) SendFossilRequest(request models.FossilRequest) (*struct {
+func (f *FossilAPI) SendFossilRequest(ctx context.Context, request models.FossilRequest) (*struct {
 	JobID  string `json:"job_id"`
 	Status string `json:"status"`
 }, error) {
@@ -63,11 +64,11 @@ func (f *FossilAPI) SendFossilRequest(request models.FossilRequest) (*struct {
 
 	// Otherwise, use the regular Fossil API
 	fmt.Printf("Using regular Fossil API\n")
-	return f.sendRealFossilRequest(request)
+	return f.sendRealFossilRequest(ctx, request)
 }
 
 // sendRealFossilRequest sends a request to the real Fossil API
-func (f *FossilAPI) sendRealFossilRequest(request models.FossilRequest) (*struct {
+func (f *FossilAPI) sendRealFossilRequest(ctx context.Context, request models.FossilRequest) (*struct {
 	JobID  string `json:"job_id"`
 	Status string `json:"status"`
 }, error) {
@@ -87,7 +88,7 @@ func (f *FossilAPI) sendRealFossilRequest(request models.FossilRequest) (*struct
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/pricing_data", f.apiUrl), bytes.NewBuffer(jsonData))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/pricing_data", f.apiUrl), bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +127,7 @@ func (f *FossilAPI) sendRealFossilRequest(request models.FossilRequest) (*struct
 	return &response, nil
 }
 
-func (f *FossilAPI) GetJobStatus(jobId string) (*string, error) {
+func (f *FossilAPI) GetJobStatus(ctx context.Context, jobId string) (*string, error) {
 	// If in dev mode and this is a mock job, return completed status
 	if f.isDevMode && f.mockService != nil && len(jobId) > 9 && jobId[:9] == "mock_job_" {
 		status := "completed"
@@ -134,7 +135,7 @@ func (f *FossilAPI) GetJobStatus(jobId string) (*string, error) {
 	}
 
 	// Otherwise, query the real Fossil API
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/job_status/%s", f.apiUrl, jobId), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/job_status/%s", f.apiUrl, jobId), nil)
 	if err != nil {
 		return nil, err
 	}

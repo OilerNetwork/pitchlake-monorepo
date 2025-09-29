@@ -350,7 +350,7 @@ func (router *VaultRouter) sendJobRequest(ctx context.Context, w http.ResponseWr
 	}
 
 	// Send new job request to Fossil API
-	jobResponse, err := router.fossilAPI.SendFossilRequest(req.FossilRequest)
+	jobResponse, err := router.fossilAPI.SendFossilRequest(ctx, req.FossilRequest)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error sending fossil request: %v", err), http.StatusInternalServerError)
 		return nil
@@ -382,7 +382,7 @@ func (router *VaultRouter) refreshJobStatus(ctx context.Context, job *models.Job
 		return job, nil // Don't refresh failed jobs
 	}
 
-	statusStr, err := router.fossilAPI.GetJobStatus(job.JobID)
+	statusStr, err := router.fossilAPI.GetJobStatus(ctx, job.JobID)
 	if err != nil {
 		return job, err
 	}
