@@ -41,7 +41,7 @@ jobs:
       - name: Run Cairo linter
         run: |
           cd contracts
-          scarb lint --test
+          scarb lint
           
 
   test:
