@@ -14,6 +14,7 @@ import {
   MintOptionsArgs,
   ExerciseOptionsArgs,
   SendFossiLRequestParams,
+  FossilRequest,
 } from "@/lib/types";
 import { useMemo, useState } from "react";
 import useMockOptionRounds from "./useMockOptionRounds";
@@ -40,6 +41,9 @@ const useMockVault = ({ address }: { address?: string }) => {
     now: "0",
     deploymentDate: "1",
     currentRoundAddress: "0x11",
+    provingDelay: "300",
+    jobRequestInitRound1: null,
+    jobRequestSettleRound: null,
   });
   //States without a param
 
@@ -227,7 +231,7 @@ const useMockVault = ({ address }: { address?: string }) => {
   };
 
   const sendFossilRequest = async (
-    fossilRequest: SendFossiLRequestParams,
+    fossilRequest: FossilRequest | null,
   ): Promise<string> => {
     return "";
   };

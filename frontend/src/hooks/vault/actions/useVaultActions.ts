@@ -13,11 +13,10 @@ import {
   MintOptionsArgs,
   ExerciseOptionsArgs,
   SendFossiLRequestParams,
+  FossilRequest,
 } from "@/lib/types";
 import { useCallback, useMemo } from "react";
-import {
-  useTransactionContext,
-} from "@/context/TransactionProvider";
+import { useTransactionContext } from "@/context/TransactionProvider";
 import { useNewContext } from "@/context/NewProvider";
 import { DemoFossilCallParams } from "@/app/api/sendMockFossilCallback/route";
 const useVaultActions = () => {
@@ -69,7 +68,7 @@ const useVaultActions = () => {
         const data = (
           argsData
             ? await typedContract?.[functionName](...argsData, { nonce })
-            : await typedContract?.[functionName]({ nonce })
+            : await typedContract?.[functionName]()
         ) as TransactionResult;
 
         setPendingTx(data.transaction_hash);
@@ -161,34 +160,45 @@ const useVaultActions = () => {
   );
 
   const sendFossilRequest = useCallback(
-    async ({
-      targetTimestamp,
-      roundDuration,
-      clientAddress,
-      vaultAddress,
-      alpha,
-      k,
-    }: SendFossiLRequestParams): Promise<string> => {
+    async (jobRequest: FossilRequest | null): Promise<string> => {
       const OK = Promise.resolve("Ok");
       const NOT_OK = Promise.resolve("Not Ok");
+      if (!jobRequest) return NOT_OK;
       if (conn === "ws" || conn === "rpc") {
-        const response = await fetch("/api/sendFossilRequest", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+        const formattedRequest = {
+          program_id: "0x" + jobRequest.program_id.toString(16),
+          vault_address: "0x" + jobRequest.vault_address.toString(16),
+          params: {
+            twap: [
+              Number(jobRequest.params.twap[0]),
+              Number(jobRequest.params.twap[1]),
+            ],
+            max_return: [
+              Number(jobRequest.params.max_return[0]),
+              Number(jobRequest.params.max_return[1]),
+            ],
+            reserve_price: [
+              Number(jobRequest.params.reserve_price[0]),
+              Number(jobRequest.params.reserve_price[1]),
+            ],
           },
-          body: JSON.stringify({
-            targetTimestamp,
-            roundDuration,
-            clientAddress,
-            vaultAddress,
-            alpha,
-            k,
-          }),
-        });
+        };
+
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_WS_URL}sendJobRequest`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              fossil_request: formattedRequest,
+              round_id: 1, // You may need to pass the actual round ID
+            }),
+          },
+        );
 
         if (response.ok) return OK;
-        //if ((await response.text()) === "Conflict") return NOT_OK;
         return NOT_OK;
       }
       return OK;

@@ -11,6 +11,7 @@ type ProgressBarProps = {
   progressStart: number;
   timeEstimate: number;
   isPanelOpen: boolean;
+  isRound1Init?: boolean;
 };
 
 const ProgressBar = ({
@@ -19,12 +20,15 @@ const ProgressBar = ({
   progressStart,
   timeEstimate,
   isPanelOpen,
+  isRound1Init = false,
 }: ProgressBarProps) => {
   const [progress, setProgress] = useState(10);
 
   const msg =
     roundState === "Open"
-      ? "Auction Starting..."
+      ? isRound1Init
+        ? "Initializing Round..."
+        : "Auction Starting..."
       : roundState == "Auctioning"
         ? "Auction Ending..."
         : "Round Settling...";
@@ -35,7 +39,10 @@ const ProgressBar = ({
 
     if (timeUntil === "Now" || timeUntil === "Just now") timeUntil = "0s";
 
-    if (roundState === "Open") msg = `Auction starting in ~${timeUntil}`;
+    if (roundState === "Open")
+      msg = isRound1Init
+        ? `Round initializing in ~${timeUntil}`
+        : `Auction starting in ~${timeUntil}`;
     else if (roundState === "Auctioning")
       msg = `Auction ending in ~${timeUntil}`;
     else if (roundState === "Running") {
@@ -43,7 +50,7 @@ const ProgressBar = ({
     } else msg = `Round settled ~${timeUntil}`;
 
     return msg;
-  }, [timeEstimate, roundState, now, progressStart]);
+  }, [timeEstimate, roundState, now, progressStart, isRound1Init]);
 
   const progressEnd = Number(progressStart) + Number(timeEstimate);
 

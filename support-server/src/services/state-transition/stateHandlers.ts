@@ -20,7 +20,7 @@ export class StateHandlers {
   }
 
   private getRequestFunction() {
-    const useMockVerifier = process.env.USE_MOCK_VERIFIER === 'true';
+    const useMockVerifier = process.env.USE_MOCK_VERIFIER === "true";
     return useMockVerifier ? sendMockFossilRequest : sendFossilRequest;
   }
 
@@ -381,7 +381,7 @@ export class StateHandlers {
         return;
       }
 
-      // If no job request or latest was failed, send new settlement request
+      // if no job request or latest was failed, send new settlement request
       if (!jobRequest || jobRequest.status === JobStatus.Failed) {
         // Send settlement request with proper error handling
         try {

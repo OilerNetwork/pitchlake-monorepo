@@ -8,6 +8,7 @@ type CountdownProps = {
   now: number;
   targetTimestamp: number;
   isPanelOpen: boolean;
+  isRound1Init?: boolean;
 };
 
 const Countdown = ({
@@ -15,10 +16,13 @@ const Countdown = ({
   now,
   isPanelOpen,
   targetTimestamp,
+  isRound1Init = false,
 }: CountdownProps) => {
   const msg =
     roundState === "Open"
-      ? "Auction Starts In"
+      ? isRound1Init
+        ? "Round Initializing In"
+        : "Auction Starts In"
       : roundState == "Auctioning"
         ? "Auction Ends In"
         : roundState === "Running"
@@ -27,7 +31,8 @@ const Countdown = ({
 
   const tooltipMsg = useMemo(() => {
     let msg = "";
-    if (roundState === "Open") msg = "Auction starts on:";
+    if (roundState === "Open")
+      msg = isRound1Init ? "Round initialization on:" : "Auction starts on:";
     else if (roundState === "Auctioning") msg = "Auction ends on:";
     else if (roundState === "Running") msg = "Round settles on: ";
     else if (roundState === "Settled") msg = "Round settled on: ";
@@ -35,11 +40,11 @@ const Countdown = ({
     msg += ` ${new Date(targetTimestamp * 1000).toLocaleString()}`;
 
     return msg;
-  }, [roundState, targetTimestamp]);
+  }, [roundState, targetTimestamp, isRound1Init]);
 
   const timeLeft = useMemo(() => {
     return timeUntilTarget(now.toString(), targetTimestamp.toString());
-  }, [targetTimestamp, now]);
+  }, [targetTimestamp, now, roundState]);
 
   if (!isPanelOpen) return null;
   else

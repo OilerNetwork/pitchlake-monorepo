@@ -46,7 +46,7 @@ export const StarknetProvider = ({
 }) => {
   const { connectors } = useInjectedConnectors({
     // Show these connectors if the user has no connector installed.
-    recommended: [ braavos(),ready()],
+    recommended: [braavos(), ready()],
     // Hide recommended connectors if the user has any connector installed.
     includeRecommended: "always",
     // Randomize the order of the connectors.
@@ -63,7 +63,6 @@ export const StarknetProvider = ({
         return {
           nodeUrl: process.env.NEXT_PUBLIC_RPC_URL_DEVNET,
         };
-
       case "juno":
         return {
           nodeUrl: process.env.NEXT_PUBLIC_RPC_URL_JUNO_DEVNET,
@@ -82,10 +81,13 @@ export const StarknetProvider = ({
   const provider = jsonRpcProvider({ rpc });
 
   const queryClient = useQueryClient();
-  const newDevnet = {...devnet, id: BigInt(stringToHexString("0x4b4154414e41"))}
+  const newDevnet = {
+    ...devnet,
+    id: BigInt(stringToHexString("0x4b4154414e41")),
+  };
   return (
     <StarknetConfig
-      chains={[  newDevnet,sepolia, juno, mainnet,]}
+      chains={[sepolia, newDevnet, juno, mainnet]}
       provider={provider}
       connectors={connectors}
       explorer={voyager}
