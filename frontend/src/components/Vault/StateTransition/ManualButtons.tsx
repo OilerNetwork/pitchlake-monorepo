@@ -9,6 +9,7 @@ import useVaultActions from "@/hooks/vault/actions/useVaultActions";
 import { useTimeContext } from "@/context/TimeProvider";
 import { useNewContext } from "@/context/NewProvider";
 import { useProgressEstimates } from "@/hooks/stateTransition/useProgressEstimates";
+import { sendFossilRequest } from "@/services/fossilRequest";
 
 const ManualButtons = ({
   isPanelOpen,
@@ -92,8 +93,10 @@ const ManualButtons = ({
       if (Number(selectedRoundState.reservePrice) === 0) {
         // Round 1 initialization case
         try {
-          const response = await vaultActions.sendFossilRequest(
+          const response = await sendFossilRequest(
             vaultState.jobRequestInitRound1,
+            conn,
+            vaultState.address,
           );
           if (response === "Ok") setExpectedNextState("Auctioning");
           else setExpectedNextState(null);
@@ -131,8 +134,10 @@ const ManualButtons = ({
           result ? setExpectedNextState("Settled") : setExpectedNextState(null);
         } // Do standard fossil request
         else {
-          const response = await vaultActions.sendFossilRequest(
+          const response = await sendFossilRequest(
             vaultState.jobRequestSettleRound,
+            conn,
+            vaultState.address,
           );
           if (response === "Ok") setExpectedNextState("Settled");
           else setExpectedNextState(null);

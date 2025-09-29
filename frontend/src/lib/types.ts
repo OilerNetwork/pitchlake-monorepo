@@ -146,7 +146,6 @@ export type VaultActionsType = {
   endAuction: () => Promise<void>;
   settleOptionRound: () => Promise<void>;
   demoFossilCallback: (fossilArgs: DemoFossilCallParams) => Promise<boolean>;
-  sendFossilRequest: (fossilRequest: FossilRequest | null) => Promise<string>;
 };
 
 export type SendFossiLRequestParams = {

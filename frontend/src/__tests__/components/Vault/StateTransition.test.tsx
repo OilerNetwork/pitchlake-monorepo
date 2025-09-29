@@ -11,6 +11,7 @@ import { useTimeContext } from "@/context/TimeProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { OptionRoundStateType, VaultStateType } from "@/lib/types";
 import * as useProgressEstimatesModule from "@/hooks/stateTransition/useProgressEstimates";
+import * as fossilRequestService from "@/services/fossilRequest";
 
 // Mock all hooks
 jest.mock("@starknet-react/core", () => ({
@@ -24,6 +25,7 @@ jest.mock("@/context/NewProvider");
 jest.mock("@/context/HelpProvider");
 jest.mock("@/context/TransactionProvider");
 jest.mock("@/context/TimeProvider");
+jest.mock("@/services/fossilRequest");
 
 //// Default test states
 const defaultRoundState = {
@@ -55,7 +57,6 @@ const defaultVaultActions = {
   startAuction: jest.fn(),
   endAuction: jest.fn(),
   demoFossilCallback: jest.fn(),
-  sendFossilRequest: jest.fn(),
 };
 
 // Test setup function
@@ -375,15 +376,19 @@ describe("DemoStateTransition", () => {
       const { onConfirm } = mockSetModalState.mock.calls[0][0];
       await act(() => onConfirm());
 
-      expect(defaultVaultActions.sendFossilRequest).toHaveBeenCalledWith({
-        program_id: expect.any(String),
-        vault_address: expect.any(String),
-        params: {
-          twap: expect.any(Object),
-          max_return: expect.any(Object),
-          reserve_price: expect.any(Object),
+      expect(fossilRequestService.sendFossilRequest).toHaveBeenCalledWith(
+        {
+          program_id: expect.any(String),
+          vault_address: expect.any(String),
+          params: {
+            twap: expect.any(Object),
+            max_return: expect.any(Object),
+            reserve_price: expect.any(Object),
+          },
         },
-      });
+        "mock",
+        "0x123",
+      );
     });
   });
 
