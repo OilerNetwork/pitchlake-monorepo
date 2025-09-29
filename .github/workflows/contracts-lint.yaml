@@ -6,14 +6,12 @@ on:
       - main
       - staging
     paths:
-      - 'contracts/**/*.cairo'
-      - 'contracts/Scarb.toml'
+      - 'contracts/**'
   pull_request:
     branches:
       - main
     paths:
-      - 'contracts/**/*.cairo'
-      - 'contracts/Scarb.toml'
+      - 'contracts/**'
 
 jobs:
   typos:
