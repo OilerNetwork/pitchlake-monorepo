@@ -12,7 +12,6 @@ extend-glob = ["**/*.go"]
 "pgx" = "pgx"
 "postgresql" = "postgresql"
 "postgres" = "postgres"
-"websocket" = "websocket"
 "godotenv" = "godotenv"
 "cbor" = "cbor"
 "uint256" = "uint256"
