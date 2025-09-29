@@ -8,7 +8,8 @@ use pitch_lake::tests::utils::helpers::accelerators::{
     accelerate_to_running_custom, accelerate_to_settled,
 };
 use pitch_lake::tests::utils::helpers::event_helpers::{
-    assert_event_option_round_deployed,assert_event_option_round_deployed_single, assert_event_option_settle, clear_event_logs,
+    assert_event_option_round_deployed, assert_event_option_round_deployed_single,
+    assert_event_option_settle, clear_event_logs,
 };
 use pitch_lake::tests::utils::helpers::general_helpers::{create_array_gradient, to_gwei};
 use pitch_lake::tests::utils::helpers::setup::{
@@ -103,7 +104,9 @@ fn test_option_round_settled_event() {
         let payout_per_option = total_payout / round.total_options_sold();
 
         // Check the event emits correctly
-        assert_event_option_settle(vault.contract_address(), round.get_round_id(), settlement_price, payout_per_option);
+        assert_event_option_settle(
+            vault.contract_address(), round.get_round_id(), settlement_price, payout_per_option,
+        );
 
         rounds_to_run -= 1;
     }

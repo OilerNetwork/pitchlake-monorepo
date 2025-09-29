@@ -9,7 +9,7 @@ use pitch_lake::tests::utils::helpers::setup::eth_supply_and_approve_all_bidders
 use pitch_lake::tests::utils::lib::test_accounts::bystander;
 use pitch_lake::vault::interface::{
     IVaultDispatcher, IVaultDispatcherTrait, IVaultSafeDispatcher, IVaultSafeDispatcherTrait,
-    JobRequest, L1Data, OffchainJobRequest, Params,
+    JobRequest, L1Data,
 };
 use starknet::ContractAddress;
 use starknet::testing::set_contract_address;

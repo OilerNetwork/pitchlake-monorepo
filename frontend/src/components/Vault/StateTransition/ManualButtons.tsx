@@ -8,6 +8,7 @@ import useRoundState from "@/hooks/vault/states/useRoundState";
 import useVaultActions from "@/hooks/vault/actions/useVaultActions";
 import { useTimeContext } from "@/context/TimeProvider";
 import { useNewContext } from "@/context/NewProvider";
+import { useProgressEstimates } from "@/hooks/stateTransition/useProgressEstimates";
 
 const ManualButtons = ({
   isPanelOpen,
@@ -23,6 +24,7 @@ const ManualButtons = ({
   const { conn } = useNewContext();
   const vaultActions = useVaultActions();
   const selectedRoundState = useRoundState(selectedRoundAddress);
+  const { totalEstimate } = useProgressEstimates();
 
   const [expectedNextState, setExpectedNextState] = useState<string | null>(
     null,
@@ -32,7 +34,7 @@ const ManualButtons = ({
     isDisabled,
     roundState,
   }: { isDisabled: boolean; roundState: string } = useMemo(() => {
-    if (!selectedRoundState || !timestamp)
+    if (!selectedRoundState || !timestamp || !vaultState)
       return { isDisabled: true, roundState: "Settled" };
 
     if (pendingTx) return { isDisabled: true, roundState: "Pending" };
@@ -44,8 +46,14 @@ const ManualButtons = ({
       return { isDisabled: true, roundState: "Pending" };
     }
 
-    const { roundState, auctionStartDate, auctionEndDate, optionSettleDate } =
-      selectedRoundState;
+    const {
+      roundState,
+      auctionStartDate,
+      auctionEndDate,
+      optionSettleDate,
+      deploymentDate,
+      reservePrice,
+    } = selectedRoundState;
 
     if (!account) return { isDisabled: true, roundState };
 
@@ -53,30 +61,54 @@ const ManualButtons = ({
     if (roundState === "Settled") return { isDisabled: true, roundState };
 
     const targetTimestamp =
-      roundState === "Open"
-        ? auctionStartDate
-        : roundState === "Auctioning"
-          ? auctionEndDate
-          : conn !== "demo"
-            ? Number(optionSettleDate) + 0 // fossilDelay
-            : optionSettleDate;
+      roundState === "Open" && Number(reservePrice) === 0
+        ? Number(deploymentDate)
+        : roundState === "Open"
+          ? Number(auctionStartDate)
+          : roundState === "Auctioning"
+            ? Number(auctionEndDate)
+            : conn !== "demo"
+              ? Number(optionSettleDate)
+              : optionSettleDate;
 
     if (Number(timestamp) < Number(targetTimestamp))
       return { isDisabled: true, roundState };
 
     return { isDisabled: false, roundState };
-  }, [account, pendingTx, selectedRoundState, timestamp, expectedNextState]);
+  }, [
+    account,
+    pendingTx,
+    selectedRoundState,
+    timestamp,
+    expectedNextState,
+    conn,
+    vaultState,
+  ]);
 
   const handleAction = useCallback(async () => {
     if (!account || !vaultState || !selectedRoundState) return;
 
     if (roundState === "Open") {
-      try {
-        await vaultActions.startAuction();
-        setExpectedNextState("Auctioning");
-      } catch (error) {
-        console.error(error);
-        setExpectedNextState(null);
+      if (Number(selectedRoundState.reservePrice) === 0) {
+        // Round 1 initialization case
+        try {
+          const response = await vaultActions.sendFossilRequest(
+            vaultState.jobRequestInitRound1,
+          );
+          if (response === "Ok") setExpectedNextState("Auctioning");
+          else setExpectedNextState(null);
+        } catch (error) {
+          console.error(error);
+          setExpectedNextState(null);
+        }
+      } else {
+        try {
+          await vaultActions.startAuction();
+          setExpectedNextState("Auctioning");
+        } catch (error) {
+          console.error(error);
+          setExpectedNextState(null);
+        }
       }
     } else if (roundState === "Auctioning") {
       try {
@@ -99,16 +131,9 @@ const ManualButtons = ({
           result ? setExpectedNextState("Settled") : setExpectedNextState(null);
         } // Do standard fossil request
         else {
-          const response = await vaultActions.sendFossilRequest({
-            targetTimestamp: Number(selectedRoundState.optionSettleDate),
-            vaultAddress: vaultState.address,
-            clientAddress: vaultState.l1DataProcessorAddress,
-            roundDuration:
-              Number(selectedRoundState.optionSettleDate) -
-              Number(selectedRoundState.auctionEndDate),
-            alpha: Number(vaultState.alpha),
-            k: Number(vaultState.strikeLevel),
-          });
+          const response = await vaultActions.sendFossilRequest(
+            vaultState.jobRequestSettleRound,
+          );
           if (response === "Ok") setExpectedNextState("Settled");
           else setExpectedNextState(null);
         }
@@ -137,12 +162,15 @@ const ManualButtons = ({
 
   const actions: Record<string, string> = useMemo(
     () => ({
-      Open: "Start Auction",
+      Open:
+        Number(selectedRoundState?.reservePrice) === 0
+          ? "Initialize Round"
+          : "Start Auction",
       Auctioning: "End Auction",
       Running: "Settle Round",
       Pending: "Pending",
     }),
-    [],
+    [selectedRoundState?.reservePrice],
   );
 
   const icon = getIconByRoundState(roundState, isDisabled, isPanelOpen);
@@ -169,7 +197,9 @@ const ManualButtons = ({
             Something went wrong,
             {account ? " please manually " : " connect account to manually "}
             {roundState === "Open"
-              ? "start the auction."
+              ? Number(selectedRoundState?.reservePrice) === 0
+                ? "initialize round 1."
+                : "start the auction."
               : roundState === "Auctioning"
                 ? "end the auction."
                 : "settle the round."}

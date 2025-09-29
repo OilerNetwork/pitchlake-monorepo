@@ -1,6 +1,6 @@
 # PitchLake Contracts Makefile
 
-.PHONY: help build deploy-local deploy-local-no-build clean
+.PHONY: help build deploy-local deploy-local-no-build clean fund-devnet-eth fund-devnet-strk
 
 # Default target
 help:
@@ -11,6 +11,8 @@ help:
 	@echo "  test-ignored     - Run ignored tests"
 	@echo "  deploy-local     - Build contracts and deploy vault to local network"
 	@echo "  deploy-local-no-build - Deploy vault to local network (assumes contracts are built)"
+	@echo "  fund-devnet-eth  - Fund a devnet wallet with ETH (usage: make fund-devnet-eth ADDRESS=0x1234...)"
+	@echo "  fund-devnet-strk - Fund a devnet wallet with STRK (usage: make fund-devnet-strk ADDRESS=0x1234...)"
 	@echo "  clean            - Clean build artifacts"
 	@echo "  help             - Show this help message"
 
@@ -99,6 +101,32 @@ deploy-local-no-build:
 	@echo "🚀 Running deployment..."
 	cd deployment && go run cmd/deploy/main.go
 	@echo "✅ Deployment completed!"
+
+# Fund devnet wallet with ETH
+fund-devnet-eth:
+	@echo "💰 Funding devnet wallet with ETH..."
+	@if [ -z "$(ADDRESS)" ]; then \
+		echo "❌ No address provided. Usage: make fund-devnet-eth ADDRESS=0x1234..."; \
+		exit 1; \
+	fi
+	@echo "📦 Installing Go dependencies..."
+	cd deployment && go mod tidy
+	@echo "🚀 Sending ETH to $(ADDRESS)..."
+	cd deployment && go run cmd/fund/main.go eth $(ADDRESS)
+	@echo "✅ ETH funding completed!"
+
+# Fund devnet wallet with STRK
+fund-devnet-strk:
+	@echo "💰 Funding devnet wallet with STRK..."
+	@if [ -z "$(ADDRESS)" ]; then \
+		echo "❌ No address provided. Usage: make fund-devnet-strk ADDRESS=0x1234..."; \
+		exit 1; \
+	fi
+	@echo "📦 Installing Go dependencies..."
+	cd deployment && go mod tidy
+	@echo "🚀 Sending STRK to $(ADDRESS)..."
+	cd deployment && go run cmd/fund/main.go strk $(ADDRESS)
+	@echo "✅ STRK funding completed!"
 
 # Clean build artifacts
 clean:

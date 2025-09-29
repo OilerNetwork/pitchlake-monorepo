@@ -96,11 +96,9 @@ const Mint: React.FC<MintProps> = ({ showConfirmation }) => {
               </>
             ),
           });
-          console.log(3);
           updateStatusModalProps({
             txnHash: hash,
           });
-          console.log(4);
         } catch (e) {
           setStatusModalProps({
             version: "failure",

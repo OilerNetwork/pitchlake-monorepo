@@ -28,6 +28,12 @@ func NewDB() (*DB, error) {
 		return nil, fmt.Errorf("unable to parse connection string: %w", err)
 	}
 
+	// Configure timezone to UTC for consistent time handling
+	config.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
+		_, err := conn.Exec(ctx, "SET timezone = 'UTC'")
+		return err
+	}
+
 	pool, err := pgxpool.NewWithConfig(context.Background(), config)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create connection pool: %w", err)
@@ -37,6 +43,14 @@ func NewDB() (*DB, error) {
 	if err != nil {
 		pool.Close()
 		return nil, fmt.Errorf("unable to connect to database: %w", err)
+	}
+
+	// Set timezone to UTC for the single connection as well
+	_, err = conn.Exec(context.Background(), "SET timezone = 'UTC'")
+	if err != nil {
+		pool.Close()
+		conn.Close(context.Background())
+		return nil, fmt.Errorf("unable to set timezone to UTC: %w", err)
 	}
 
 	return &DB{

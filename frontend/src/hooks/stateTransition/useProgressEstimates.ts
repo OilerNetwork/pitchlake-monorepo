@@ -5,50 +5,76 @@ import useRoundState from "../vault/states/useRoundState";
 
 export const useProgressEstimates = () => {
   const { conn } = useNewContext();
-  const vaultState = useVaultState();
-  const selectedRoundState = useRoundState(vaultState?.selectedRoundAddress);
+  const { vaultState, selectedRoundAddress } = useVaultState();
+  const selectedRoundState = useRoundState(selectedRoundAddress);
 
-  const { txnEstimate, fossilEstimate, errorEstimate } = useMemo(() => {
-    if (
-      !selectedRoundState?.auctionEndDate ||
-      !selectedRoundState?.optionSettleDate
-    ) {
-      return { txnEstimate: 0, fossilEstimate: 0, errorEstimate: 0 };
-    }
-
-    const { auctionEndDate, optionSettleDate } = selectedRoundState;
-    const roundDuration = Number(optionSettleDate) - Number(auctionEndDate);
-
-    let txnEstimate = 0;
-    let fossilEstimate = 0;
-    let errorEstimate = 0;
-
-    if (conn === "demo") {
-      txnEstimate = 30;
-      fossilEstimate = 30;
-      errorEstimate = 0;
-    } else {
-      txnEstimate = 90;
-      errorEstimate = 30;
-      // Rounds < 5 hours should settle in 30 min or less (15 min confirmation latency + 5 min calculation time)
-      if (roundDuration <= 60 * 60 * 5) {
-        fossilEstimate = 60 * 25;
-      } // Rounds > 5 hours should settle in 1.5 hours or less
-      else {
-        fossilEstimate = 60 * 60 * 1.5;
+  const { cronEstimate, fossilEstimate, errorEstimate, totalEstimate } =
+    useMemo(() => {
+      if (!selectedRoundState || !vaultState) {
+        return {
+          cronEstimate: 0,
+          fossilEstimate: 0,
+          errorEstimate: 0,
+          totalEstimate: 0,
+        };
       }
-    }
 
-    return { txnEstimate, fossilEstimate, errorEstimate };
-  }, [
-    conn,
-    selectedRoundState?.auctionEndDate,
-    selectedRoundState?.optionSettleDate,
-  ]);
+      const { roundState, reservePrice } = selectedRoundState;
+      const { provingDelay } = vaultState;
+
+      // Base estimates
+      const CRON_ESTIMATE = 30; // 30 seconds for cron processing
+      const FOSSIL_ESTIMATE = 30; // 30 seconds for fossil processing
+      const ERROR_ESTIMATE = 10; // 30 seconds error tolerance
+
+      let cronEstimate = 0;
+      let fossilEstimate = 0;
+      let errorEstimate = ERROR_ESTIMATE;
+
+      if (conn === "demo") {
+        // Demo mode - faster estimates
+        cronEstimate = 30;
+        fossilEstimate = 30;
+        errorEstimate = 0;
+      } else {
+        cronEstimate = CRON_ESTIMATE;
+        fossilEstimate = FOSSIL_ESTIMATE;
+        errorEstimate = ERROR_ESTIMATE;
+      }
+
+      // Calculate total estimate based on scenario
+      let totalEstimate = 0;
+
+      if (roundState === "Open") {
+        if (Number(reservePrice) === 0) {
+          // Round 1 initialization case
+          totalEstimate = Number(provingDelay) + fossilEstimate + errorEstimate;
+        } else {
+          // Normal auction start case
+          totalEstimate = cronEstimate + errorEstimate;
+        }
+      } else if (roundState === "Auctioning") {
+        // Auction end case
+        totalEstimate = cronEstimate + errorEstimate;
+      } else if (roundState === "Running") {
+        // Settlement case
+        totalEstimate = Number(provingDelay) + fossilEstimate + errorEstimate;
+      }
+
+      return { cronEstimate, fossilEstimate, errorEstimate, totalEstimate };
+    }, [
+      conn,
+      selectedRoundState?.roundState,
+      selectedRoundState?.reservePrice,
+      selectedRoundState?.auctionEndDate,
+      selectedRoundState?.optionSettleDate,
+      vaultState?.provingDelay,
+    ]);
 
   return {
-    txnEstimate,
+    cronEstimate,
     fossilEstimate,
     errorEstimate,
+    totalEstimate,
   };
 };

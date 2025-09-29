@@ -11,7 +11,9 @@ pub mod OptionRound {
     use pitch_lake::library::red_black_tree::RBTreeComponent;
     use pitch_lake::library::red_black_tree::RBTreeComponent::Node;
     use pitch_lake::option_round::interface::{
-        ConstructorArgs, IOptionRound, OptionRoundState, PricingData, OptionRoundEvent, PricingDataSet, AuctionStarted, BidPlaced, BidUpdated, AuctionEnded, OptionRoundSettled, OptionsExercised, UnusedBidsRefunded, OptionsMinted
+        AuctionEnded, AuctionStarted, BidPlaced, BidUpdated, ConstructorArgs, IOptionRound,
+        OptionRoundEvent, OptionRoundSettled, OptionRoundState, OptionsExercised, OptionsMinted,
+        PricingData, PricingDataSet, UnusedBidsRefunded,
     };
     use pitch_lake::types::Bid;
     use pitch_lake::vault::interface::{IVaultDispatcher, IVaultDispatcherTrait};
@@ -150,7 +152,7 @@ pub mod OptionRound {
     // @dev Option round event type that includes all option round events (excluding flat events)
     // @dev Emitted when the pricing data is set
     // @member pricing_data: The pricing data (strike price, cap level, reserve price)
-    
+
     // *************************************************************************
     //                            IMPLEMENTATIONS
     // *************************************************************************
@@ -433,7 +435,10 @@ pub mod OptionRound {
             self.pricing_data.write(pricing_data);
 
             // @dev Emit event
-            self.emit_option_round_event(OptionRoundEvent::PricingDataSet(PricingDataSet { pricing_data }));
+            self
+                .emit_option_round_event(
+                    OptionRoundEvent::PricingDataSet(PricingDataSet { pricing_data }),
+                );
         }
 
         fn start_auction(ref self: ContractState, starting_liquidity: u256) -> u256 {
@@ -452,7 +457,12 @@ pub mod OptionRound {
 
             // @dev Transition state and emit event
             self.transition_state_to(OptionRoundState::Auctioning);
-            self.emit_option_round_event(OptionRoundEvent::AuctionStarted(AuctionStarted { starting_liquidity, options_available }));
+            self
+                .emit_option_round_event(
+                    OptionRoundEvent::AuctionStarted(
+                        AuctionStarted { starting_liquidity, options_available },
+                    ),
+                );
 
             // @dev Return total options available in the auction
             options_available
@@ -479,8 +489,14 @@ pub mod OptionRound {
 
             // @dev Transition state and emit event
             self.transition_state_to(OptionRoundState::Running);
-            self.emit_option_round_event(OptionRoundEvent::AuctionEnded(AuctionEnded { options_sold, clearing_price, unsold_liquidity, clearing_bid_tree_nonce }));
-            
+            self
+                .emit_option_round_event(
+                    OptionRoundEvent::AuctionEnded(
+                        AuctionEnded {
+                            options_sold, clearing_price, unsold_liquidity, clearing_bid_tree_nonce,
+                        },
+                    ),
+                );
 
             // @dev Return clearing price and options sold
             (clearing_price, options_sold)
@@ -500,7 +516,12 @@ pub mod OptionRound {
 
             // @dev Transition state and emit event
             self.transition_state_to(OptionRoundState::Settled);
-            self.emit_option_round_event(OptionRoundEvent::OptionRoundSettled(OptionRoundSettled { settlement_price, payout_per_option }));
+            self
+                .emit_option_round_event(
+                    OptionRoundEvent::OptionRoundSettled(
+                        OptionRoundSettled { settlement_price, payout_per_option },
+                    ),
+                );
 
             // @dev Return total payout
             payout_per_option * self.bids_tree.total_options_sold.read()
@@ -538,8 +559,14 @@ pub mod OptionRound {
                 .transfer_from(account, get_contract_address(), transfer_amount);
 
             // @dev Emit bid placed event
-            self.emit_option_round_event(OptionRoundEvent::BidPlaced(BidPlaced { account, bid_id, amount, price, bid_tree_nonce_now: tree_nonce + 1 }));
-            
+            self
+                .emit_option_round_event(
+                    OptionRoundEvent::BidPlaced(
+                        BidPlaced {
+                            account, bid_id, amount, price, bid_tree_nonce_now: tree_nonce + 1,
+                        },
+                    ),
+                );
 
             // @dev Return the created Bid struct
             bid
@@ -571,8 +598,18 @@ pub mod OptionRound {
             self.get_eth_dispatcher().transfer_from(account, get_contract_address(), difference);
 
             // @dev Emit bid updated event
-            self.emit_option_round_event(OptionRoundEvent::BidUpdated(BidUpdated { account, bid_id, price_increase, bid_tree_nonce_before, bid_tree_nonce_now: tree_nonce + 1 }));
-            
+            self
+                .emit_option_round_event(
+                    OptionRoundEvent::BidUpdated(
+                        BidUpdated {
+                            account,
+                            bid_id,
+                            price_increase,
+                            bid_tree_nonce_before,
+                            bid_tree_nonce_now: tree_nonce + 1,
+                        },
+                    ),
+                );
 
             // @dev Return the edited bid
             edited_bid
@@ -592,7 +629,12 @@ pub mod OptionRound {
             self.get_eth_dispatcher().transfer(account, refunded_amount);
 
             // @dev Emit bids refunded event
-            self.emit_option_round_event(OptionRoundEvent::UnusedBidsRefunded(UnusedBidsRefunded { account, refunded_amount }));
+            self
+                .emit_option_round_event(
+                    OptionRoundEvent::UnusedBidsRefunded(
+                        UnusedBidsRefunded { account, refunded_amount },
+                    ),
+                );
 
             // @dev Return the refunded amount
             refunded_amount
@@ -613,7 +655,10 @@ pub mod OptionRound {
             self.erc20.mint(account, minted_amount);
 
             // @dev Emit options minted event
-            self.emit_option_round_event(OptionRoundEvent::OptionsMinted(OptionsMinted { account, minted_amount }));
+            self
+                .emit_option_round_event(
+                    OptionRoundEvent::OptionsMinted(OptionsMinted { account, minted_amount }),
+                );
 
             // @dev Return the amount of option tokens minted
             minted_amount
@@ -642,21 +687,22 @@ pub mod OptionRound {
             self.get_eth_dispatcher().transfer(account, exercised_amount);
 
             // @dev Emit options exercised event
-            self.emit_option_round_event(OptionRoundEvent::OptionsExercised(OptionsExercised { account, total_options_exercised, mintable_options_exercised, exercised_amount }));
+            self
+                .emit_option_round_event(
+                    OptionRoundEvent::OptionsExercised(
+                        OptionsExercised {
+                            account,
+                            total_options_exercised,
+                            mintable_options_exercised,
+                            exercised_amount,
+                        },
+                    ),
+                );
 
             // @dev Return the exercised amount
             exercised_amount
         }
-        fn emit_option_round_event(ref self: ContractState, option_round_event: OptionRoundEvent) {
-            // @dev Get the round dispatcher to validate the round exists
-            let vault = self.get_vault_dispatcher();
-            let round_id = self.get_round_id();
-            vault.emit_option_round_event(round_id, option_round_event);
-        }
     }
-
-    // @dev General function to emit any option round event from the vault
-   
 
     // *************************************************************************
     //                          INTERNAL FUNCTIONS
@@ -664,6 +710,15 @@ pub mod OptionRound {
 
     #[generate_trait]
     impl InternalImpl of OptionRoundInternalTrait {
+        // @dev Used by an option round to emit events through the vault contract (for indexer
+        // purposes)
+        fn emit_option_round_event(ref self: ContractState, option_round_event: OptionRoundEvent) {
+            // @dev Get the round dispatcher to validate the round exists
+            let vault = self.get_vault_dispatcher();
+            let round_id = self.get_round_id();
+            vault.emit_option_round_event(round_id, option_round_event);
+        }
+
         // @dev Transitions the round's state to `to_state` if the proper conditions are met
         fn transition_state_to(ref self: ContractState, to_state: OptionRoundState) {
             // @dev Assert the caller is the vault
@@ -819,6 +874,5 @@ pub mod OptionRound {
                 array![bidder.into(), nonce.try_into().unwrap()].span(),
             )
         }
-
     }
 }

@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"pitchlake-backend/db/repositories"
+	"pitchlake-backend/models"
 	"pitchlake-backend/server/api/utils"
 	"pitchlake-backend/server/types"
 	"pitchlake-backend/server/validations"
@@ -15,6 +16,11 @@ import (
 	"time"
 
 	"github.com/coder/websocket"
+)
+
+const (
+	// DEFAULT_STUCK_JOB_TIMEOUT is the default maximum time a job can be pending before being considered stuck
+	DEFAULT_STUCK_JOB_TIMEOUT = 10 * time.Minute
 )
 
 func (router *VaultRouter) subscribeVault(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
@@ -91,10 +97,10 @@ func (router *VaultRouter) subscribeVault(ctx context.Context, w http.ResponseWr
 	payload.PayloadType = "initial"
 
 	//Create repositories
-	vaultRepo := repositories.NewVaultRepository(&router.pool)
-	optionRoundRepo := repositories.NewOptionRepository(&router.pool)
-	optionBuyerRepo := repositories.NewOptionBuyerRepository(&router.pool)
-	lpRepo := repositories.NewLiquidityRepository(&router.pool)
+	vaultRepo := repositories.NewVaultRepository(router.pool)
+	optionRoundRepo := repositories.NewOptionRepository(router.pool)
+	optionBuyerRepo := repositories.NewOptionBuyerRepository(router.pool)
+	lpRepo := repositories.NewLiquidityRepository(router.pool)
 
 	vaultState, err := vaultRepo.GetVaultStateByID(ctx, s.VaultAddress)
 
@@ -245,5 +251,169 @@ func (router *VaultRouter) deleteSubscriberVault(s *types.SubscriberVault) {
 }
 
 func (router *VaultRouter) sendJobRequest(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return nil
+	}
+
+	var req struct {
+		FossilRequest models.FossilRequest `json:"fossil_request"`
+		RoundID       int                  `json:"round_id"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return nil
+	}
+
+	// Validate required fields
+	if req.FossilRequest.VaultAddress == "" {
+		http.Error(w, "vault_address is required", http.StatusBadRequest)
+		return nil
+	}
+	if req.FossilRequest.ProgramID == "" {
+		http.Error(w, "program_id is required", http.StatusBadRequest)
+		return nil
+	}
+	if req.RoundID < 0 {
+		http.Error(w, "round_id must be non-negative", http.StatusBadRequest)
+		return nil
+	}
+
+	// Create job request repository
+	jobRepo := repositories.NewJobRequestRepository(router.pool)
+
+	// Get the latest job request for this vault and round
+	latestJob, err := jobRepo.GetLatestJobRequestByVaultAndRound(ctx, req.FossilRequest.VaultAddress, req.RoundID)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error getting latest job request: %v", err), http.StatusInternalServerError)
+		return nil
+	}
+
+	// If there's a job request, refresh its status
+	if latestJob != nil {
+		refreshedJob, err := router.refreshJobStatus(ctx, latestJob, jobRepo)
+		if err != nil {
+			log.Printf("Error refreshing job status: %v", err)
+			// Continue with the original job if refresh fails
+			refreshedJob = latestJob
+		}
+
+		// If job is pending, check if it's stuck
+		if refreshedJob.Status == models.JobStatusPending {
+			// Check if the job has been pending for too long
+			if router.isJobStuck(refreshedJob) {
+				log.Printf("Job %s has been pending for too long, marking as failed", refreshedJob.JobID)
+				
+				// Mark the stuck job as failed
+				err = jobRepo.UpdateJobRequestStatus(ctx, refreshedJob.JobID, models.JobStatusFailed)
+				if err != nil {
+					log.Printf("Error marking stuck job as failed: %v", err)
+				}
+				
+				// Continue to send a new job below
+			} else {
+				// Job is still valid and pending
+				response := models.SendJobRequestResponse{
+					JobID:   refreshedJob.JobID,
+					Status:  refreshedJob.Status,
+					Message: "Job request is already pending",
+				}
+				w.Header().Set("Content-Type", "application/json")
+				json.NewEncoder(w).Encode(response)
+				return nil
+			}
+		}
+
+		// If job is completed, return it
+		if refreshedJob.Status == models.JobStatusCompleted {
+			response := models.SendJobRequestResponse{
+				JobID:   refreshedJob.JobID,
+				Status:  refreshedJob.Status,
+				Message: "Job request is already completed",
+			}
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(response)
+			return nil
+		}
+
+		// If job failed, we'll send a new one below
+	}
+
+	// Send new job request to Fossil API
+	jobResponse, err := router.fossilAPI.SendFossilRequest(req.FossilRequest)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error sending fossil request: %v", err), http.StatusInternalServerError)
+		return nil
+	}
+
+	// Save to database
+	err = jobRepo.InsertJobRequest(ctx, req.FossilRequest.VaultAddress, jobResponse.JobID, models.JobStatusPending, req.RoundID)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error saving job request: %v", err), http.StatusInternalServerError)
+		return nil
+	}
+
+	response := models.SendJobRequestResponse{
+		JobID:   jobResponse.JobID,
+		Status:  models.JobStatusPending,
+		Message: "New job request sent successfully",
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 	return nil
+}
+
+// refreshJobStatus refreshes the status of a job from Fossil API
+func (router *VaultRouter) refreshJobStatus(ctx context.Context, job *models.JobRequest, jobRepo *repositories.JobRequestRepository) (*models.JobRequest, error) {
+	if job.Status == models.JobStatusFailed {
+		return job, nil // Don't refresh failed jobs
+	}
+
+	statusStr, err := router.fossilAPI.GetJobStatus(job.JobID)
+	if err != nil {
+		return job, err
+	}
+
+	// Parse the status from Fossil API
+	var fossilResponse struct {
+		Status string `json:"status"`
+	}
+	if err := json.Unmarshal([]byte(*statusStr), &fossilResponse); err != nil {
+		return job, err
+	}
+
+	// Update job status if it changed
+	newStatus := models.JobStatus(fossilResponse.Status)
+	if newStatus != job.Status {
+		err = jobRepo.UpdateJobRequestStatus(ctx, job.JobID, newStatus)
+		if err != nil {
+			return job, err
+		}
+		job.Status = newStatus
+	}
+
+	return job, nil
+}
+
+// isJobStuck checks if a job has been pending for longer than the stuck timeout
+func (router *VaultRouter) isJobStuck(job *models.JobRequest) bool {
+	// Get the stuck timeout from environment variable or use default
+	stuckTimeout := router.getStuckJobTimeout()
+	
+	// Convert both times to UTC for proper comparison
+	now := time.Now().UTC()
+	createdAt := job.CreatedAt.UTC()
+	timeSince := now.Sub(createdAt)
+	
+	// Check if the job has been pending for longer than the timeout
+	return timeSince > stuckTimeout
+}
+
+// getStuckJobTimeout returns the configured stuck job timeout
+func (router *VaultRouter) getStuckJobTimeout() time.Duration {
+	// This could be made configurable via environment variable in the future
+	// For now, return the default
+	return DEFAULT_STUCK_JOB_TIMEOUT
 }

@@ -24,6 +24,9 @@ services:
       - FOSSIL_API_KEY=${FOSSIL_API_KEY}
       - FOSSIL_API_URL=${FOSSIL_API_URL}
       
+      # Mock Verifier Configuration
+      - USE_MOCK_VERIFIER=${USE_MOCK_VERIFIER:-false}
+      
       # Cron Schedules
       - CRON_SCHEDULE=${CRON_SCHEDULE:-*/5 * * * * *}
       - CRON_SCHEDULE_STATE=${CRON_SCHEDULE_STATE:-*/30 * * * * *}

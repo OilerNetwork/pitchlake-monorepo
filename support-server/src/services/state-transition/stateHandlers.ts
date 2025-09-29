@@ -1,7 +1,7 @@
 import { Account, Contract, RpcProvider, CairoCustomEnum } from "starknet";
 import { Logger } from "winston";
 import { formatRawFossilRequest, formatTimeLeft, getJobStatus } from "./utils";
-import { sendFossilRequest } from "./utils";
+import { sendFossilRequest, sendMockFossilRequest } from "./utils";
 import { JobRequest, JobStatus } from "../../types/types";
 import { rpcToStarknetBlock } from "../../utils/rpcClient";
 import { DB } from "../../shared/db";
@@ -17,6 +17,11 @@ export class StateHandlers {
     this.logger = logger;
     this.provider = provider;
     this.account = account;
+  }
+
+  private getRequestFunction() {
+    const useMockVerifier = process.env.USE_MOCK_VERIFIER === "true";
+    return useMockVerifier ? sendMockFossilRequest : sendFossilRequest;
   }
 
   private async refreshJobStatus(jobRequest: JobRequest): Promise<JobRequest> {
@@ -125,7 +130,7 @@ export class StateHandlers {
 
           const requestData =
             await vaultContract.get_request_to_start_first_round();
-          const response = await sendFossilRequest(
+          const response = await this.getRequestFunction()(
             formatRawFossilRequest(requestData),
             vaultContract,
             this.logger,
@@ -376,7 +381,7 @@ export class StateHandlers {
         return;
       }
 
-      // If no job request or latest was failed, send new settlement request
+      // if no job request or latest was failed, send new settlement request
       if (!jobRequest || jobRequest.status === JobStatus.Failed) {
         // Send settlement request with proper error handling
         try {
@@ -384,7 +389,7 @@ export class StateHandlers {
             await vaultContract.get_request_to_settle_round();
           const requestData = formatRawFossilRequest(rawRequestData);
 
-          const response = await sendFossilRequest(
+          const response = await this.getRequestFunction()(
             requestData,
             vaultContract,
             this.logger,

@@ -189,6 +189,7 @@ The system uses multiple environment files for different deployment scenarios:
 | `STARKNET_RPC` | StarkNet RPC endpoint | `http://localhost:5050` |
 | `FOSSIL_API_KEY` | API key for Fossil services | `generated_automatically` |
 | `FOSSIL_API_URL` | Fossil API endpoint | `http://localhost:3000` |
+| `USE_MOCK_VERIFIER` | Use mock verifier instead of Fossil API (uses automator's account) | `false` |
 | `PITCHLAKE_DB_URL` | Pitchlake database connection | `postgres://user:pass@localhost:5433/db` |
 | `FOSSIL_DB_URL` | Fossil database connection | `postgres://user:pass@localhost:5432/db` |
 | `IS_DEVNET` | Enable devnet mode (block mining) | `false` |

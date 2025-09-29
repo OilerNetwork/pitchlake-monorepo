@@ -6,7 +6,16 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
-     FRONTEND_URL: ${FRONTEND_URL}
-     PITCHLAKE_DB_URL: ${PITCHLAKE_DB_URL}
+      FRONTEND_URL: ${FRONTEND_URL}
+      PITCHLAKE_DB_URL: ${PITCHLAKE_DB_URL}
+      FOSSIL_API_KEY: ${FOSSIL_API_KEY}
+      FOSSIL_API_URL: ${FOSSIL_API_URL}
+      # Starknet configuration for mock fossil requests
+      STARKNET_RPC_URL: ${STARKNET_RPC_URL}
+      STARKNET_ACCOUNT_ADDRESS: ${STARKNET_ACCOUNT_ADDRESS}
+      STARKNET_PRIVATE_KEY: ${STARKNET_PRIVATE_KEY}
+      STARKNET_PUBLIC_KEY: ${STARKNET_PUBLIC_KEY}
+      # Development mode flag
+      DEV_MODE: ${DEV_MODE}
     ports:
       - "8080:8080" # Adjust this port if needed

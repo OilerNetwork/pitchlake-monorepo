@@ -18,6 +18,8 @@ for contract in "${contracts[@]}"; do
 	IFS=':' read -r contract_name abi_name <<<"$contract"
 	json_file="../target/dev/pitch_lake_${contract_name}.contract_class.json"
 	abi_file="../../support-server/src/abi/${abi_name}.ts"
+	abi_file2="../../frontend/src/lib/abi/${abi_name}.ts"
 
 	npx abi-wan-kanabi --input "$json_file" --output "$abi_file"
+	npx abi-wan-kanabi --input "$json_file" --output "$abi_file2"
 done

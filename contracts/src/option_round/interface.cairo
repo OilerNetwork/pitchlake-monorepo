@@ -23,105 +23,105 @@ pub enum OptionRoundEvent {
     OptionsMinted: OptionsMinted,
 }
 #[derive(Drop, Serde, PartialEq)]
-    pub struct PricingDataSet {
-        pub pricing_data: PricingData,
-    }
+pub struct PricingDataSet {
+    pub pricing_data: PricingData,
+}
 
-    // @dev Emitted when the auction starts
-    // @member starting_liquidity: The liquidity locked at the start of the auction
-    // @member options_available: The max number of options that can sell in the auction
-    #[derive(Drop, Serde, PartialEq)]
-    pub struct AuctionStarted {
-        pub starting_liquidity: u256,
-        pub options_available: u256,
-    }
+// @dev Emitted when the auction starts
+// @member starting_liquidity: The liquidity locked at the start of the auction
+// @member options_available: The max number of options that can sell in the auction
+#[derive(Drop, Serde, PartialEq)]
+pub struct AuctionStarted {
+    pub starting_liquidity: u256,
+    pub options_available: u256,
+}
 
-    // @dev Emitted when the auction ends
-    // @member clearing_price: The calculated price per option after the auction
-    // @member options_sold: The number of options that sold in the auction
-    // @memeber unsold_liquidity: The amount of liquidity that was not sold in the auction
-    #[derive(Drop, Serde, PartialEq)]
-    pub struct AuctionEnded {
-        pub options_sold: u256,
-        pub clearing_price: u256,
-        pub unsold_liquidity: u256,
-        pub clearing_bid_tree_nonce: u64,
-    }
+// @dev Emitted when the auction ends
+// @member clearing_price: The calculated price per option after the auction
+// @member options_sold: The number of options that sold in the auction
+// @memeber unsold_liquidity: The amount of liquidity that was not sold in the auction
+#[derive(Drop, Serde, PartialEq)]
+pub struct AuctionEnded {
+    pub options_sold: u256,
+    pub clearing_price: u256,
+    pub unsold_liquidity: u256,
+    pub clearing_bid_tree_nonce: u64,
+}
 
-    // @dev Emitted when the round settles
-    // @member payout_per_option: The exercisable amount for 1 option
-    // @member settlement_price: The basefee TWAP used to settle the round
-    #[derive(Drop, Serde, PartialEq)]
-    pub struct OptionRoundSettled {
-        pub settlement_price: u256,
-        pub payout_per_option: u256,
-    }
+// @dev Emitted when the round settles
+// @member payout_per_option: The exercisable amount for 1 option
+// @member settlement_price: The basefee TWAP used to settle the round
+#[derive(Drop, Serde, PartialEq)]
+pub struct OptionRoundSettled {
+    pub settlement_price: u256,
+    pub payout_per_option: u256,
+}
 
-    // @dev Emitted when a bid is placed
-    // @memeber account: The account that placed the bid
-    // @member bid_id: The bid's identifier
-    // @memeber amount: The max amount of options the account is bidding for
-    // @member price: The max price per option the account is bidding for
-    // @member account_bid_nonce_now: The amount of bids the account has placed now
-    // @member tree_bid_nonce_now: The bid tree's nonce now
-    #[derive(Drop, Serde, PartialEq)]
-    pub struct BidPlaced {
-        #[key]
-        pub account: ContractAddress,
-        pub bid_id: felt252,
-        pub amount: u256,
-        pub price: u256,
-        pub bid_tree_nonce_now: u64,
-    }
+// @dev Emitted when a bid is placed
+// @memeber account: The account that placed the bid
+// @member bid_id: The bid's identifier
+// @memeber amount: The max amount of options the account is bidding for
+// @member price: The max price per option the account is bidding for
+// @member account_bid_nonce_now: The amount of bids the account has placed now
+// @member tree_bid_nonce_now: The bid tree's nonce now
+#[derive(Drop, Serde, PartialEq)]
+pub struct BidPlaced {
+    #[key]
+    pub account: ContractAddress,
+    pub bid_id: felt252,
+    pub amount: u256,
+    pub price: u256,
+    pub bid_tree_nonce_now: u64,
+}
 
-    // @dev Emitted when a bid is updated
-    // @member account: The account that updated the bid
-    // @member bid_id: The bid's identifier
-    // @member price_increase: The bid's price increase amount
-    // @member tree_bid_nonce_now: The nonce of the bid tree now
-    #[derive(Drop, Serde, PartialEq)]
-    pub struct BidUpdated {
-        #[key]
-        pub account: ContractAddress,
-        pub bid_id: felt252,
-        pub price_increase: u256,
-        pub bid_tree_nonce_before: u64,
-        pub bid_tree_nonce_now: u64,
-    }
+// @dev Emitted when a bid is updated
+// @member account: The account that updated the bid
+// @member bid_id: The bid's identifier
+// @member price_increase: The bid's price increase amount
+// @member tree_bid_nonce_now: The nonce of the bid tree now
+#[derive(Drop, Serde, PartialEq)]
+pub struct BidUpdated {
+    #[key]
+    pub account: ContractAddress,
+    pub bid_id: felt252,
+    pub price_increase: u256,
+    pub bid_tree_nonce_before: u64,
+    pub bid_tree_nonce_now: u64,
+}
 
-    // @dev Emitted when an account mints option ERC-20 tokens
-    // @member account: The account that minted the options
-    // @member minted_amount: The amount of options minted
-    #[derive(Drop, Serde, PartialEq)]
-    pub struct OptionsMinted {
-        #[key]
-        pub account: ContractAddress,
-        pub minted_amount: u256,
-    }
+// @dev Emitted when an account mints option ERC-20 tokens
+// @member account: The account that minted the options
+// @member minted_amount: The amount of options minted
+#[derive(Drop, Serde, PartialEq)]
+pub struct OptionsMinted {
+    #[key]
+    pub account: ContractAddress,
+    pub minted_amount: u256,
+}
 
-    // @dev Emitted when an accounts unused bids are refunded
-    // @param account: The account that's bids were refuned
-    // @param refunded_amount: The amount refunded
-    #[derive(Drop, Serde, PartialEq)]
-    pub struct UnusedBidsRefunded {
-        #[key]
-        pub account: ContractAddress,
-        pub refunded_amount: u256,
-    }
+// @dev Emitted when an accounts unused bids are refunded
+// @param account: The account that's bids were refuned
+// @param refunded_amount: The amount refunded
+#[derive(Drop, Serde, PartialEq)]
+pub struct UnusedBidsRefunded {
+    #[key]
+    pub account: ContractAddress,
+    pub refunded_amount: u256,
+}
 
-    // @dev Emitted when an account exercises their options
-    // @param account: The account that exercised the options
-    // @param total_options_exercised: The total number of options exercised
-    // @param mintable_options_exercised: The number of options exercised that the caller could have
-    // minted @param exercised_amount: The amount transferred
-    #[derive(Drop, Serde, PartialEq)]
-    pub struct OptionsExercised {
-        #[key]
-        pub account: ContractAddress,
-        pub total_options_exercised: u256,
-        pub mintable_options_exercised: u256,
-        pub exercised_amount: u256,
-    }
+// @dev Emitted when an account exercises their options
+// @param account: The account that exercised the options
+// @param total_options_exercised: The total number of options exercised
+// @param mintable_options_exercised: The number of options exercised that the caller could have
+// minted @param exercised_amount: The amount transferred
+#[derive(Drop, Serde, PartialEq)]
+pub struct OptionsExercised {
+    #[key]
+    pub account: ContractAddress,
+    pub total_options_exercised: u256,
+    pub mintable_options_exercised: u256,
+    pub exercised_amount: u256,
+}
 
 
 // @dev Option pricing data, needed for a round's auction to start
@@ -290,8 +290,4 @@ pub trait IOptionRound<TContractState> {
 
     // Convert options won from auction into erc20 tokens
     fn mint_options(ref self: TContractState) -> u256;
-
-    // @dev Emit an option round event
-    // @param option_round_event: The option round event to emit
-    fn emit_option_round_event(ref self: TContractState, option_round_event: OptionRoundEvent);
 }
