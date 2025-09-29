@@ -1,0 +1,102 @@
+name: Support Server Lint
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+    paths:
+      - 'support-server/**'
+  pull_request:
+    branches:
+      - main
+      - staging
+    paths:
+      - 'support-server/**'
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: crate-ci/typos@master
+        with:
+          files: support-server/
+          extra-args: --file-extensions ts,js
+
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: support-server/package-lock.json
+      - name: Install dependencies
+        run: |
+          cd support-server
+          npm ci
+      - name: Run ESLint
+        run: |
+          cd support-server
+          npm run lint
+        env:
+          CI: true
+      - name: Check Prettier formatting
+        run: |
+          cd support-server
+          npm run format:check
+        env:
+          CI: true
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: support-server/package-lock.json
+      - name: Install dependencies
+        run: |
+          cd support-server
+          npm ci
+      - name: Run tests
+        run: |
+          cd support-server
+          npm test -- --passWithNoTests
+        env:
+          CI: true
+
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: support-server/package-lock.json
+      - name: Install dependencies
+        run: |
+          cd support-server
+          npm ci
+      - name: Build project
+        run: |
+          cd support-server
+          npm run build
+        env:
+          CI: true
