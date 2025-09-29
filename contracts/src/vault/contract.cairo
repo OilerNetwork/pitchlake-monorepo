@@ -515,7 +515,7 @@ pub mod Vault {
         }
 
         fn queue_withdrawal(ref self: ContractState, bps: u128) {
-            // @dev If the current round is Open, there is no locked liqudity to queue, exit early
+            // @dev If the current round is Open, there is no locked liquidity to queue, exit early
             let current_round_id = self.current_round_id.read();
             let current_round = self.get_round_dispatcher(current_round_id);
             let state = current_round.get_state();

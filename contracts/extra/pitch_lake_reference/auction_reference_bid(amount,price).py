@@ -1,7 +1,7 @@
 # Define the bids
 # id is used to order the bids
 # amount is the total money being bid (price_per_unit * num_unit)
-# pice is the price of one call option
+# price is the price of one call option
 bids = [
     {"id": 1, "amount": 50, "price": 20},
     {"id": 2, "amount": 142, "price": 11},
@@ -70,11 +70,11 @@ if clearing_price:
                     refunded_bidders.append((bid['id'], refund_amount))
             else:
                 print(f"Bidder {bid['id']} doesn't get any option tokens")
-    
+
     for bidder_id, refund_amount in refunded_bidders:
         refund_amount_in_eth = refund_amount / 10**18
         print(f"Bidder {bidder_id} gets a refund of {refund_amount_in_eth:.2f}")
-        
+
     if options_left > 0:
         print(f"{options_left:.2f} options remain undistributed.")
 

@@ -70,14 +70,14 @@ async function checkpoint1({ balancesBefore, balancesAfter, totalOptionAvailable
         BigInt(balancesAfter[1]), "Unused bids balance fail");
 }
 async function checkpoint2({ optionBalancesBefore, optionBalancesAfter, totalOptionAvailable, }) {
-    assert(BigInt(optionBalancesBefore[0]) === BigInt(optionBalancesBefore[1]), "Intial options should be equal");
+    assert(BigInt(optionBalancesBefore[0]) === BigInt(optionBalancesBefore[1]), "Initial options should be equal");
     assert(BigInt(optionBalancesBefore[0]) + BigInt(optionBalancesBefore[1]) ===
-        BigInt(totalOptionAvailable), "Intial sum of options should be total options available");
+        BigInt(totalOptionAvailable), "Initial sum of options should be total options available");
     assert(BigInt(optionBalancesAfter[0]) + BigInt(optionBalancesAfter[1]) ===
         BigInt(totalOptionAvailable), "After transfer sum of options should be total options available");
     assert(BigInt(optionBalancesBefore[0]) / BigInt(2) ===
         BigInt(optionBalancesAfter[0]), `Final option balance of C should be half of initial.\n ${optionBalancesBefore[0]}\n${optionBalancesAfter[0]}`);
     assert(BigInt(optionBalancesBefore[1]) +
         BigInt(optionBalancesBefore[0]) / BigInt(2) ===
-        BigInt(optionBalancesAfter[1]), "Final option balance of D should be inital + half of C");
+        BigInt(optionBalancesAfter[1]), "Final option balance of D should be initial + half of C");
 }

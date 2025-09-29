@@ -1,7 +1,7 @@
 # Define the bids
 # id is used to order the bids
 # num_units is the total num of options that the bid wants to buy
-# pice is the price of one call option
+# price is the price of one call option
 # ## The total amount of money in a bid is given by num_units * price
 
 options_available = 200 # total number of options available

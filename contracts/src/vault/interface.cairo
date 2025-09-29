@@ -114,7 +114,7 @@ pub trait IVault<TContractState> {
     // ...
 
     // Each of these job request is fulfilled and verified by the Pitchlake Verifier (via Fossil).
-    // They both result in the `fossil_callback` function being called by the verfier to provide the
+    // They both result in the `fossil_callback` function being called by the verifier to provide the
     // L1 data to the vault. This function is responsible for routing the data accordingly (either
     // to initialize round 1, or to settle the current round and initialize the next round).
 

@@ -178,7 +178,7 @@ fn test_only_fossil_client_can_call_fossil_client_callback() {
     vault.fossil_callback(req, res);
 }
 
-// Test successfull callback sets the pricing data for the round
+// Test successful callback sets the pricing data for the round
 #[test]
 #[available_gas(50000000)]
 fn test_callback_sets_pricing_data_for_round() {
