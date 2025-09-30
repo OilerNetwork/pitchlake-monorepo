@@ -110,11 +110,11 @@ func (vm *Manager) InitializeVault(vault *models.VaultRegistry) error {
 		return err
 	}
 
-	hash := felt.FromBytes[felt.Felt](deployBlockHash)
+	hash := felt.NewFromBytes[felt.Felt](deployBlockHash)
 
 	// hash.SetString(vault.DeployedAt)
 	deployBlock := rpc.BlockID{
-		Hash: &hash,
+		Hash: hash,
 	}
 	vm.log.Printf("Deploy block: %v", deployBlock)
 
@@ -126,37 +126,43 @@ func (vm *Manager) InitializeVault(vault *models.VaultRegistry) error {
 	log.Printf("events list %v", len(events.Events))
 
 	vm.db.BeginTx()
+	defer func() {
+		if vm.db.IsTxOpen() {
+			vm.db.RollbackTx() // Always rollback if transaction is still open
+		}
+	}()
 	err = vm.processDeploymentBlockEvents(events, vault)
 	if err != nil {
 		vm.log.Println("Error processing deployment events", err)
-		vm.db.RollbackTx()
 		return err
 	}
 
 	// Save the block as well in db if it doesn't exist
-	// block, err := vm.db.GetBlock(vault.DeployedAt)
-	// if err != nil {
-	// 	return err
-	// }
+	block, err := vm.db.GetBlock(vault.DeployedBlockHash)
+	if err != nil {
+		return err
+	}
+	if block == nil {
+		//get block from network
+		networkBlock, err := vm.network.GetBlockByHash(vault.DeployedBlockHash)
 
-	// if block == nil {
-	// 	//get block from network
-	// 	networkBlock, err := vm.network.GetBlockByHash(vault.DeployedAt)
+		if err != nil {
+			log.Printf("Error getting block by hash %v", err)
+			return err
+		}
 
-	// 	if err != nil {
-	// 		return nil
-	// 	}
+		starknetBlock := models.RPCBlockToStarknetBlock(networkBlock)
+		log.Printf("STARKNET BLOCK %v", starknetBlock)
 
-	// 	starknetBlock := models.RPCBlockToStarknetBlock(networkBlock)
-
-	// 	err = vm.db.InsertBlock(starknetBlock)
-	// 	if err != nil {
-	// 		vm.db.RollbackTx()
-	// 		vm.log.Println("Error inserting block", err)
-	// 		return err
-	// 	}
-	// }
+		err = vm.db.InsertBlock(starknetBlock)
+		if err != nil {
+			vm.log.Println("Error inserting block", err)
+			return err
+		}
+	}
+	vm.db.UpdateVaultRegistryLastBlockIndexed(vault.Address, vault.DeployedBlockHash)
 	vm.db.CommitTx()
+	vault.LastBlockIndexed = &vault.DeployedBlockHash
 	return nil
 }
 
@@ -173,28 +179,38 @@ func (vm *Manager) CatchupVault(vault models.VaultRegistry, toBlock uint64) erro
 		return err
 	}
 
-	if nextBlock == nil {
+	vm.log.Printf("Next block: %v", nextBlock)
+
+	if nextBlock != nil {
+		fromBlock = &rpc.BlockID{Number: &nextBlock.BlockNumber}
+	} else {
+		nextBlockNumber := uint64(0)
 		//get last block from db
 		lastBlock, err := vm.db.GetBlock(hash)
 		if err != nil {
 			return err
 		}
-
 		if lastBlock == nil {
 			lastBlockNetwork, err := vm.network.GetBlockByHash(hash)
 			if err != nil {
 				return err
 			}
-			nextBlocks, err := vm.network.GetBlocks(lastBlockNetwork.BlockHeader.Number+1, lastBlockNetwork.BlockHeader.Number+1)
-			if len(nextBlocks) == 0 {
-				vm.log.Printf("No blocks returned for block number: %d", lastBlockNetwork.BlockHeader.Number+1)
-				return fmt.Errorf("no block found at number %d", lastBlockNetwork.BlockHeader.Number+1)
-			}
-			log.Printf("nextBlocks %v", nextBlocks)
-			nextBlock = nextBlocks[0]
-			//create new int
-			fromBlock = &rpc.BlockID{Number: &nextBlock.BlockNumber}
+			lastBlock = models.RPCBlockToStarknetBlock(lastBlockNetwork)
+			vm.db.InsertBlock(lastBlock)
 		}
+		nextBlockNumber = lastBlock.BlockNumber + 1
+		nextBlocks, err := vm.network.GetBlocks(nextBlockNumber, nextBlockNumber)
+		if err != nil {
+			return err
+		}
+		if len(nextBlocks) == 0 {
+			vm.log.Printf("No blocks returned for block number: %d", nextBlockNumber)
+			return fmt.Errorf("no block found at number %d", nextBlockNumber)
+		}
+		log.Printf("nextBlocks %v", nextBlocks)
+		nextBlock = nextBlocks[0]
+		vm.db.InsertBlock(nextBlock)
+		fromBlock = &rpc.BlockID{Number: &nextBlock.BlockNumber}
 
 	}
 
@@ -211,6 +227,11 @@ func (vm *Manager) CatchupVault(vault models.VaultRegistry, toBlock uint64) erro
 	}
 
 	vm.db.BeginTx()
+	defer func() {
+		if vm.db.IsTxOpen() {
+			vm.db.RollbackTx() // Always rollback if transaction is still open
+		}
+	}()
 	for _, event := range events.Events {
 		coreEvent := core.Event{
 			From: event.FromAddress,
@@ -220,7 +241,6 @@ func (vm *Manager) CatchupVault(vault models.VaultRegistry, toBlock uint64) erro
 		err := vm.ProcessVaultEvent(event.TransactionHash.String(), vault.Address, &coreEvent, event.BlockNumber, *event.BlockHash)
 		if err != nil {
 			vm.log.Println("Error processing vault event", err)
-			vm.db.RollbackTx()
 			return err
 
 		}
@@ -228,7 +248,6 @@ func (vm *Manager) CatchupVault(vault models.VaultRegistry, toBlock uint64) erro
 
 	//Store block as well, nextBlock should never be null by the time we reach here
 	if err := vm.db.InsertBlock(nextBlock); err != nil {
-		vm.db.RollbackTx()
 		return err
 	}
 	startBlockHash := hash              // fromBlock hash
@@ -237,7 +256,6 @@ func (vm *Manager) CatchupVault(vault models.VaultRegistry, toBlock uint64) erro
 	err = vm.db.StoreVaultCatchupEvent(vault.Address, startBlockHash, endBlockHash)
 	if err != nil {
 		vm.log.Printf("Error storing vault catchup event: %v", err)
-		vm.db.RollbackTx()
 		return err
 	}
 	vm.db.CommitTx()
@@ -292,7 +310,6 @@ func (vm *Manager) processDeploymentBlockEvents(events *rpc.EventChunk, vault *m
 
 				vm.db.StoreEvent(txHash, address, event.BlockNumber, blockHash, "ContractDeployed", eventKeys, eventData)
 				vault.LastBlockIndexed = &blockHash
-				break
 			}
 		}
 	}
@@ -314,7 +331,6 @@ func (vm *Manager) processDeploymentBlockEvents(events *rpc.EventChunk, vault *m
 			if err != nil {
 				return err
 			}
-			vm.db.UpdateVaultRegistry(vault.Address, event.BlockHash.String())
 		}
 	}
 	return nil

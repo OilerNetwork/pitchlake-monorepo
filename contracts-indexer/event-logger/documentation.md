@@ -414,7 +414,6 @@ func (db *DB) BeginTx() {
     tx, err := db.Pool.Begin(context.TODO())
     if err != nil {
         log.Printf("Transaction begin failed: %v", err)
-        log.Fatal(err)
     }
     db.tx = tx
 }

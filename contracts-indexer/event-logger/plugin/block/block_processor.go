@@ -59,6 +59,11 @@ func (bp *Processor) ProcessNewBlock(
 	// Check if we need to catch up
 
 	bp.db.BeginTx()
+	defer func() {
+		if bp.db.IsTxOpen() {
+			bp.db.RollbackTx() // Always rollback if transaction is still open
+		}
+	}()
 	bp.log.Println("Processing new block", block.Number)
 
 	// Process events in the block
@@ -96,10 +101,13 @@ func (bp *Processor) RevertBlock(
 ) error {
 	// FIXED: Add proper transaction handling for revert
 	bp.db.BeginTx()
-
+	defer func() {
+		if bp.db.IsTxOpen() {
+			bp.db.RollbackTx() // Always rollback if transaction is still open
+		}
+	}()
 	err := bp.db.RevertBlock(from.Block.Number, from.Block.Hash.String())
 	if err != nil {
-		bp.db.RollbackTx()
 		return err
 	}
 
@@ -137,11 +145,14 @@ func (bp *Processor) CatchupBlocks(latestBlock uint64) error {
 
 		// Process all blocks in the batch with a single transaction
 		bp.db.BeginTx()
-
+		defer func() {
+			if bp.db.IsTxOpen() {
+				bp.db.RollbackTx() // Always rollback if transaction is still open
+			}
+		}()
 		for _, block := range blocks {
 			err := bp.db.InsertBlock(block)
 			if err != nil {
-				bp.db.RollbackTx()
 				bp.log.Println("Error inserting block", err)
 				return err
 			}

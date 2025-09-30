@@ -118,7 +118,12 @@ func (pc *PluginFactory) CheckAndSync(starknetBlock *models.StarknetBlocks) erro
 		}
 		return nil
 	}
-	return pc.SyncPlugin(starknetBlock)
+	err := pc.SyncPlugin(starknetBlock)
+	if err != nil {
+		pc.log.Printf("failed to sync plugin: %v", err)
+		return err
+	}
+	return nil
 	// Get last block from database
 }
 
@@ -130,6 +135,7 @@ func (pc *PluginFactory) NewBlock(
 ) error {
 	starknetBlock := models.CoreToStarknetBlock(*block)
 	if err := pc.CheckAndSync(&starknetBlock); err != nil {
+		pc.log.Printf("failed to check and sync: %v", err)
 		return err
 	}
 	return pc.blockProcessor.ProcessNewBlock(block, stateUpdate, newClasses)
@@ -144,6 +150,7 @@ func (pc *PluginFactory) RevertBlock(
 
 	starknetBlock := models.CoreToStarknetBlock(*from.Block)
 	if err := pc.CheckAndSync(&starknetBlock); err != nil {
+		pc.log.Printf("failed to check and sync: %v", err)
 		return err
 	}
 	return pc.blockProcessor.RevertBlock(from, to, reverseStateDiff)

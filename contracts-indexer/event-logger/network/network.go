@@ -33,8 +33,8 @@ func (n *Network) GetBlockByHash(hash string) (*rpc.BlockTxHashes, error) {
 	if err != nil {
 		return nil, err
 	}
-	hashFelt := felt.FromBytes[felt.Felt](feltString)
-	block, err := n.provider.BlockWithTxHashes(n.ctx, rpc.BlockID{Hash: &hashFelt})
+	hashFelt := felt.NewFromBytes[felt.Felt](feltString)
+	block, err := n.provider.BlockWithTxHashes(n.ctx, rpc.BlockID{Hash: hashFelt})
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,6 @@ func (n *Network) GetBlockByHash(hash string) (*rpc.BlockTxHashes, error) {
 func (n *Network) GetEvents(fromBlock rpc.BlockID, toBlock rpc.BlockID, address *string) (*rpc.EventChunk, error) {
 
 	//Should be written bettern
-	var addressFelt felt.Felt
 	var addressBytes []byte
 	var err error
 	filter := rpc.EventFilter{
@@ -57,7 +56,7 @@ func (n *Network) GetEvents(fromBlock rpc.BlockID, toBlock rpc.BlockID, address 
 	}
 	if address != nil {
 		addressBytes, err = utils.HexStringToFelt(*address)
-		addressFelt = felt.FromBytes[[4]uint64](addressBytes)
+		addressFelt := *felt.NewFromBytes[felt.Felt](addressBytes)
 		fmt.Printf("Address felt: %v", addressFelt)
 		filter.Address = &addressFelt
 
@@ -71,7 +70,7 @@ func (n *Network) GetEvents(fromBlock rpc.BlockID, toBlock rpc.BlockID, address 
 	input := rpc.EventsInput{
 		EventFilter: filter,
 		ResultPageRequest: rpc.ResultPageRequest{
-			ChunkSize: 10,
+			ChunkSize: 1000,
 		},
 	}
 	events, err := n.provider.Events(n.ctx, input)
@@ -108,6 +107,7 @@ func (n *Network) GetBlocks(fromBlock uint64, toBlock uint64) ([]*models.Starkne
 			ParentHash:  blockHeader.ParentHash.String(),
 			Timestamp:   blockHeader.Timestamp,
 		}
+		log.Printf("STARKNET BLOCK %v", starknetBlock)
 
 		blocks = append(blocks, starknetBlock)
 		log.Printf("Processed block %v", i)
