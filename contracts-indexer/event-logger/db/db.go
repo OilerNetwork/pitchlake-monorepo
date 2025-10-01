@@ -14,7 +14,8 @@ func (db *DB) GetVaultRegistry() ([]*models.VaultRegistry, error) {
 	query := `
 	SELECT
 		vault_address,
-		deployed_at,
+		deployed_block_hash,
+		deployed_block_number,
 		last_block_indexed,
 		last_block_processed
 	FROM vault_registry`
@@ -29,7 +30,7 @@ func (db *DB) GetVaultRegistry() ([]*models.VaultRegistry, error) {
 
 	for rows.Next() {
 		var vault models.VaultRegistry
-		if err := rows.Scan(&vault.Address, &vault.DeployedAt, &vault.LastBlockIndexed, &vault.LastBlockProcessed); err != nil {
+		if err := rows.Scan(&vault.Address, &vault.DeployedBlockHash, &vault.DeployedBlockNumber, &vault.LastBlockIndexed, &vault.LastBlockProcessed); err != nil {
 			return nil, err
 		}
 		vaultRegistry = append(vaultRegistry, &vault)
@@ -41,8 +42,13 @@ func (db *DB) GetVaultRegistry() ([]*models.VaultRegistry, error) {
 }
 
 func (db *DB) InsertBlock(block *models.StarknetBlocks) error {
+	if db.tx == nil {
+		return errors.New("no transaction found")
+	}
 	hash := block.BlockHash
+	number := block.BlockNumber
 	parentHash := block.ParentHash
+	timestamp := block.Timestamp
 	query := `
 	INSERT INTO starknet_blocks
 	(block_number,
@@ -52,7 +58,7 @@ func (db *DB) InsertBlock(block *models.StarknetBlocks) error {
 	status)
 	VALUES ($1, $2, $3, $4, 'MINED')
 	`
-	res, err := db.tx.Exec(context.Background(), query, block.BlockNumber, hash, parentHash, block.Timestamp)
+	res, err := db.tx.Exec(context.Background(), query, number, hash, parentHash, timestamp)
 
 	log.Printf("STORAGE RESULT %v %v", res, err)
 	return err
@@ -72,7 +78,8 @@ func (db *DB) GetVaultRegistryByAddress(address string) (models.VaultRegistry, e
 	query := `
 	SELECT
 		vault_address,
-		deployed_at,
+		deployed_block_hash,
+		deployed_block_number,
 		last_block_indexed,
 		last_block_processed
 	FROM vault_registry
@@ -80,7 +87,8 @@ func (db *DB) GetVaultRegistryByAddress(address string) (models.VaultRegistry, e
 
 	err := db.Pool.QueryRow(context.Background(), query, address).Scan(
 		&vaultRegistry.Address,
-		&vaultRegistry.DeployedAt,
+		&vaultRegistry.DeployedBlockHash,
+		&vaultRegistry.DeployedBlockNumber,
 		&vaultRegistry.LastBlockIndexed,
 		&vaultRegistry.LastBlockProcessed,
 	)
@@ -108,7 +116,13 @@ func (db *DB) GetBlock(hash string) (*models.StarknetBlocks, error) {
 	query := `
 	SELECT * FROM starknet_blocks
 	WHERE block_hash = $1`
-	err := db.Pool.QueryRow(context.Background(), query, hash).Scan(&block)
+	err := db.Pool.QueryRow(context.Background(), query, hash).Scan(
+		&block.BlockNumber,
+		&block.BlockHash,
+		&block.ParentHash,
+		&block.Timestamp,
+		&block.Status,
+	)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return nil, nil
@@ -176,13 +190,13 @@ func (db *DB) StoreEvent(txHash, vaultAddress string, blockNumber uint64, blockH
 func (db *DB) InsertVault(vault *models.VaultRegistry) error {
 	query := `
 	INSERT INTO vault_registry
-	(vault_address, deployed_at, last_block_indexed, last_block_processed)
+	(vault_address, deployed_block_hash, deployed_block_number, last_block_indexed, last_block_processed)
 	VALUES ($1, $2, $3, $4)`
-	_, err := db.tx.Exec(context.Background(), query, vault.Address, vault.DeployedAt, vault.LastBlockIndexed, vault.LastBlockProcessed)
+	_, err := db.tx.Exec(context.Background(), query, vault.Address, vault.DeployedBlockHash, vault.DeployedBlockNumber, vault.LastBlockIndexed, vault.LastBlockProcessed)
 	return err
 }
 
-func (db *DB) UpdateVaultRegistry(address string, blockHash string) error {
+func (db *DB) UpdateVaultRegistryLastBlockIndexed(address string, blockHash string) error {
 	query := `
 	UPDATE vault_registry
 	SET last_block_indexed = $1
@@ -194,7 +208,7 @@ func (db *DB) UpdateVaultRegistry(address string, blockHash string) error {
 // StoreDriverEvent stores a basic driver event (StartBlock/RevertBlock) and triggers PostgreSQL NOTIFY
 func (db *DB) StoreDriverEvent(eventType string, blockHash string) error {
 	if db.tx == nil {
-		return errors.New("No transaction found")
+		return errors.New("no transaction found")
 	}
 
 	// Store event in database with sequence index (triggers NOTIFY automatically)
@@ -209,7 +223,7 @@ func (db *DB) StoreDriverEvent(eventType string, blockHash string) error {
 // StoreVaultCatchupEvent stores a vault catchup event and triggers PostgreSQL NOTIFY
 func (db *DB) StoreVaultCatchupEvent(vaultAddress string, startBlockHash, endBlockHash string) error {
 	if db.tx == nil {
-		return errors.New("No transaction found")
+		return errors.New("no transaction found")
 	}
 
 	// Store event in database with sequence index (triggers NOTIFY automatically)

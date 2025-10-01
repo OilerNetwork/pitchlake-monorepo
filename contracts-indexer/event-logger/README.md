@@ -74,7 +74,7 @@ make check-db              # Check database connection
 
 ### Vault Management
 ```bash
-make add-vault VAULT_ADDRESS=0x... DEPLOYED_AT=0x...  # Add new vault
+make add-vault VAULT_ADDRESS=0x... DEPLOYED_BLOCK_HASH=0x... DEPLOYED_BLOCK_NUMBER=1213  # Add new vault
 make list-vaults           # List all registered vaults
 make list-events           # List all events
 make list-blocks           # List all blocks

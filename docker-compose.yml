@@ -18,7 +18,7 @@ services:
     ports:
       - "5436:5432"
     networks:
-      - fossil-monorepo_local-network
+      - pitchlake-network
     healthcheck:
         test: ["CMD-SHELL", "pg_isready -U fossil_user -d fossil"]
         interval: 5s
@@ -42,7 +42,7 @@ services:
     ports:
       - "5437:5432"
     networks:
-      - fossil-monorepo_local-network
+      - pitchlake-network
     healthcheck:
         test: ["CMD-SHELL", "pg_isready -U pitchlake_user -d pitchlake"]
         interval: 5s
@@ -82,7 +82,7 @@ services:
     ports:
       - "3003:3003"
     networks:
-      - fossil-monorepo_local-network
+      - pitchlake-network
     depends_on:
       - backend
       - support-server
@@ -105,7 +105,7 @@ services:
     ports:
       - "3005:3005"
     networks:
-      - fossil-monorepo_local-network
+      - pitchlake-network
 
   support-server:
     build:
@@ -155,7 +155,7 @@ services:
       - ./logs:/app/logs
     
     networks:
-      - fossil-monorepo_local-network
+      - pitchlake-network
     
     depends_on:
       - fossil-db
@@ -167,6 +167,5 @@ volumes:
   pitchlake_data:
 
 networks:
-  fossil-monorepo_local-network:
-    external: true
-    name: fossil-monorepo_local-network 
+  pitchlake-network:
+    name: pitchlake-network 

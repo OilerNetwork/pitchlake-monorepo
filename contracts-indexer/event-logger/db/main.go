@@ -72,3 +72,7 @@ func (db *DB) RollbackTx() {
 	db.tx.Rollback(db.ctx)
 	db.tx = nil
 }
+
+func (db *DB) IsTxOpen() bool {
+	return db.tx != nil
+}

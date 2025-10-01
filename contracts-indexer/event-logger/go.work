@@ -4,3 +4,5 @@ use (
 	.
 	./juno
 )
+
+replace github.com/davecgh/go-spew => github.com/davecgh/go-spew v1.1.1
