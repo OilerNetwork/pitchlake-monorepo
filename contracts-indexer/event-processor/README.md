@@ -13,7 +13,7 @@ A high-performance event processing system for Starknet blockchain events, built
 1. **Set up environment variables**
    ```bash
    # Create .env file with database configuration
-   echo "DB_URL=postgres://pitchlake_user:pitchlake_password@pitchlake-db:5432/pitchlake?sslmode=disable" > .env
+   echo "PITCHLAKE_DB_URL=postgres://pitchlake_user:pitchlake_password@pitchlake-db:5432/pitchlake?sslmode=disable" > .env
    ```
 
 2. **Install dependencies**
@@ -51,7 +51,7 @@ go build -o event-processor .
 
 | Variable | Description | Required |
 |----------|-------------|----------|
-| `DB_URL` | PostgreSQL connection string | Yes |
+| `PITCHLAKE_DB_URL` | PostgreSQL connection string | Yes |
 
 ## 🛠️ Development
 
