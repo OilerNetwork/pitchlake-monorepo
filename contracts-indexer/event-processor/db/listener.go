@@ -202,8 +202,15 @@ func (db *DB) processVaultEvent(
 	case "OptionRoundDeployed":
 
 		optionRound := adaptors.RoundDeployed(junoEvent)
-		optionRound.DeploymentDate = event.Timestamp
+		block, err := db.GetBlockByHash(event.BlockHash)
+		if err != nil {
+			return err
+		}
+		optionRound.DeploymentDate = block.Timestamp
 		err = db.RoundDeployedIndex(optionRound)
+		if err != nil {
+			return err
+		}
 
 	case "OptionRoundEmitted":
 		err = db.processOptionRoundEvent(event)

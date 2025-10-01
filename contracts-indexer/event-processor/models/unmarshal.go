@@ -223,7 +223,6 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 		BlockHash       string         `json:"block_hash"`
 		EventNonce      uint64         `json:"event_nonce"`
 		VaultAddress    string         `json:"vault_address"`
-		Timestamp       uint64         `json:"timestamp"`
 		EventName       string         `json:"event_name"`
 		EventKeys       pq.StringArray `json:"event_keys"`
 		EventData       pq.StringArray `json:"event_data"`
@@ -239,7 +238,6 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 	e.TransactionHash = aux.TransactionHash
 	e.BlockNumber = aux.BlockNumber
 	e.VaultAddress = aux.VaultAddress
-	e.Timestamp = aux.Timestamp
 	e.EventNonce = aux.EventNonce
 	e.BlockHash = aux.BlockHash
 	e.EventName = aux.EventName
@@ -281,10 +279,10 @@ func (de *DriverEvent) UnmarshalJSON(data []byte) error {
 		Type           string    `json:"type"`
 		Timestamp      time.Time `json:"timestamp"`
 		IsProcessed    bool      `json:"is_processed"`
-		BlockHash      string    `json:"block_hash"`
-		StartBlockHash string    `json:"start_block_hash"`
-		EndBlockHash   string    `json:"end_block_hash"`
-		VaultAddress   string    `json:"vault_address"`
+		BlockHash      *string   `json:"block_hash"`
+		StartBlockHash *string   `json:"start_block_hash"`
+		EndBlockHash   *string   `json:"end_block_hash"`
+		VaultAddress   *string   `json:"vault_address"`
 	}{}
 
 	// Unmarshal into the auxiliary struct

@@ -2,6 +2,7 @@ package db
 
 import (
 	"event-processor/models"
+	"log"
 )
 
 func (db *DB) CatchupDriverEvents() error {
@@ -13,11 +14,14 @@ func (db *DB) CatchupDriverEvents() error {
 			return err
 		}
 		if events == nil {
+			log.Printf("No unprocessed driver events found")
 			break
 		}
 		for _, event := range events {
-			err := db.processDriverEvent(event)
+			log.Printf("Processing driver event: %v", event)
+			err := db.processDriverEvent(*event)
 			if err != nil {
+				log.Printf("Error processing driver event: %v", err)
 				return err
 			}
 		}
@@ -29,7 +33,7 @@ func (db *DB) processDriverEvent(driverEventData models.DriverEvent) error {
 	db.BeginTx()
 	switch driverEventData.Type {
 	case "NewBlock":
-		events, err := db.GetEventsByBlockHash(driverEventData.BlockHash, "ASC")
+		events, err := db.GetEventsByBlockHash(*driverEventData.BlockHash, "ASC")
 		if err != nil {
 			db.logger.Printf("Error getting events by block number: %v", err)
 			return err
@@ -44,7 +48,7 @@ func (db *DB) processDriverEvent(driverEventData models.DriverEvent) error {
 		}
 
 	case "RevertBlock":
-		events, err := db.GetEventsByBlockHash(driverEventData.BlockHash, "DESC")
+		events, err := db.GetEventsByBlockHash(*driverEventData.BlockHash, "DESC")
 		if err != nil {
 			db.logger.Printf("Error getting events by block number: %v", err)
 			return err
@@ -59,7 +63,7 @@ func (db *DB) processDriverEvent(driverEventData models.DriverEvent) error {
 		}
 
 	case "CatchupVault":
-		events, err := db.GetEventsForVault(driverEventData.VaultAddress, driverEventData.StartBlockHash, driverEventData.EndBlockHash)
+		events, err := db.GetEventsForVault(*driverEventData.VaultAddress, *driverEventData.StartBlockHash, *driverEventData.EndBlockHash)
 		if err != nil {
 			db.logger.Printf("Error getting events by block number: %v", err)
 			return err

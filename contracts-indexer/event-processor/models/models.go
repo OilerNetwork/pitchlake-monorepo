@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"github.com/NethermindEth/juno/core/felt"
 	"github.com/lib/pq"
 )
 
@@ -11,7 +12,6 @@ type Event struct {
 	TransactionHash string         `json:"transactionHash"`
 	BlockNumber     uint64         `json:"blockNumber"`
 	VaultAddress    string         `json:"vaultAddress"`
-	Timestamp       uint64         `json:"timestamp"`
 	EventNonce      uint64         `json:"eventNonce"`
 	BlockHash       string         `json:"blockHash"`
 	EventName       string         `json:"eventName"`
@@ -126,8 +126,14 @@ type DriverEvent struct {
 	Type           string    `json:"type"`
 	Timestamp      time.Time `json:"timestamp"`
 	IsProcessed    bool      `json:"is_processed"`
-	BlockHash      string    `json:"block_hash"`
-	StartBlockHash string    `json:"start_block_hash"`
-	EndBlockHash   string    `json:"end_block_hash"`
-	VaultAddress   string    `json:"vault_address"`
+	BlockHash      *string   `json:"block_hash"`
+	StartBlockHash *string   `json:"start_block_hash"`
+	EndBlockHash   *string   `json:"end_block_hash"`
+	VaultAddress   *string   `json:"vault_address"`
+}
+
+type JunoEvent struct {
+	Data []*felt.Felt
+	From *felt.Felt
+	Keys []*felt.Felt
 }

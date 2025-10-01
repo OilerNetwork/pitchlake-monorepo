@@ -63,6 +63,7 @@ func (db *DB) Init() error {
 
 	db.Conn = conn
 	db.Pool = pool
+	db.ctx = context.Background()
 	return nil
 }
 
@@ -74,24 +75,30 @@ func (db *DB) MarkDriverEventAsProcessed(id int) error {
 	}
 	return nil
 }
-func (db *DB) GetUnprocessedDriverEvents() ([]models.DriverEvent, error) {
+func (db *DB) GetUnprocessedDriverEvents() ([]*models.DriverEvent, error) {
+	var events []*models.DriverEvent
 	query := `
-			SELECT * FROM driver_events WHERE is_processed = false;`
-	rows, err := db.tx.Query(context.Background(), query)
+			SELECT id, sequence_index, type, timestamp, is_processed, block_hash, vault_address, start_block_hash, end_block_hash FROM driver_events WHERE is_processed = false;`
+	rows, err := db.Pool.Query(context.Background(), query)
 	if err != nil {
 		if err == pgx.ErrNoRows {
+			log.Printf("No unprocessed driver events found")
 			return nil, nil
 		}
 		return nil, fmt.Errorf("failed to query unprocessed driver events: %w", err)
 	}
+	log.Printf("Unprocessed driver events found: %v", rows)
 	defer rows.Close()
-	var events []models.DriverEvent
 	for rows.Next() {
+		log.Printf("Scanning driver event")
 		var event models.DriverEvent
-		if err := rows.Scan(&event); err != nil {
+		if err := rows.Scan(&event.ID, &event.SequenceIndex, &event.Type, &event.Timestamp, &event.IsProcessed, &event.BlockHash, &event.VaultAddress, &event.StartBlockHash, &event.EndBlockHash); err != nil {
+			log.Printf("Error scanning driver event: %v", err)
 			return nil, fmt.Errorf("failed to scan driver event: %w", err)
 		}
-		events = append(events, event)
+		log.Printf("Driver event found: %v", event)
+		events = append(events, &event)
+		log.Printf("Unprocessed driver event found: %v", event)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("error iterating driver event rows: %w", err)
@@ -118,13 +125,11 @@ func (db *DB) GetEventsForVault(vaultAddress string, startBlockHash string, endB
 	}
 	query := `
 		SELECT 
-			from,
 			event_nonce,
 			block_hash,
 			transaction_hash,
 			block_number,
 			vault_address,
-			timestamp,
 			event_name,
 			event_keys,
 			event_data
@@ -140,13 +145,11 @@ func (db *DB) GetEventsForVault(vaultAddress string, startBlockHash string, endB
 	for rows.Next() {
 		var event models.Event
 		if err := rows.Scan(
-			&event.From,
 			&event.EventNonce,
 			&event.BlockHash,
 			&event.TransactionHash,
 			&event.BlockNumber,
 			&event.VaultAddress,
-			&event.Timestamp,
 			&event.EventName,
 			&event.EventKeys,
 			&event.EventData,
@@ -172,19 +175,18 @@ func (db *DB) GetEventsByBlockHash(blockHash string, orderBy string) ([]models.E
 
 	query := `
 		SELECT 
-			from,
 			event_nonce,
 			block_hash,
 			transaction_hash,
 			block_number,
 			vault_address,
-			timestamp,
 			event_name,
 			event_keys,
-			event_data
+			event_data,
+			transaction_hash
 		FROM events
 		WHERE block_hash = $1
-		ORDER BY event_nonce $2 ASC;`
+		ORDER BY event_nonce $2`
 
 	rows, err := db.tx.Query(context.Background(), query, blockHash, orderBy)
 	if err != nil {
@@ -201,7 +203,6 @@ func (db *DB) GetEventsByBlockHash(blockHash string, orderBy string) ([]models.E
 			&event.TransactionHash,
 			&event.BlockNumber,
 			&event.VaultAddress,
-			&event.Timestamp,
 			&event.EventName,
 			&event.EventKeys,
 			&event.EventData,
