@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  event-processor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      # Mount source code for development
+      - .:/app
+      # Mount logs directory
+      - ./logs:/app/logs
+    environment:
+      - DB_URL=postgres://pitchlake_user:pitchlake_password@pitchlake-db:5432/pitchlake?sslmode=disable
+    command: ["go", "run", "main.go"]
+    networks:
+      - pitchlake-network
+
+networks:
+  pitchlake-network:
+    external: true
+    name: pitchlake-network
