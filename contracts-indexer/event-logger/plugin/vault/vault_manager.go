@@ -100,17 +100,17 @@ func (vm *Manager) SyncVaults(head *models.StarknetBlocks) error {
 
 // InitializeVault initializes a new vault
 func (vm *Manager) InitializeVault(vault *models.VaultRegistry) error {
-	deployBlockHash, err := utils.HexStringToFelt(vault.DeployedAt)
+	deployBlockHash, err := utils.HexStringToFelt(vault.DeployedBlockHash)
 	if err != nil {
 		vm.log.Println("Error getting felt", err)
 		return err
 	}
 
-	hash := felt.FromBytes(deployBlockHash)
+	hash := felt.NewFromBytes[felt.Felt](deployBlockHash)
 
 	// hash.SetString(vault.DeployedAt)
 	deployBlock := rpc.BlockID{
-		Hash: &hash,
+		Hash: hash,
 	}
 	vm.log.Printf("Deploy block: %v", deployBlock)
 

@@ -1,0 +1,7 @@
+---
+alwaysApply: true
+---
+
+### Documentation and Standards:
+- Provide concise **READMEs** for quick start of the project and an overview.
+- Use documentation.md to provide more technical details like the architecture, layout details etc.

@@ -3,9 +3,10 @@ module junoplugin
 go 1.25.0
 
 require (
-	github.com/NethermindEth/juno v0.15.3
+	github.com/NethermindEth/juno v0.15.7
 	github.com/NethermindEth/starknet.go v0.15.0
 	github.com/jackc/pgx/v5 v5.7.5
+	github.com/stretchr/testify v1.10.0
 	golang.org/x/crypto v0.41.0
 )
 
@@ -50,7 +51,6 @@ require (
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8 // indirect
 	github.com/spf13/pflag v1.0.7 // indirect
-	github.com/stretchr/testify v1.10.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect

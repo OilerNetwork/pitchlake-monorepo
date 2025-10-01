@@ -2,6 +2,7 @@
 description: Rules for cleaning up test files while maintaining functionality
 globs: 
 ---
+FRONTEND MODULE ONLY
  ---
 description: Rules for cleaning up test files while maintaining functionality
 globs:

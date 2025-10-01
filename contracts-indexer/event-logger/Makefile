@@ -164,7 +164,8 @@ list-events:
 
 list-blocks:
 	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "SELECT * from starknet_blocks"
-
+list-driver-events:
+	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "SELECT * from driver_events"
 # Infrastructure help
 help-infra:
 	@echo "Infrastructure Commands:"
