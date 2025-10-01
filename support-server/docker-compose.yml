@@ -1,11 +1,10 @@
 version: '3.8'
 
 services:
-  architecture-support-server:
+  support-server:
     build: .
     platform: linux/amd64
-    container_name: architecture-support-server
-    restart: unless-stopped
+    container_name: support-server
     environment:
       # Database Connections
       - FOSSIL_DB_URL=${FOSSIL_DB_URL}
@@ -54,10 +53,9 @@ services:
       - pitchlake-db
 
   fossil-db:
-    image: postgres:15-alpine
+    image: postgres:16
     platform: linux/amd64
     container_name: fossil-db
-    restart: unless-stopped
     environment:
       - POSTGRES_DB=fossil
       - POSTGRES_USER=${FOSSIL_DB_USER:-fossil_user}
@@ -71,10 +69,9 @@ services:
       - pitchlake-network
 
   pitchlake-db:
-    image: postgres:15-alpine
+    image: postgres:16
     platform: linux/amd64
     container_name: pitchlake-db
-    restart: unless-stopped
     environment:
       - POSTGRES_DB=pitchlake
       - POSTGRES_USER=${PITCHLAKE_DB_USER:-pitchlake_user}
@@ -95,3 +92,4 @@ networks:
   pitchlake-network:
     external: true
     driver: bridge 
+    name: pitchlake-network

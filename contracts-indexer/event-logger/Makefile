@@ -37,12 +37,12 @@ docker-restart-network:
 	docker compose up -d
 
 # Development setup
-dev: check-fossil-network migrate-up
+dev: migrate-up
 	@echo "🔧 Building Docker image..."
 	@make docker-build
 	@echo ""
 	@echo "🚀 Development environment ready!"
-	@echo "📊 Database: pitchlake-db (connected via fossil-monorepo_local-network)"
+	@echo "📊 Database: pitchlake-db (connected via pitchlake-network)"
 	@echo "�� Docker image: Built successfully"
 	@echo "📋 Next steps:"
 	@echo "   • Run 'make docker-up' to start the application"
@@ -63,28 +63,26 @@ check-fossil-network:
 
 network-status:
 	@echo "Checking fossil-monorepo_local-network status..."
-	@if docker network ls | grep -q "fossil-monorepo_local-network"; then \
-		echo "✓ fossil-monorepo_local-network exists"; \
-		docker network inspect fossil-monorepo_local-network --format "{{.IPAM.Config}}" 2>/dev/null || echo "Could not inspect network"; \
+	@if docker network ls | grep -q "pitchlake-network"; then \
+		echo "✓ pitchlake-network exists"; \
+		docker network inspect pitchlake-network --format "{{.IPAM.Config}}" 2>/dev/null || echo "Could not inspect network"; \
 	else \
-		echo "✗ fossil-monorepo_local-network does not exist"; \
+		echo "✗ pitchlake-network does not exist"; \
 	fi
 
 # Database commands - using fossil-monorepo pitchlake-db
 check-db:
 	@if docker ps --format "table {{.Names}}" | grep -q "pitchlake-db"; then \
-		echo "✓ pitchlake-db is running and accessible via fossil-monorepo_local-network"; \
+		echo "✓ pitchlake-db is running and accessible via pitchlake-network"; \
 	else \
-		echo "✗ pitchlake-db is not running. Please start the fossil-monorepo first."; \
-		echo "Run: cd ../../fossil-monorepo && make dev-up"; \
+		echo "✗ pitchlake-db is not running. Please start the pitchlake-network first."; \
 	fi
 
 # Migration commands (using pitchlake-db via fossil-monorepo network)
 migrate-up:
 	@echo "Running database migrations on pitchlake-db..."
 	@if ! docker ps --format "table {{.Names}}" | grep -q "pitchlake-db"; then \
-		echo "Error: pitchlake-db is not running. Please start the fossil-monorepo first."; \
-		echo "Run: cd ../../fossil-monorepo && make dev-up"; \
+		echo "Error: pitchlake-db is not running."; \
 		exit 1; \
 	fi; \
 	echo "Checking if migrations are needed..."; \
@@ -144,23 +142,27 @@ migrate-status:
 # Vault management commands
 add-vault:
 	@echo "Adding vault to registry..."
-	@if [ -z "$(VAULT_ADDRESS)" ] || [ -z "$(DEPLOYED_AT)" ]; then \
-		echo "Usage: make add-vault VAULT_ADDRESS=0x... DEPLOYED_AT=0x..."; \
-		echo "Example: make add-vault VAULT_ADDRESS=0x123... DEPLOYED_AT=0x456..."; \
+	@if [ -z "$(VAULT_ADDRESS)" ] || [ -z "$(DEPLOYED_BLOCK_HASH)" ] || [ -z "$(DEPLOYED_BLOCK_NUMBER)" ]; then \
+		echo "Usage: make add-vault VAULT_ADDRESS=0x... DEPLOYED_BLOCK_HASH=0x... DEPLOYED_BLOCK_NUMBER=1..."; \
+		echo "Example: make add-vault VAULT_ADDRESS=0x123... DEPLOYED_BLOCK_HASH=0x456... DEPLOYED_BLOCK_NUMBER=1..."; \
 		exit 1; \
 	fi
 	@echo "Vault Address: $(VAULT_ADDRESS)"
-	@echo "Deployed At: $(DEPLOYED_AT)"
+	@echo "Deployed Block Hash: $(DEPLOYED_BLOCK_HASH)"
+	@echo "Deployed Block Number: $(DEPLOYED_BLOCK_NUMBER)"
 	@echo "⚠️  This will add the vault to the registry and start indexing from deployment block"
 	@read -p "Are you sure you want to continue? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
-	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "INSERT INTO vault_registry (vault_address, deployed_at, last_block_indexed, last_block_processed) VALUES ('$(VAULT_ADDRESS)', '$(DEPLOYED_AT)', NULL, NULL);" || echo "Failed to add vault. Make sure the container is running."
+	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "INSERT INTO vault_registry (vault_address, deployed_block_hash, deployed_block_number, last_block_indexed, last_block_processed) VALUES ('$(VAULT_ADDRESS)', '$(DEPLOYED_BLOCK_HASH)', '$(DEPLOYED_BLOCK_NUMBER)', NULL, NULL);" || echo "Failed to add vault. Make sure the container is running."
 
 list-vaults:
 	@echo "Listing all vaults in registry..."
-	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "SELECT vault_address, deployed_at, last_block_indexed, last_block_processed FROM vault_registry ORDER BY id;" || echo "Failed to list vaults. Make sure the container is running."
+	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "SELECT vault_address, deployed_block_hash, deployed_block_number, last_block_indexed, last_block_processed FROM vault_registry ORDER BY id;" || echo "Failed to list vaults. Make sure the container is running."
 
 list-events:
-	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "SELECT * from events"
+	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "SELECT event_name from events"
+
+list-driver-events:
+	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "SELECT * from driver_events"
 
 list-blocks:
 	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "SELECT * from starknet_blocks"

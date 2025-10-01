@@ -84,6 +84,7 @@ var vaultEventNames = []string{
 	"WithdrawalQueued",
 	"StashWithdrawn",
 	"OptionRoundDeployed",
+	"OptionRoundEmitted",
 	"L1RequestFulfilled",
 	"PricingDataSet",
 	"AuctionStarted",

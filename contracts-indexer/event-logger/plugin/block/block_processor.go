@@ -19,7 +19,6 @@ type Processor struct {
 	network      *network.Network
 	vaultManager *vault.Manager
 	lastBlockDB  *models.StarknetBlocks
-	cursor       uint64
 	mu           sync.Mutex
 	log          *log.Logger
 }
@@ -30,16 +29,22 @@ func NewProcessor(
 	network *network.Network,
 	vaultManager *vault.Manager,
 	lastBlockDB *models.StarknetBlocks,
-	cursor uint64,
 ) *Processor {
 	return &Processor{
 		db:           db,
 		network:      network,
 		vaultManager: vaultManager,
 		lastBlockDB:  lastBlockDB,
-		cursor:       cursor,
 		log:          log.Default(),
 	}
+}
+
+func (bp *Processor) SetNetwork(network *network.Network) {
+	bp.network = network
+}
+
+func (bp *Processor) SetVaultManager(vaultManager *vault.Manager) {
+	bp.vaultManager = vaultManager
 }
 
 // ProcessNewBlock processes a new block
@@ -48,15 +53,17 @@ func (bp *Processor) ProcessNewBlock(
 	stateUpdate *core.StateUpdate,
 	newClasses map[felt.Felt]core.Class,
 ) error {
-	if block.Number < bp.cursor {
-		return nil
-	}
 
 	bp.mu.Lock()
 	defer bp.mu.Unlock()
 	// Check if we need to catch up
 
 	bp.db.BeginTx()
+	defer func() {
+		if bp.db.IsTxOpen() {
+			bp.db.RollbackTx() // Always rollback if transaction is still open
+		}
+	}()
 	bp.log.Println("Processing new block", block.Number)
 
 	// Process events in the block
@@ -94,10 +101,13 @@ func (bp *Processor) RevertBlock(
 ) error {
 	// FIXED: Add proper transaction handling for revert
 	bp.db.BeginTx()
-
+	defer func() {
+		if bp.db.IsTxOpen() {
+			bp.db.RollbackTx() // Always rollback if transaction is still open
+		}
+	}()
 	err := bp.db.RevertBlock(from.Block.Number, from.Block.Hash.String())
 	if err != nil {
-		bp.db.RollbackTx()
 		return err
 	}
 
@@ -135,11 +145,14 @@ func (bp *Processor) CatchupBlocks(latestBlock uint64) error {
 
 		// Process all blocks in the batch with a single transaction
 		bp.db.BeginTx()
-
+		defer func() {
+			if bp.db.IsTxOpen() {
+				bp.db.RollbackTx() // Always rollback if transaction is still open
+			}
+		}()
 		for _, block := range blocks {
 			err := bp.db.InsertBlock(block)
 			if err != nil {
-				bp.db.RollbackTx()
 				bp.log.Println("Error inserting block", err)
 				return err
 			}
