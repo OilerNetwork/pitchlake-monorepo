@@ -1,8 +1,8 @@
 ---
-description: Rules for handling test changes and verifying test status
-globs: 
+alwaysApply: false
 ---
 ---
+FRONTEND MODULE ONLY
 description: Rules for handling test changes and verifying test status
 globs:
   - "src/__tests__/**/*.test.tsx"

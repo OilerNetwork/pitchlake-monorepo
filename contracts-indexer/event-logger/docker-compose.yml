@@ -26,5 +26,5 @@ volumes:
 
 networks:
   pitchlake-network:
-    name: pitchlake-network
     external: true
+    name: pitchlake-network

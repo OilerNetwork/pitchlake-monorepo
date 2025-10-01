@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/NethermindEth/juno v0.15.7
-	github.com/NethermindEth/starknet.go v0.15.0
+	github.com/NethermindEth/starknet.go v0.15.1-0.20250930151006-cea2adc05688
 	github.com/jackc/pgx/v5 v5.7.5
 	golang.org/x/crypto v0.41.0
 )
@@ -60,5 +60,3 @@ require (
 	google.golang.org/protobuf v1.36.7 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/NethermindEth/starknet.go => ./starknet.go

@@ -8,7 +8,7 @@ globs:
   - "src/__tests__/**/*.test.tsx"
   - "src/__tests__/**/*.test.ts"
 ---
-
+FRONTEND MODULE ONLY
 # Test Placement Rules
 
 Core Rule: Tests belong in the test file of the component that CONTROLS the behavior/logic, not necessarily where the rendered output appears.
