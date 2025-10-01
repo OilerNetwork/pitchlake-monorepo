@@ -368,7 +368,7 @@ type OptionBuyer struct {
 
 | Variable | Required | Description | Default |
 |----------|----------|-------------|---------|
-| `DB_URL` | Yes | PostgreSQL connection string | - |
+| `PITCHLAKE_DB_URL` | Yes | PostgreSQL connection string | - |
 
 ### Configuration Validation
 
@@ -510,7 +510,7 @@ Key metrics to monitor:
 
 ```bash
 # Set up environment
-echo "DB_URL=postgres://pitchlake_user:pitchlake_password@pitchlake-db:5432/pitchlake?sslmode=disable" > .env
+echo "PITCHLAKE_DB_URL=postgres://pitchlake_user:pitchlake_password@pitchlake-db:5432/pitchlake?sslmode=disable" > .env
 
 # Install dependencies
 go mod download

@@ -45,7 +45,7 @@ func (db *DB) RollbackTx() {
 func (db *DB) Init() error {
 
 	db.logger = log.New(os.Stdout, "", log.LstdFlags)
-	connStr := os.Getenv("DB_URL")
+	connStr := os.Getenv("PITCHLAKE_DB_URL")
 	config, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
 		return fmt.Errorf("unable to parse connection string: %w", err)
