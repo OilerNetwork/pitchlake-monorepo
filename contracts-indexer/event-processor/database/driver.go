@@ -1,4 +1,4 @@
-package db
+package database
 
 import (
 	"event-processor/models"
@@ -17,6 +17,7 @@ func (db *DB) CatchupDriverEvents() error {
 			log.Printf("No unprocessed driver events found")
 			break
 		}
+		log.Printf("Processing %d driver events", len(events))
 		for _, event := range events {
 			log.Printf("Processing driver event: %v", event)
 			err := db.processDriverEvent(*event)
@@ -30,10 +31,16 @@ func (db *DB) CatchupDriverEvents() error {
 }
 
 func (db *DB) processDriverEvent(driverEventData models.DriverEvent) error {
-	db.BeginTx()
+	err := db.BeginTx()
+	if err != nil {
+		return err
+	}
+	log.Printf("Processing driver event: %v", driverEventData)
 	switch driverEventData.Type {
 	case "NewBlock":
+		log.Printf("Processing NewBlock driver event")
 		events, err := db.GetEventsByBlockHash(*driverEventData.BlockHash, "ASC")
+		log.Printf("Processing %d events", len(events))
 		if err != nil {
 			db.logger.Printf("Error getting events by block number: %v", err)
 			return err
@@ -63,11 +70,13 @@ func (db *DB) processDriverEvent(driverEventData models.DriverEvent) error {
 		}
 
 	case "CatchupVault":
+		log.Printf("Processing CatchupVault driver event")
 		events, err := db.GetEventsForVault(*driverEventData.VaultAddress, *driverEventData.StartBlockHash, *driverEventData.EndBlockHash)
 		if err != nil {
 			db.logger.Printf("Error getting events by block number: %v", err)
 			return err
 		}
+		log.Printf("Processing %d events", len(events))
 		for _, event := range events {
 			err := db.processVaultEvent(event)
 			if err != nil {

@@ -33,7 +33,6 @@ COPY go.mod ./
 COPY go.sum ./
 COPY go.work ./
 COPY Makefile ./
-COPY starknet.go/ ./starknet.go/
 
 RUN go mod tidy
 RUN make build

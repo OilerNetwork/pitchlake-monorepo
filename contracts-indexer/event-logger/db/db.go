@@ -57,6 +57,7 @@ func (db *DB) InsertBlock(block *models.StarknetBlocks) error {
 	timestamp,
 	status)
 	VALUES ($1, $2, $3, $4, 'MINED')
+	ON CONFLICT (block_number) DO NOTHING
 	`
 	res, err := db.tx.Exec(context.Background(), query, number, hash, parentHash, timestamp)
 

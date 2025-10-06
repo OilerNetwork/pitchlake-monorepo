@@ -67,11 +67,6 @@ func NewPluginCore() (*PluginFactory, error) {
 	}, nil
 }
 
-// Initialize initializes the plugin
-func (pc *PluginFactory) Initialize() error {
-	return nil
-}
-
 // Shutdown shuts down the plugin
 func (pc *PluginFactory) Shutdown() error {
 	pc.log.Println("Shutting down plugin core")

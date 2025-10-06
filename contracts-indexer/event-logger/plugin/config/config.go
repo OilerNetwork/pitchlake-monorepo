@@ -19,9 +19,9 @@ func LoadConfig() (*Config, error) {
 	config := &Config{}
 
 	// Required environment variables
-	dbURL := os.Getenv("DB_URL")
+	dbURL := os.Getenv("PITCHLAKE_DB_URL")
 	if dbURL == "" {
-		return nil, fmt.Errorf("DB_URL environment variable is required")
+		return nil, fmt.Errorf("PITCHLAKE_DB_URL environment variable is required")
 	}
 	config.DatabaseURL = dbURL
 

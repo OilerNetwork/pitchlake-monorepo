@@ -1,4 +1,4 @@
-package db
+package database
 
 import (
 	"context"
@@ -22,49 +22,51 @@ type DB struct {
 	logger *log.Logger
 }
 
-func (db *DB) BeginTx() {
+func (db *DB) BeginTx() error {
 	tx, err := db.Pool.Begin(db.ctx)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	db.tx = tx
+	return nil
 }
 
-func (db *DB) CommitTx() {
-	db.tx.Commit(db.ctx)
-	db.tx.Conn().Close(db.ctx)
+func (db *DB) CommitTx() error {
+	err := db.tx.Commit(db.ctx)
+	if err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
 	db.tx = nil
+	return nil
 }
 
 func (db *DB) RollbackTx() {
 	db.tx.Rollback(db.ctx)
-	db.tx.Conn().Close(db.ctx)
 	db.tx = nil
 }
 
-func (db *DB) Init() error {
-
+func NewDB() (*DB, error) {
+	db := &DB{}
 	db.logger = log.New(os.Stdout, "", log.LstdFlags)
 	connStr := os.Getenv("PITCHLAKE_DB_URL")
 	config, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
-		return fmt.Errorf("unable to parse connection string: %w", err)
+		return nil, fmt.Errorf("unable to parse connection string: %w", err)
 	}
 
+	pool, err := pgxpool.NewWithConfig(context.Background(), config)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create connection pool: %w", err)
+	}
 	conn, err := pgx.Connect(context.Background(), connStr)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	pool, err := pgxpool.NewWithConfig(context.Background(), config)
-	if err != nil {
-		return fmt.Errorf("unable to create connection pool: %w", err)
-	}
-
 	db.Conn = conn
 	db.Pool = pool
 	db.ctx = context.Background()
-	return nil
+	return db, nil
 }
 
 func (db *DB) MarkDriverEventAsProcessed(id int) error {
@@ -78,7 +80,7 @@ func (db *DB) MarkDriverEventAsProcessed(id int) error {
 func (db *DB) GetUnprocessedDriverEvents() ([]*models.DriverEvent, error) {
 	var events []*models.DriverEvent
 	query := `
-			SELECT id, sequence_index, type, timestamp, is_processed, block_hash, vault_address, start_block_hash, end_block_hash FROM driver_events WHERE is_processed = false;`
+			SELECT id, sequence_index, type, timestamp, is_processed, block_hash, vault_address, start_block_hash, end_block_hash FROM driver_events WHERE is_processed = false ORDER BY sequence_index ASC;`
 	rows, err := db.Pool.Query(context.Background(), query)
 	if err != nil {
 		if err == pgx.ErrNoRows {
@@ -107,14 +109,19 @@ func (db *DB) GetUnprocessedDriverEvents() ([]*models.DriverEvent, error) {
 }
 
 func (db *DB) GetBlockByHash(blockHash string) (*models.StarknetBlock, error) {
-	query := `SELECT * FROM starknet_blocks WHERE block_hash = $1;`
+	query := `SELECT block_number, block_hash, parent_hash, timestamp FROM starknet_blocks WHERE block_hash = $1;`
 	var block models.StarknetBlock
-	db.tx.QueryRow(context.Background(), query, blockHash).Scan(&block)
+	err := db.Pool.QueryRow(context.Background(), query, blockHash).Scan(&block.BlockNumber, &block.BlockHash, &block.ParentHash, &block.Timestamp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get block by hash: %w", err)
+	}
 	return &block, nil
 }
 
 func (db *DB) GetEventsForVault(vaultAddress string, startBlockHash string, endBlockHash string) ([]models.Event, error) {
 
+	log.Printf("Start block hash: %v", startBlockHash)
+	log.Printf("End block hash: %v", endBlockHash)
 	startBlock, err := db.GetBlockByHash(startBlockHash)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get start block: %w", err)
@@ -123,6 +130,9 @@ func (db *DB) GetEventsForVault(vaultAddress string, startBlockHash string, endB
 	if err != nil {
 		return nil, fmt.Errorf("failed to get end block: %w", err)
 	}
+	log.Printf("Vault address: %v", vaultAddress)
+	log.Printf("Start block: %v", startBlock)
+	log.Printf("End block: %v", endBlock)
 	query := `
 		SELECT 
 			event_nonce,
@@ -136,7 +146,7 @@ func (db *DB) GetEventsForVault(vaultAddress string, startBlockHash string, endB
 		FROM events
 		WHERE vault_address = $1 AND block_number BETWEEN $2 AND $3;` //Including start and end block
 
-	rows, err := db.tx.Query(context.Background(), query, vaultAddress, startBlock.BlockNumber, endBlock.BlockNumber)
+	rows, err := db.Pool.Query(context.Background(), query, vaultAddress, startBlock.BlockNumber, endBlock.BlockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query events for vault: %w", err)
 	}
@@ -182,13 +192,12 @@ func (db *DB) GetEventsByBlockHash(blockHash string, orderBy string) ([]models.E
 			vault_address,
 			event_name,
 			event_keys,
-			event_data,
-			transaction_hash
+			event_data
 		FROM events
 		WHERE block_hash = $1
 		ORDER BY event_nonce $2`
 
-	rows, err := db.tx.Query(context.Background(), query, blockHash, orderBy)
+	rows, err := db.Pool.Query(context.Background(), query, blockHash, orderBy)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query events by block number: %w", err)
 	}
@@ -344,7 +353,7 @@ func (db *DB) UpdateAllLiquidityProvidersBalancesAuctionEnd(
 	if startingLiquidity.Cmp(zero.Int) == 0 {
 		return nil
 	}
-	query := `UPDATE liquidity_provider_states
+	query := `UPDATE liquidity_providers
 	SET
 		locked_balance = locked_balance - FLOOR((locked_balance*?)/?),
 		unlocked_balance = unlocked_balance + FLOOR((locked_balance*?))/? + FLOOR((?*locked_balance)/?),
@@ -488,7 +497,7 @@ func (db *DB) UpdateAllLiquidityProvidersBalancesOptionSettle(
 	blockNumber uint64,
 ) error {
 
-	query := `UPDATE liquidity_provider_states SET
+	query := `UPDATE liquidity_providers SET
 	locked_balance = 0,
 	unlocked_balance = unlocked_balance + FLOOR(
 		CASE 
@@ -553,7 +562,7 @@ func (db *DB) UpdateAllLiquidityProvidersBalancesOptionSettle(
 	/* Use this JOIN query to update this without creating 2 entries on the historic table
 	// Perform the update in a single query using JOINs and subqueries
 	err := db.Conn.Exec(`
-		UPDATE liquidity_provider_states lps
+		UPDATE liquidity_providers lps
 		JOIN (
 			SELECT
 				address,
@@ -574,7 +583,7 @@ func (db *DB) GetVaultByAddress(address string) (*models.VaultState, error) {
 	query := `SELECT * FROM vault_states WHERE address = $1; LIMIT 1`
 	var vault models.VaultState
 
-	db.tx.QueryRow(context.Background(), query, address).Scan(&vault)
+	db.Pool.QueryRow(context.Background(), query, address).Scan(&vault)
 	// if err := db.tx.Where("address = ?", address).First(&vault).Error; err != nil {
 	// 	return nil, err
 	// }
@@ -585,7 +594,7 @@ func (db *DB) GetVaultAddresses() ([]string, error) {
 	var addresses []string
 
 	query := `SELECT address FROM vault_states; `
-	rows, err := db.tx.Query(context.Background(), query)
+	rows, err := db.Pool.Query(context.Background(), query)
 	if err != nil {
 		return nil, err
 	}
@@ -611,9 +620,9 @@ func (db *DB) GetVaultAddresses() ([]string, error) {
 }
 
 func (db *DB) GetRoundById(roundId uint64, vaultAddress string) (*models.OptionRound, error) {
-	query := `SELECT * FROM option_rounds WHERE round_id = $1 AND vault_address = $2;`
+	query := `SELECT address, vault_address, round_id, cap_level, start_date, end_date, settlement_date, starting_liquidity, queued_liquidity, remaining_liquidity, available_options, clearing_price, settlement_price, reserve_price, strike_price, sold_options, unsold_liquidity, state, premiums, payout_per_option, deployment_date FROM option_rounds WHERE round_id = $1 AND vault_address = $2;`
 	var round models.OptionRound
-	err := db.tx.QueryRow(context.Background(), query, roundId, vaultAddress).Scan(&round)
+	err := db.tx.QueryRow(context.Background(), query, roundId, vaultAddress).Scan(&round.Address, &round.VaultAddress, &round.RoundID, &round.CapLevel, &round.AuctionStartDate, &round.AuctionEndDate, &round.OptionSettleDate, &round.StartingLiquidity, &round.QueuedLiquidity, &round.RemainingLiquidity, &round.AvailableOptions, &round.ClearingPrice, &round.SettlementPrice, &round.ReservePrice, &round.StrikePrice, &round.OptionsSold, &round.UnsoldLiquidity, &round.RoundState, &round.Premiums, &round.PayoutPerOption, &round.DeploymentDate)
 	if err != nil {
 		return nil, err
 	}
@@ -623,7 +632,7 @@ func (db *DB) GetRoundAddresses(vaultAddress string) (*[]string, error) {
 	var addresses []string
 
 	query := `SELECT address FROM option_rounds WHERE vault_address = $1;`
-	rows, err := db.tx.Query(context.Background(), query, vaultAddress)
+	rows, err := db.Pool.Query(context.Background(), query, vaultAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -729,7 +738,7 @@ func (db *DB) UpsertLiquidityProviderState(lp *models.LiquidityProviderState, bl
 
 	// Perform upsert using GORM's Clauses with the transaction object
 	query := `
-		INSERT INTO liquidity_provider_states (
+		INSERT INTO liquidity_providers (
 			address,
 			vault_address,
 			unlocked_balance,
@@ -877,7 +886,7 @@ func (db *DB) GetOptionRoundByAddress(address string) (*models.OptionRound, erro
 		LIMIT 1;`
 
 	var or models.OptionRound
-	err := db.tx.QueryRow(context.Background(), query, address).Scan(
+	err := db.Pool.QueryRow(context.Background(), query, address).Scan(
 		&or.Address,
 		&or.VaultAddress,
 		&or.RoundID,
@@ -996,7 +1005,7 @@ func (db *DB) UpdateLiquidityProviderFields(vaultAddress, address string, update
 
 	// Construct the query
 	query := fmt.Sprintf(`
-		UPDATE liquidity_provider_states
+		UPDATE liquidity_providers
 		SET %s
 		WHERE vault_address = $%d AND address = $%d`,
 		strings.Join(setClause, ", "),
@@ -1072,6 +1081,27 @@ func (db *DB) CreateOptionRound(round *models.OptionRound) error {
 	// }
 	// return nil
 
+	log.Printf(" RoundAddress %v", round.Address)
+	log.Printf(" RoundVaultAddress %v", round.VaultAddress)
+	log.Printf(" RoundRoundID %v", round.RoundID)
+	log.Printf(" RoundCapLevel %v", round.CapLevel)
+	log.Printf(" RoundAuctionStartDate %v", round.AuctionStartDate)
+	log.Printf(" RoundAuctionEndDate %v", round.AuctionEndDate)
+	log.Printf(" RoundOptionSettleDate %v", round.OptionSettleDate)
+	log.Printf(" RoundStartingLiquidity %v", round.StartingLiquidity)
+	log.Printf(" RoundQueuedLiquidity %v", round.QueuedLiquidity)
+	log.Printf(" RoundRemainingLiquidity %v", round.RemainingLiquidity)
+	log.Printf(" RoundAvailableOptions %v", round.AvailableOptions)
+	log.Printf(" RoundClearingPrice %v", round.ClearingPrice)
+	log.Printf(" RoundSettlementPrice %v", round.SettlementPrice)
+	log.Printf(" RoundReservePrice %v", round.ReservePrice)
+	log.Printf(" RoundStrikePrice %v", round.StrikePrice)
+	log.Printf(" RoundOptionsSold %v", round.OptionsSold)
+	log.Printf(" RoundUnsoldLiquidity %v", round.UnsoldLiquidity)
+	log.Printf(" RoundRoundState %v", round.RoundState)
+	log.Printf(" RoundPremiums %v", round.Premiums)
+	log.Printf(" RoundPayoutPerOption %v", round.PayoutPerOption)
+	log.Printf(" RoundDeploymentDate %v", round.DeploymentDate)
 	query := `
 		INSERT INTO option_rounds (
 			address,
@@ -1513,7 +1543,7 @@ func (db *DB) RevertAllLPState(vaultAddress string, blockNumber uint64) error {
 	query := `
 		SELECT 
 			address 
-		FROM liquidity_provider_states 
+		FROM liquidity_providers 
 		WHERE vault_address = $1 AND last_block = $2;`
 
 	rows, err := db.tx.Query(context.Background(), query, vaultAddress, blockNumber)
@@ -1576,7 +1606,7 @@ func (db *DB) RevertAllLPState(vaultAddress string, blockNumber uint64) error {
 
 		// Update the LP state
 		updateQuery := `
-			UPDATE liquidity_provider_states 
+			UPDATE liquidity_providers 
 			SET 
 				unlocked_balance = $1,
 				locked_balance = $2,
@@ -1640,7 +1670,7 @@ func (db *DB) RevertLPState(vaultAddress, address string, blockNumber uint64) er
 	query := `
 		SELECT 
 			address 
-		FROM liquidity_provider_states 
+		FROM liquidity_providers 
 		WHERE vault_address = $1 AND address = $2 AND last_block = $3 
 		LIMIT 1;`
 
@@ -1692,7 +1722,7 @@ func (db *DB) RevertLPState(vaultAddress, address string, blockNumber uint64) er
 
 	// Update the LP state
 	updateQuery := `
-		UPDATE liquidity_provider_states 
+		UPDATE liquidity_providers 
 		SET 
 			unlocked_balance = $1,
 			locked_balance = $2,

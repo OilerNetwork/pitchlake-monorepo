@@ -4,19 +4,18 @@ import (
 	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/lib/pq"
 )
 
 type Event struct {
-	From            string         `json:"from"`
-	TransactionHash string         `json:"transactionHash"`
-	BlockNumber     uint64         `json:"blockNumber"`
-	VaultAddress    string         `json:"vaultAddress"`
-	EventNonce      uint64         `json:"eventNonce"`
-	BlockHash       string         `json:"blockHash"`
-	EventName       string         `json:"eventName"`
-	EventKeys       pq.StringArray `json:"eventKeys"`
-	EventData       pq.StringArray `json:"eventData"`
+	From            string   `json:"from"`
+	TransactionHash string   `json:"transactionHash"`
+	BlockNumber     uint64   `json:"blockNumber"`
+	VaultAddress    string   `json:"vaultAddress"`
+	EventNonce      uint64   `json:"eventNonce"`
+	BlockHash       string   `json:"blockHash"`
+	EventName       string   `json:"eventName"`
+	EventKeys       []string `json:"eventKeys"`
+	EventData       []string `json:"eventData"`
 }
 
 type Vault struct {

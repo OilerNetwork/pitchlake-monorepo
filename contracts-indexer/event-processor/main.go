@@ -1,7 +1,8 @@
 package main
 
 import (
-	"event-processor/db"
+	"event-processor/database"
+	"fmt"
 	"log"
 
 	"github.com/joho/godotenv"
@@ -28,9 +29,14 @@ func main() {
 // OR Trigger:or_update
 func run() error {
 
-	db := &db.DB{}
-	db.Init()
-	db.CatchupDriverEvents()
+	db, err := database.NewDB()
+	if err != nil {
+		return fmt.Errorf("failed to create database: %w", err)
+	}
+	err = db.CatchupDriverEvents()
+	if err != nil {
+		return fmt.Errorf("failed to catchup driver events: %w", err)
+	}
 	db.Listener()
 	return nil
 }

@@ -35,7 +35,7 @@ Create a `.env` file with the following variables:
 
 ```bash
 # Database Configuration
-DB_URL=postgres://pitchlake_user:pitchlake_password@pitchlake-db:5432/pitchlake?sslmode=disable
+PITCHLAKE_DB_URL=postgres://pitchlake_user:pitchlake_password@pitchlake-db:5432/pitchlake?sslmode=disable
 
 # Network Configuration
 RPC_URL=https://starknet-sepolia.infura.io/v3/YOUR_PROJECT_ID

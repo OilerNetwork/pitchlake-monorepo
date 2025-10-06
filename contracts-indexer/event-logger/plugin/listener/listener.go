@@ -25,7 +25,7 @@ type Service struct {
 // NewService creates a new listener service
 func NewListenerService(vaultManager *vault.Manager) (*Service, error) {
 	ctx, cancel := context.WithCancel(context.Background())
-	dbUrl := os.Getenv("DB_URL")
+	dbUrl := os.Getenv("PITCHLAKE_DB_URL")
 	conn, err := pgx.Connect(ctx, dbUrl)
 	if err != nil {
 		cancel()

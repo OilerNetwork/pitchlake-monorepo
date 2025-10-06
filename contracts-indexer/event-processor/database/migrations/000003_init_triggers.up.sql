@@ -3,7 +3,7 @@
 
 CREATE TRIGGER lp_update
     AFTER UPDATE 
-    ON public."Liquidity_Providers"
+    ON public."liquidity_providers"
     FOR EACH ROW
     EXECUTE FUNCTION public.notify_lp_update();
 
@@ -12,13 +12,13 @@ CREATE TRIGGER lp_update
 
 CREATE TRIGGER or_update
     AFTER UPDATE 
-    ON public."Option_Rounds"
+    ON public."option_rounds"
     FOR EACH ROW
     EXECUTE FUNCTION public.notify_or_update();
 
     CREATE TRIGGER or_insert
     AFTER INSERT 
-    ON public."Option_Rounds"
+    ON public."option_rounds"
     FOR EACH ROW
     EXECUTE FUNCTION public.notify_or_update();
 
@@ -27,7 +27,7 @@ CREATE TRIGGER or_update
 
 CREATE TRIGGER vault_update
     AFTER UPDATE 
-    ON public."VaultStates"
+    ON public."vault_states"
     FOR EACH ROW
     EXECUTE FUNCTION public.notify_vault_update();
 
@@ -35,22 +35,22 @@ CREATE TRIGGER vault_update
 
 CREATE TRIGGER ob_update
     AFTER UPDATE 
-    ON public."Option_Buyers"
+    ON public."option_buyers"
     FOR EACH ROW
     EXECUTE FUNCTION public.notify_ob_update();
 
 CREATE TRIGGER bids_insert_trigger
-AFTER INSERT ON public."Bids"
+AFTER INSERT ON public."bids"
 FOR EACH ROW
 EXECUTE FUNCTION public.notify_bids_channel();
 
 CREATE TRIGGER bids_update_trigger
-AFTER UPDATE ON public."Bids"
+AFTER UPDATE ON public."bids"
 FOR EACH ROW
 EXECUTE FUNCTION public.notify_bids_channel();
 
 CREATE TRIGGER vault_insert_trigger
 AFTER INSERT
-ON public."VaultStates"
+ON public."vault_states"
 FOR EACH ROW
 EXECUTE FUNCTION public.notify_vault_insert();

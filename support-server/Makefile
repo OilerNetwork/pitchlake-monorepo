@@ -6,6 +6,8 @@ help:
 	@echo "  start-dbs        - Start both fossil and pitchlake databases"
 	@echo "  stop-dbs         - Stop both databases"
 	@echo "  migrate-pitchlake - Run pitchlake database migrations"
+	@echo "  migrate-pitchlake-down - Roll back pitchlake database migrations"
+	@echo "  migrate-pitchlake-status - Check pitchlake migration status"
 	@echo "  migrate-fossil   - Run fossil database migrations"
 	@echo "  migrate-all      - Run all migrations"
 	@echo "  clean-dbs        - Stop and remove databases (data will be lost)"
@@ -53,16 +55,25 @@ stop-dbs:
 	@echo "Stopping databases..."
 	docker compose stop fossil-db pitchlake-db
 
-# Run pitchlake migrations (only if needed)
-migrate-pitchlake: check-dbs
-	@if docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "\dt" 2>/dev/null | grep -q "twap_state"; then \
-		echo "Pitchlake migrations already applied"; \
-	else \
-		echo "Running pitchlake migrations..."; \
-		docker exec -i pitchlake-db psql -U pitchlake_user -d pitchlake < ../migrations/pitchlake/001_create_twap_tables.sql; \
-		docker exec -i pitchlake-db psql -U pitchlake_user -d pitchlake < ../migrations/pitchlake/002_add_notify_triggers.sql; \
-		echo "Pitchlake migrations completed!"; \
-	fi
+# Migration commands using TypeScript migration tool
+migrate-pitchlake:
+	@echo "Running pitchlake database migrations..."
+	@cd migrate && npx ts-node migrate.ts up
+
+migrate-pitchlake-down:
+	@echo "Rolling back pitchlake database migrations..."
+	@cd migrate && npx ts-node migrate.ts down
+
+migrate-pitchlake-status:
+	@echo "Checking pitchlake migration status..."
+	@cd migrate && npx ts-node migrate.ts status
+
+migrate-pitchlake-force-drop:
+	@echo "⚠️  WARNING: This will drop the migration table and reset all migration state!"
+	@echo "This should only be used to fix dirty migration states."
+	@read -p "Are you sure you want to continue? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
+	@echo "Dropping migration table..."
+	@cd migrate && npx ts-node migrate.ts force-drop
 
 # Run fossil migrations (only if needed)
 migrate-fossil: check-dbs

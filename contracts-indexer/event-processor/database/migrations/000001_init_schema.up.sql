@@ -1,5 +1,4 @@
-
-CREATE TABLE "Liquidity_Providers"
+CREATE TABLE "liquidity_providers"
 (
     address character varying NOT NULL,
     vault_address character varying NOT NULL,
@@ -7,11 +6,11 @@ CREATE TABLE "Liquidity_Providers"
     locked_balance numeric(78,0),
     unlocked_balance numeric(78,0),
     latest_block numeric(78,0),
-    CONSTRAINT "Liquidity_Providers_pkey" PRIMARY KEY (address, vault_address)
+    CONSTRAINT "liquidity_providers_pkey" PRIMARY KEY (address, vault_address)
 );
 
 
-CREATE TABLE "Liquidity_Providers_Historic"
+CREATE TABLE "liquidity_providers_historic"
 (
     address character varying NOT NULL,
     vault_address character varying NOT NULL,
@@ -19,9 +18,9 @@ CREATE TABLE "Liquidity_Providers_Historic"
     locked_balance numeric(78,0),
     unlocked_balance numeric(78,0),
     block_number numeric(78,0),
-     CONSTRAINT "Liquidity_Providers_Historic_pkey" PRIMARY KEY (address, vault_address,block_number)
+     CONSTRAINT "liquidity_providers_historic_pkey" PRIMARY KEY (address, vault_address,block_number)
 );
-CREATE TABLE "Option_Rounds"
+CREATE TABLE "option_rounds"
 (
     address character varying NOT NULL,
     available_options numeric(78,0) DEFAULT 0,
@@ -44,13 +43,13 @@ CREATE TABLE "Option_Rounds"
     start_date numeric(78,0),
     end_date numeric(78,0),
     settlement_date numeric(78,0),
-    CONSTRAINT "Option_Rounds_pkey" PRIMARY KEY (address)
+    CONSTRAINT "option_rounds_pkey" PRIMARY KEY (address)
 );
 
 
 -- Table: public.Queued_Liquidity
 
-CREATE TABLE "Queued_Liquidity"
+CREATE TABLE "queued_liquidity"
 (
     address character varying NOT NULL,
     queued_liquidity numeric(78,0) NOT NULL,
@@ -58,7 +57,7 @@ CREATE TABLE "Queued_Liquidity"
     round_address character varying,
     CONSTRAINT lp_round_address PRIMARY KEY (address, round_address),
     CONSTRAINT round_address FOREIGN KEY (round_address)
-        REFERENCES public."Option_Rounds" (address) MATCH SIMPLE
+        REFERENCES public."option_rounds" (address) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
         NOT VALID
@@ -67,7 +66,7 @@ CREATE TABLE "Queued_Liquidity"
 
 -- Table: public.VaultStates
 
-CREATE TABLE "VaultStates"
+CREATE TABLE "vault_states"
 (
     unlocked_balance numeric(78,0),
     locked_balance numeric(78,0),
@@ -86,24 +85,24 @@ CREATE TABLE "VaultStates"
     round_duration numeric(78,0),
     deployment_date numeric(78,0),
     
-    CONSTRAINT "VaultState_pkey" PRIMARY KEY (address)
+    CONSTRAINT "vault_states_pkey" PRIMARY KEY (address)
 );
 
-CREATE TABLE "Vault_Historic"
+CREATE TABLE "vault_historic"
 (
     unlocked_balance numeric(78,0),
     locked_balance numeric(78,0),
     stashed_balance numeric(78,0),
     address character varying NOT NULL,
     block_number numeric(78,0),
-    CONSTRAINT "Vault_Historic_pkey" PRIMARY KEY (address,block_number)
+    CONSTRAINT "vault_historic_pkey" PRIMARY KEY (address,block_number)
 );
 
 
 -- Table: public.Option_Buyers
 
 
-CREATE TABLE "Option_Buyers"
+CREATE TABLE "option_buyers"
 (
     address character varying NOT NULL,
     round_address character varying NOT NULL,
@@ -118,7 +117,7 @@ CREATE TABLE "Option_Buyers"
 -- Table: public.Bids
 
 
-CREATE TABLE "Bids"
+CREATE TABLE "bids"
 (
     buyer_address character varying,
     round_address character varying,
