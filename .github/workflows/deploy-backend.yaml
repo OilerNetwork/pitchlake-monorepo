@@ -1,4 +1,4 @@
-name: Docker Build, Push and Deploy Pitchlake UI
+name: Docker Build, Push and Deploy Pitchlake backend
 on:
   push:
     branches:

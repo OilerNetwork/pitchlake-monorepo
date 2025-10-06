@@ -1,8 +1,9 @@
-name: Docker Build, Push and Deploy Pitchlake UI
+name: Docker Build, Push and Deploy pitchlake event processor
 on:
   push:
     branches:
-      - main
+      - staging
+      - feat/deploy-workflows
 
 env:
   AWS_REGION: eu-central-1
