@@ -1,6 +1,6 @@
 -- Drop triggers
-DROP TRIGGER IF EXISTS lp_log_update ON public."Liquidity_Providers";
-DROP TRIGGER IF EXISTS vault_log_update ON public."VaultStates";
+DROP TRIGGER IF EXISTS lp_log_update ON public."liquidity_providers";
+DROP TRIGGER IF EXISTS vault_log_update ON public."vault_states";
 
 -- Drop trigger functions
 DROP FUNCTION IF EXISTS public.log_lp_update;

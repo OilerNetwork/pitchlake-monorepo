@@ -38,7 +38,7 @@ docker-restart-network:
 	docker compose up -d
 
 # Development setup
-dev: migrate-up
+dev:
 	@echo "🔧 Building Docker image..."
 	@make docker-build
 	@echo ""
@@ -119,7 +119,7 @@ list-vaults:
 	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "SELECT vault_address, deployed_block_hash, deployed_block_number, last_block_indexed, last_block_processed FROM vault_registry ORDER BY id;" || echo "Failed to list vaults. Make sure the container is running."
 
 list-events:
-	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "SELECT event_name, event_nonce from events"
+	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "SELECT event_name, event_nonce, block_number, block_hash from events"
 
 list-driver-events:
 	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "SELECT * from driver_events"

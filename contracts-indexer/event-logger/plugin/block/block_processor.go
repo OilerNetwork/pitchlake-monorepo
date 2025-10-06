@@ -67,9 +67,7 @@ func (bp *Processor) ProcessNewBlock(
 	bp.log.Println("Processing new block", block.Number)
 
 	// Process events in the block
-	err := bp.processBlockEvents(block)
-	if err != nil {
-		bp.db.RollbackTx()
+	if err := bp.processBlockEvents(block); err != nil {
 		bp.log.Println("Error processing block events", err)
 		return err
 	}
@@ -77,15 +75,16 @@ func (bp *Processor) ProcessNewBlock(
 	// Store the block
 	starknetBlock := models.CoreToStarknetBlock(*block)
 
-	err = bp.db.InsertBlock(&starknetBlock)
-	if err != nil {
-		bp.db.RollbackTx()
+	if err := bp.db.InsertBlock(&starknetBlock); err != nil {
 		bp.log.Println("Error inserting block", err)
 		return err
 	}
 
 	bp.lastBlockDB = &starknetBlock
-
+	if err := bp.vaultManager.UpdateLastBlockRegistry(&starknetBlock); err != nil {
+		bp.log.Println("Error updating last block registry", err)
+		return err
+	}
 	// Send StartBlock event right before commit
 	bp.sendDriverEvent("StartBlock", block.Hash.String())
 	bp.db.CommitTx()

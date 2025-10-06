@@ -40,7 +40,7 @@ func main() {
 
 	// Create migrate instance
 	m, err := migrate.New(
-		"file://../db/migrations",
+		"file://../database/migrations",
 		dbURL,
 	)
 	if err != nil {

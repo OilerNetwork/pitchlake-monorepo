@@ -12,22 +12,23 @@ import (
 type OptionRoundEvent string
 
 func GetJunoEvent(event models.Event) models.JunoEvent {
-	var From felt.Felt
-	From.SetString(event.From)
+
+	From, _ := felt.NewFromString[felt.Felt](event.VaultAddress)
+
 	// Convert EventData array to felt array
 	Data := make([]*felt.Felt, len(event.EventData))
 	for i, data := range event.EventData {
-		Data[i].SetString(data)
+		Data[i], _ = felt.NewFromString[felt.Felt](data)
 	}
 
 	// Convert EventKeys array to felt array
 	Keys := make([]*felt.Felt, len(event.EventKeys))
 	for i, key := range event.EventKeys {
-		Keys[i].SetString(key)
+		Keys[i], _ = felt.NewFromString[felt.Felt](key)
 	}
 
 	junoEvent := models.JunoEvent{
-		From: &From,
+		From: From,
 		Data: Data,
 		Keys: Keys,
 	}
@@ -93,9 +94,11 @@ func StashWithdrawn(event models.JunoEvent) (string, models.BigInt, models.BigIn
 
 func RoundDeployed(event models.JunoEvent) models.OptionRound {
 
-	log.Printf("event %v", event)
+	log.Printf("event from %v", event.From.String())
+	log.Printf("event data %v", event.Data)
+	log.Printf("event keys %v", event.Keys)
 	vaultAddress :=
-		event.From.String()
+		FeltToHexString(event.From.Bytes())
 	roundId := FeltToBigInt(event.Data[0].Bytes())
 	roundAddress := FeltToHexString(event.Data[1].Bytes())
 	startingBlock := event.Data[2].Uint64()

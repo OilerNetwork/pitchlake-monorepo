@@ -3,7 +3,7 @@
 CREATE OR REPLACE FUNCTION public.log_lp_update()
 RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO "Liquidity_Providers_Historic" (
+    INSERT INTO "liquidity_providers_historic" (
         address, vault_address, stashed_balance, locked_balance, unlocked_balance, block_number
     )
     VALUES (
@@ -21,7 +21,7 @@ $$ LANGUAGE plpgsql;
 -- Create trigger for Liquidity_Providers
 CREATE TRIGGER lp_log_update
 AFTER UPDATE
-ON public."Liquidity_Providers"
+ON public."liquidity_providers"
 FOR EACH ROW
 EXECUTE FUNCTION public.log_lp_update();
 
@@ -29,7 +29,7 @@ EXECUTE FUNCTION public.log_lp_update();
 CREATE OR REPLACE FUNCTION public.log_vault_update()
 RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO "Vault_Historic" (
+    INSERT INTO "vault_historic" (
         address, unlocked_balance, locked_balance, stashed_balance, block_number
     )
     VALUES (
@@ -46,6 +46,6 @@ $$ LANGUAGE plpgsql;
 -- Create trigger for VaultStates
 CREATE TRIGGER vault_log_update
 AFTER UPDATE
-ON public."VaultStates"
+ON public."vault_states"
 FOR EACH ROW
 EXECUTE FUNCTION public.log_vault_update();

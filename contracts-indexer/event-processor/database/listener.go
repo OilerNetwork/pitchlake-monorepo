@@ -1,4 +1,4 @@
-package db
+package database
 
 import (
 	"context"
@@ -10,10 +10,10 @@ import (
 	"math/big"
 )
 
-func (db *DB) Listener() {
+func (db *DB) Listener() error {
 	_, err := db.Conn.Exec(db.ctx, "LISTEN driver_events")
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("failed to start listening for driver events: %w", err)
 	}
 
 	fmt.Println("Waiting for notifications...")
@@ -22,20 +22,20 @@ func (db *DB) Listener() {
 		// Wait for a notification
 		notification, err := db.Conn.WaitForNotification(context.Background())
 		if err != nil {
-			log.Fatal(err)
+			return fmt.Errorf("failed to wait for notification: %w", err)
 		}
 
 		var driverEventData models.DriverEvent
 		err = json.Unmarshal([]byte(notification.Payload), &driverEventData)
 		if err != nil {
 			log.Printf("Error parsing driver_events payload: %v", err)
-			return
+			return fmt.Errorf("failed to parse driver_events payload: %w", err)
 		}
 		fmt.Println("Received an update on driver_events")
 		err = db.processDriverEvent(driverEventData)
 		if err != nil {
 			log.Printf("Error processing driver_events: %v", err)
-			return
+			return fmt.Errorf("failed to process driver_events: %w", err)
 		}
 		//Process notification here
 	}
@@ -202,6 +202,7 @@ func (db *DB) processVaultEvent(
 	case "OptionRoundDeployed":
 
 		optionRound := adaptors.RoundDeployed(junoEvent)
+		log.Printf("Processing OptionRoundDeployed event, block hash %v", event.BlockHash)
 		block, err := db.GetBlockByHash(event.BlockHash)
 		if err != nil {
 			return err
@@ -213,6 +214,7 @@ func (db *DB) processVaultEvent(
 		}
 
 	case "OptionRoundEmitted":
+		log.Printf("Processing OptionRoundEmitted event")
 		err = db.processOptionRoundEvent(event)
 	case "PricingDataSet":
 		strikePrice, capLevel, reservePrice, roundAddress := adaptors.PricingDataSet(junoEvent)
@@ -311,15 +313,12 @@ func (db *DB) processOptionRoundEvent(
 	junoEvent := adaptors.GetJunoEvent(event)
 	optionRoundEvent := adaptors.OptionRoundEmitted(junoEvent)
 	roundId := junoEvent.Data[0].Uint64()
-	round, err := db.GetRoundById(roundId, event.VaultAddress)
+	prevStateOptionRound, err := db.GetRoundById(roundId, event.VaultAddress)
 	if err != nil {
+		log.Printf("Error getting round by id %v", err)
 		return err
 	}
-	roundAddress := round.Address
-	prevStateOptionRound, err := db.GetOptionRoundByAddress(roundAddress)
-	if err != nil {
-		return err
-	}
+	log.Printf("Processing OptionRoundEmitted event %v", optionRoundEvent)
 	switch optionRoundEvent {
 	case "PricingDataSet":
 		strikePrice, capLevel, reservePrice, roundAddress := adaptors.PricingDataSet(junoEvent)
@@ -379,6 +378,9 @@ func (db *DB) processOptionRoundEvent(
 			map[string]interface{}{
 				"has_refunded": true,
 			})
+	}
+	if err != nil {
+		return err
 	}
 	return nil
 }
