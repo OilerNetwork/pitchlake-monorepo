@@ -45,7 +45,7 @@ The plugin follows the same interface as before, but internally uses the new mod
 
 ## Environment Variables
 
-- `DB_URL` - Database connection URL (required)
+- `PITCHLAKE_DB_URL` - Database connection URL (required)
 - `RPC_URL` - StarkNet RPC URL (required)
 - `UDC_ADDRESS` - Universal Deployer Contract address (optional)
 - `CURSOR` - Starting block number for indexing (optional)

@@ -22,42 +22,25 @@ check-db:
 	fi; \
 	echo "✓ pitchlake-db is running"
 
-# Run all database migrations using the migration script
-migrate-up: check-db
-	@echo "Running all database migrations..."
-	@chmod +x scripts/migrate-up.sh
-	@./scripts/migrate-up.sh
+# Migration commands using Go migration tool
+migrate-up:
+	@echo "Running database migrations..."
+	@cd migrate && go run main.go up
 
-# Roll back all database migrations using the migration script
-migrate-down: check-db
-	@echo "⚠️  WARNING: This will roll back all migrations and drop tables!"
-	@read -p "Are you sure you want to continue? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
-	@echo "Rolling back all migrations..."
-	@chmod +x scripts/migrate-down.sh
-	@./scripts/migrate-down.sh
+migrate-down:
+	@echo "Rolling back database migrations..."
+	@cd migrate && go run main.go down
 
-# Check migration status
-migrate-status: check-db
+migrate-status:
 	@echo "Checking migration status..."
-	@echo "Tables in pitchlake database:"
-	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "\dt" 2>/dev/null || echo "Could not connect to database"
-	@echo ""
-	@echo "Checking for specific tables:"
-	@if docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "\dt" 2>/dev/null | grep -q "VaultStates"; then \
-		echo "  ✓ VaultStates table exists"; \
-	else \
-		echo "  ✗ VaultStates table missing"; \
-	fi; \
-	if docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "\dt" 2>/dev/null | grep -q "Option_Rounds"; then \
-		echo "  ✓ Option_Rounds table exists"; \
-	else \
-		echo "  ✗ Option_Rounds table missing"; \
-	fi; \
-	if docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "\dt" 2>/dev/null | grep -q "Liquidity_Providers"; then \
-		echo "  ✓ Liquidity_Providers table exists"; \
-	else \
-		echo "  ✗ Liquidity_Providers table missing"; \
-	fi
+	@cd migrate && go run main.go status
+
+migrate-force-drop:
+	@echo "⚠️  WARNING: This will drop the migration table and reset all migration state!"
+	@echo "This should only be used to fix dirty migration states."
+	@read -p "Are you sure you want to continue? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
+	@echo "Dropping migration table..."
+	@cd migrate && go run main.go force-drop
 
 # Mark all driver events as unprocessed
 reset-driver-events: check-db

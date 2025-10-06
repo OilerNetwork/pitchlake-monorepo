@@ -232,7 +232,7 @@ type JunoPlugin interface {
 
 | Variable | Required | Description | Default |
 |----------|----------|-------------|---------|
-| `DB_URL` | Yes | PostgreSQL connection string | - |
+| `PITCHLAKE_DB_URL` | Yes | PostgreSQL connection string | - |
 | `RPC_URL` | Yes | StarkNet RPC endpoint | - |
 | `L1_URL` | Yes | Ethereum L1 RPC endpoint | - |
 | `VAULT_HASH` | No | Vault contract class hash | - |

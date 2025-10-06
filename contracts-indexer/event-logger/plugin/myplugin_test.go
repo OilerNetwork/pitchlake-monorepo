@@ -9,7 +9,7 @@ import (
 
 func TestMain(m *testing.M) {
 	// Set up test environment variables
-	os.Setenv("DB_URL", "postgres://test:test@localhost:5432/test")
+	os.Setenv("PITCHLAKE_DB_URL", "postgres://test:test@localhost:5432/test")
 	os.Setenv("RPC_URL", "https://starknet-mainnet.infura.io")
 	os.Setenv("UDC_ADDRESS", "0x123")
 	os.Setenv("CURSOR", "1000")
@@ -18,7 +18,7 @@ func TestMain(m *testing.M) {
 	code := m.Run()
 
 	// Clean up
-	os.Unsetenv("DB_URL")
+	os.Unsetenv("PITCHLAKE_DB_URL")
 	os.Unsetenv("RPC_URL")
 	os.Unsetenv("UDC_ADDRESS")
 	os.Unsetenv("CURSOR")
