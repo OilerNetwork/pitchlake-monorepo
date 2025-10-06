@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - staging
-      - feat/deploy-workflows
+    #   - feat/deploy-workflows
 
 env:
   AWS_REGION: eu-central-1

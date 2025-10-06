@@ -59,9 +59,9 @@ jobs:
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
           docker buildx build \
             --platform=linux/amd64 \
-            -f ./contracts-indexer/Dockerfile \
+            -f ./contracts-indexer/event-processor/Dockerfile \
             -t $IMAGE_URI \
-            ./contracts-indexer
+            ./contracts-indexer/event-processor
           docker push $IMAGE_URI
 
       - name: Download task definition
