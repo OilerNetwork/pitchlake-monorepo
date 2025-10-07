@@ -1,7 +1,7 @@
 import { optionRoundABI } from "@/lib/abi";
 import { OptionRoundStateType } from "@/lib/types";
 import { useMemo } from "react";
-import { CairoCustomEnum, num } from "starknet";
+import { BlockTag, CairoCustomEnum, num } from "starknet";
 import { getPerformanceLP, getPerformanceOB } from "@/lib/utils";
 import { useReadContract } from "@starknet-react/core";
 
@@ -32,6 +32,7 @@ const useOptionRoundStateRPC = (conn: string, address: string | undefined) => {
     functionName: "get_state",
     args: [],
     watch: true,
+    blockIdentifier:BlockTag.PENDING,
   });
   const { data: deploymentDate } = useReadContract({
     ...contractData,

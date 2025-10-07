@@ -103,9 +103,13 @@ start-all: ## Start all services (Fossil first, then Pitchlake services)
 	@$(MAKE) sync-addresses
 	@echo "📋 Step 4: Rebuilding Pitchlake services with updated env..."
 	@$(MAKE) build-all
-	@echo "📋 Step 5: Running Pitchlake migrations..."
+	@echo "📋 Step 5: Starting Pitchlake databases..."
+	@docker-compose up -d pitchlake-db fossil-db
+	@echo "⏳ Waiting for databases to be ready..."
+	@sleep 5
+	@echo "📋 Step 6: Running Pitchlake migrations..."
 	@$(MAKE) migrate
-	@echo "📋 Step 6: Starting Pitchlake services..."
+	@echo "📋 Step 7: Starting remaining Pitchlake services..."
 	@docker-compose up -d
 	@echo "⏳ Waiting for services to be healthy..."
 	@sleep 10
@@ -239,6 +243,7 @@ status: ## Show status of all services
 .PHONY: migrate
 migrate: ## Run all database migrations
 	@echo "🗄️  Running all database migrations..."
+	sleep 5
 	@$(MAKE) migrate-event-logger
 	@$(MAKE) migrate-event-processor
 	@$(MAKE) migrate-support-server
