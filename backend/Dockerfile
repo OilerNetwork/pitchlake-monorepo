@@ -1,4 +1,4 @@
-FROM ubuntu:24.04 AS build
+FROM golang:1.25-bookworm AS build
 
 # Install Go and build dependencies
 RUN apt-get -qq update && \
