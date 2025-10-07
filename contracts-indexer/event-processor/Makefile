@@ -57,28 +57,13 @@ reset-driver-events: check-db
 		exit 1; \
 	fi
 
-# Build the application
-build:
+
+docker-build:
 	@echo "Building event-processor..."
-	@go build -o event-processor main.go
+	@docker compose build
 	@echo "✓ Build completed!"
 
-# Run the application
-run: check-db
-	@echo "Starting event-processor..."
-	@go run main.go
-
-# Clean build artifacts
-clean:
-	@echo "Cleaning build artifacts..."
-	@rm -f event-processor
-	@echo "✓ Clean completed!"
-
-# Development setup
-dev: migrate-up build
-	@echo "🔧 Development environment ready!"
-	@echo "📊 Database: Migrations applied"
-	@echo "🏗️  Application: Built successfully"
-	@echo "📋 Next steps:"
-	@echo "   • Run 'make run' to start the application"
-	@echo "   • Use 'make migrate-status' to check database status"
+docker-run:
+	@echo "Running event-processor..."
+	@docker compose up -d
+	@echo "✓ Run completed!"
