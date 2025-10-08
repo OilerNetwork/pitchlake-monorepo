@@ -1,5 +1,5 @@
 import {
-  auctionEndTetsts,
+  auctionEndTests,
   auctionOpenTests,
   auctionStartTests,
   exerciseOptions,
@@ -10,7 +10,7 @@ import { TestRunner } from "../utils/facades/TestRunner";
 async function smokeTesting(testRunner: TestRunner) {
   await auctionOpenTests(testRunner);
   await auctionStartTests(testRunner);
-  await auctionEndTetsts(testRunner);
+  await auctionEndTests(testRunner);
   await refundTokenizeBids(testRunner);
   await optionSettle(testRunner);
   await exerciseOptions(testRunner);
