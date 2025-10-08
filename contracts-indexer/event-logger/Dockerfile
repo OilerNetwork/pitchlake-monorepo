@@ -42,7 +42,7 @@ RUN go mod tidy
 RUN make build
 
 # Stage 2: Run Juno with the plugin
-FROM debian:bookworm-slim
+FROM --platform=linux/arm64 debian:bookworm-slim
 
 # Install necessary runtime dependencies
 RUN apt-get -qq update && \
