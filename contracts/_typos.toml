@@ -1,5 +1,5 @@
 [default]
-extend-glob = ["**/*.cairo"]
+extend_glob = ["**/*.cairo"]
 
 [default.extend-words]
 # Project-specific terms

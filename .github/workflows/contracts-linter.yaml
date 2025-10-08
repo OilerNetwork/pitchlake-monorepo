@@ -25,10 +25,7 @@ jobs:
       - uses: crate-ci/typos@master
         with:
           files: contracts/
-          extra-args: --config contracts/_typos.toml
-          run: |
-            cd contracts
-            typos
+          config: contracts/_typos.toml
 
   format:
     runs-on: ubuntu-latest
