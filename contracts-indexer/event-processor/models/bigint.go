@@ -27,9 +27,9 @@ func (b *BigInt) Scan(value interface{}) error {
 	case string:
 		return b.scanString(v)
 	case int64:
-		b.Int.SetInt64(v)
+		b.SetInt64(v)
 	case nil:
-		b.Int.SetInt64(0)
+		b.SetInt64(0)
 	default:
 		return fmt.Errorf("unsupported Scan, storing driver.Value type %T into type BigInt", value)
 	}
@@ -43,10 +43,10 @@ func (b *BigInt) scanString(s string) error {
 }
 
 func (b *BigInt) validateUint256() error {
-	if b.Int.Sign() < 0 {
+	if b.Sign() < 0 {
 		return fmt.Errorf("negative numbers are not allowed for uint256")
 	}
-	if b.Int.Cmp(maxUint256) > 0 {
+	if b.Cmp(maxUint256) > 0 {
 		return fmt.Errorf("value exceeds maximum uint256")
 	}
 	return nil
