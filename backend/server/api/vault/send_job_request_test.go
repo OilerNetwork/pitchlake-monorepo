@@ -27,8 +27,8 @@ func TestSendJobRequest_InvalidRequest(t *testing.T) {
 				"fossil_request": map[string]interface{}{
 					"program_id": "PITCHLAKE_V1",
 					"params": map[string]interface{}{
-						"twap":         [2]uint64{1640995200, 1640998800},
-						"max_return":   [2]uint64{1640995200, 1640998800},
+						"twap":          [2]uint64{1640995200, 1640998800},
+						"max_return":    [2]uint64{1640995200, 1640998800},
 						"reserve_price": [2]uint64{1640995200, 1640998800},
 					},
 				},
@@ -42,8 +42,8 @@ func TestSendJobRequest_InvalidRequest(t *testing.T) {
 				"fossil_request": map[string]interface{}{
 					"vault_address": "0x123456789",
 					"params": map[string]interface{}{
-						"twap":         [2]uint64{1640995200, 1640998800},
-						"max_return":   [2]uint64{1640995200, 1640998800},
+						"twap":          [2]uint64{1640995200, 1640998800},
+						"max_return":    [2]uint64{1640995200, 1640998800},
 						"reserve_price": [2]uint64{1640995200, 1640998800},
 					},
 				},
@@ -58,8 +58,8 @@ func TestSendJobRequest_InvalidRequest(t *testing.T) {
 					"program_id":    "PITCHLAKE_V1",
 					"vault_address": "0x123456789",
 					"params": map[string]interface{}{
-						"twap":         [2]uint64{1640995200, 1640998800},
-						"max_return":   [2]uint64{1640995200, 1640998800},
+						"twap":          [2]uint64{1640995200, 1640998800},
+						"max_return":    [2]uint64{1640995200, 1640998800},
 						"reserve_price": [2]uint64{1640995200, 1640998800},
 					},
 				},
@@ -81,8 +81,8 @@ func TestSendJobRequest_InvalidRequest(t *testing.T) {
 					"program_id":    "PITCHLAKE_V1",
 					"vault_address": "0x123456789",
 					"params": map[string]interface{}{
-						"twap":         [2]uint64{1640995200, 1640998800},
-						"max_return":   [2]uint64{1640995200, 1640998800},
+						"twap":          [2]uint64{1640995200, 1640998800},
+						"max_return":    [2]uint64{1640995200, 1640998800},
 						"reserve_price": [2]uint64{1640995200, 1640998800},
 					},
 				},
@@ -95,13 +95,13 @@ func TestSendJobRequest_InvalidRequest(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			jsonBody, _ := json.Marshal(tc.requestBody)
-			
+
 			// Use GET for wrong method test, POST for others
 			method := "POST"
 			if tc.name == "Wrong HTTP method" {
 				method = "GET"
 			}
-			
+
 			req := httptest.NewRequest(method, "/sendJobRequest", bytes.NewBuffer(jsonBody))
 			req.Header.Set("Content-Type", "application/json")
 
@@ -116,34 +116,33 @@ func TestSendJobRequest_InvalidRequest(t *testing.T) {
 	}
 }
 
-
 func TestIsJobStuck(t *testing.T) {
 	router := &VaultRouter{}
 
 	// Test cases
 	testCases := []struct {
-		name        string
-		createdAt   string
+		name          string
+		createdAt     string
 		expectedStuck bool
 	}{
 		{
-			name:        "Recent job (5 minutes ago)",
-			createdAt:   time.Now().Add(-5 * time.Minute).Format(time.RFC3339),
+			name:          "Recent job (5 minutes ago)",
+			createdAt:     time.Now().Add(-5 * time.Minute).Format(time.RFC3339),
 			expectedStuck: false,
 		},
 		{
-			name:        "Old job (1 hour ago)",
-			createdAt:   time.Now().Add(-1 * time.Hour).Format(time.RFC3339),
+			name:          "Old job (1 hour ago)",
+			createdAt:     time.Now().Add(-1 * time.Hour).Format(time.RFC3339),
 			expectedStuck: true,
 		},
 		{
-			name:        "Very old job (2 hours ago)",
-			createdAt:   time.Now().Add(-2 * time.Hour).Format(time.RFC3339),
+			name:          "Very old job (2 hours ago)",
+			createdAt:     time.Now().Add(-2 * time.Hour).Format(time.RFC3339),
 			expectedStuck: true,
 		},
 		{
-			name:        "Invalid timestamp",
-			createdAt:   "invalid-timestamp",
+			name:          "Invalid timestamp",
+			createdAt:     "invalid-timestamp",
 			expectedStuck: true, // Should be considered stuck if we can't parse
 		},
 	}
@@ -152,7 +151,7 @@ func TestIsJobStuck(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			var createdAt time.Time
 			var err error
-			
+
 			if tc.createdAt == "invalid-timestamp" {
 				// For invalid timestamp, use a very old time
 				createdAt = time.Now().Add(-24 * time.Hour)
@@ -162,11 +161,11 @@ func TestIsJobStuck(t *testing.T) {
 					t.Fatalf("Failed to parse time: %v", err)
 				}
 			}
-			
+
 			job := &models.JobRequest{
-				JobID:      "test_job",
-				Status:     models.JobStatusPending,
-				CreatedAt:  createdAt,
+				JobID:     "test_job",
+				Status:    models.JobStatusPending,
+				CreatedAt: createdAt,
 			}
 
 			isStuck := router.isJobStuck(job)

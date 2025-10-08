@@ -94,7 +94,7 @@ func (router *GeneralRouter) subscribeGasData(ctx context.Context, w http.Respon
 					log.Printf("Invalid gas request: %v", err)
 					// Send error response to client
 					errorResponse := map[string]string{
-						"error": "Invalid request",
+						"error":   "Invalid request",
 						"details": err.Error(),
 					}
 					errorJson, _ := json.Marshal(errorResponse)
