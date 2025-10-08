@@ -27,7 +27,7 @@ jobs:
           files: contracts/
           run: |
             cd contracts
-            typos check .
+            typos
 
   format:
     runs-on: ubuntu-latest
