@@ -1,13 +1,17 @@
-name: Frontend Unit Tests
+name: Frontend Linter
 
 on:
   push:
     branches:
       - main
       - staging
+    paths:
+      - "frontend/**"
   pull_request:
     branches:
       - "**"
+    paths:
+      - "frontend/**"
 
 jobs:
   frontend-test:
@@ -29,6 +33,11 @@ jobs:
         run: |
           cd frontend
           pnpm install --frozen-lockfile
+
+      - name: Lint code with ESLint
+        run: |
+          cd frontend
+          pnpm lint
 
       - name: Run tests
         run: |
