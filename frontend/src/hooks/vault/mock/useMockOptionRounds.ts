@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
-import { OptionBuyerStateType, OptionRoundStateType } from "@/lib/types";
+import {
+  OptionBuyerStateType,
+  OptionRoundActionsType,
+  OptionRoundStateType,
+  PlaceBidArgs,
+  RefundBidsArgs,
+  UpdateBidArgs,
+} from "@/lib/types";
 import { useAccount } from "@starknet-react/core";
+import { Bid } from "@/lib/types";
 
 const useMockOptionRounds = (selectedRound: number) => {
   const { address } = useAccount();
@@ -38,7 +46,7 @@ const useMockOptionRounds = (selectedRound: number) => {
         performanceLP: "0",
         performanceOB: "0",
       },
-    ]
+    ],
   );
 
   const [buyerStates, setBuyerStates] = useState<OptionBuyerStateType[]>([
@@ -52,6 +60,71 @@ const useMockOptionRounds = (selectedRound: number) => {
       bids: [],
     },
   ]);
+
+  const placeBid = async (placeBidArgs: PlaceBidArgs): Promise<string> => {
+    setBuyerStates((prevState) => {
+      const newState = [...prevState];
+      const buyerStateIndex = newState.findIndex(
+        (state) => state.address === (address ?? "0xbuyer"),
+      );
+
+      if (buyerStateIndex === -1) {
+        return prevState;
+      }
+
+      const newBid: Bid = {
+        bidId: "3",
+        address: address ?? "",
+        roundAddress: rounds[selectedRound - 1].address ?? "",
+        treeNonce: "2",
+        amount: placeBidArgs.amount,
+        price: placeBidArgs.price,
+      };
+
+      // Initialize bids array if it doesn't exist
+      if (!newState[buyerStateIndex].bids) {
+        newState[buyerStateIndex].bids = [];
+      }
+
+      newState[buyerStateIndex].bids = [
+        ...(newState[buyerStateIndex].bids || []),
+        newBid,
+      ];
+      return newState;
+    });
+    return "";
+  };
+
+  const refundUnusedBids = async (
+    refundBidsArgs: RefundBidsArgs,
+  ): Promise<string> => {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    return "";
+  };
+
+  const updateBid = async (updateBidArgs: UpdateBidArgs): Promise<string> => {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    return "";
+  };
+
+  const mintOptions = async (): Promise<string> => {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    return "";
+  };
+
+  const exerciseOptions = async (): Promise<string> => {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    return "";
+  };
+
+  const roundActions: OptionRoundActionsType = {
+    // User actions
+    placeBid,
+    updateBid,
+    refundUnusedBids,
+    mintOptions,
+    exerciseOptions,
+  };
 
   return {
     rounds,
