@@ -105,8 +105,6 @@ start-all: ## Start all services (Fossil first, then Pitchlake services)
 	@$(MAKE) build-all
 	@echo "📋 Step 5: Starting Pitchlake databases..."
 	@docker-compose up -d pitchlake-db fossil-db
-	@echo "⏳ Waiting for databases to be ready..."
-	@sleep 5
 	@echo "📋 Step 6: Running Pitchlake migrations..."
 	@$(MAKE) migrate
 	@echo "📋 Step 7: Starting remaining Pitchlake services..."
