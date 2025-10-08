@@ -17,14 +17,12 @@ const useOptionRoundStateRPC = (conn: string, address: string | undefined) => {
 
     functionName: "get_vault_address",
     args: [],
-    watch: true,
   });
   const { data: roundId } = useReadContract({
     ...contractData,
 
     functionName: "get_round_id",
     args: [],
-    watch: true,
   });
   const { data: roundState } = useReadContract({
     ...contractData,
@@ -32,35 +30,31 @@ const useOptionRoundStateRPC = (conn: string, address: string | undefined) => {
     functionName: "get_state",
     args: [],
     watch: true,
-    blockIdentifier:BlockTag.PENDING,
+    blockIdentifier: BlockTag.LATEST,
   });
   const { data: deploymentDate } = useReadContract({
     ...contractData,
 
     functionName: "get_deployment_date",
     args: [],
-    watch: true,
   });
   const { data: auctionStartDate } = useReadContract({
     ...contractData,
 
     functionName: "get_auction_start_date",
     args: [],
-    watch: true,
   });
   const { data: auctionEndDate } = useReadContract({
     ...contractData,
 
     functionName: "get_auction_end_date",
     args: [],
-    watch: true,
   });
   const { data: optionSettleDate } = useReadContract({
     ...contractData,
 
     functionName: "get_option_settlement_date",
     args: [],
-    watch: true,
   });
   const { data: treeNonce } = useReadContract({
     ...contractData,
@@ -68,6 +62,7 @@ const useOptionRoundStateRPC = (conn: string, address: string | undefined) => {
     functionName: "get_bid_tree_nonce",
     args: [],
     watch: true,
+    blockIdentifier: BlockTag.LATEST,
   });
   const { data: startingLiquidity } = useReadContract({
     ...contractData,
@@ -75,6 +70,7 @@ const useOptionRoundStateRPC = (conn: string, address: string | undefined) => {
     functionName: "get_starting_liquidity",
     args: [],
     watch: true,
+    blockIdentifier: BlockTag.LATEST,
   });
   const { data: soldLiquidity } = useReadContract({
     ...contractData,
@@ -82,6 +78,7 @@ const useOptionRoundStateRPC = (conn: string, address: string | undefined) => {
     functionName: "get_sold_liquidity",
     args: [],
     watch: true,
+    blockIdentifier: BlockTag.LATEST,
   });
   const { data: unsoldLiquidity } = useReadContract({
     ...contractData,
@@ -89,27 +86,25 @@ const useOptionRoundStateRPC = (conn: string, address: string | undefined) => {
     functionName: "get_unsold_liquidity",
     args: [],
     watch: true,
+    blockIdentifier: BlockTag.LATEST,
   });
   const { data: reservePrice } = useReadContract({
     ...contractData,
 
     functionName: "get_reserve_price",
     args: [],
-    watch: true,
   });
   const { data: strikePrice } = useReadContract({
     ...contractData,
 
     functionName: "get_strike_price",
     args: [],
-    watch: true,
   });
   const { data: capLevel } = useReadContract({
     ...contractData,
 
     functionName: "get_cap_level",
     args: [],
-    watch: true,
   });
   const { data: availableOptions } = useReadContract({
     ...contractData,
@@ -117,6 +112,7 @@ const useOptionRoundStateRPC = (conn: string, address: string | undefined) => {
     functionName: "get_options_available",
     args: [],
     watch: true,
+    blockIdentifier: BlockTag.LATEST,
   });
   const { data: optionsSold } = useReadContract({
     ...contractData,
@@ -124,6 +120,7 @@ const useOptionRoundStateRPC = (conn: string, address: string | undefined) => {
     functionName: "get_options_sold",
     args: [],
     watch: true,
+    blockIdentifier: BlockTag.LATEST,
   });
   const { data: clearingPrice } = useReadContract({
     ...contractData,
@@ -131,6 +128,7 @@ const useOptionRoundStateRPC = (conn: string, address: string | undefined) => {
     functionName: "get_clearing_price",
     args: [],
     watch: true,
+    blockIdentifier: BlockTag.LATEST,
   });
   const { data: premiums } = useReadContract({
     ...contractData,
@@ -138,6 +136,7 @@ const useOptionRoundStateRPC = (conn: string, address: string | undefined) => {
     functionName: "get_total_premium",
     args: [],
     watch: true,
+    blockIdentifier: BlockTag.LATEST,
   });
   const { data: totalPayout } = useReadContract({
     ...contractData,
@@ -145,6 +144,7 @@ const useOptionRoundStateRPC = (conn: string, address: string | undefined) => {
     functionName: "get_total_payout",
     args: [],
     watch: true,
+    blockIdentifier: BlockTag.LATEST,
   });
   const { data: settlementPrice } = useReadContract({
     ...contractData,
@@ -152,6 +152,7 @@ const useOptionRoundStateRPC = (conn: string, address: string | undefined) => {
     functionName: "get_settlement_price",
     args: [],
     watch: true,
+    blockIdentifier: BlockTag.LATEST,
   });
 
   const performanceLP = useMemo(() => {
