@@ -23,10 +23,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: crate-ci/typos@master
-        with:
-          files: contracts/
-          config: contracts/_typos.toml
-
   format:
     runs-on: ubuntu-latest
     steps:
