@@ -1,6 +1,6 @@
 import { FossilRequest } from "../../types/types";
 import axios from "axios";
-import { Contract } from "starknet";
+import { Contract, Account } from "starknet";
 import { Logger } from "winston";
 
 const { FOSSIL_API_KEY, FOSSIL_API_URL } = process.env;
@@ -78,6 +78,7 @@ export const sendMockFossilRequest = async (
   fossilRequest: FossilRequest,
   vaultContract: Contract,
   logger: Logger,
+  account?: Account,
 ) => {
   logger.info("Sending request to Mock Verifier");
   logger.debug({ request: fossilRequest });
@@ -121,9 +122,9 @@ export const sendMockFossilRequest = async (
     ];
 
     // Get the automator's account address (which is acting as the mock verifier)
-    const automatorAddress = vaultContract.provider.account?.address;
+    const automatorAddress = account?.address;
     if (!automatorAddress) {
-      throw new Error("No account connected to vault contract provider");
+      throw new Error("No account provided for mock verifier");
     }
 
     logger.info("Calling fossil_callback directly on vault contract", {
