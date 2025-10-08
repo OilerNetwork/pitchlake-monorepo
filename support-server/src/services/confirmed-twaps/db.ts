@@ -13,33 +13,62 @@ export class DatabaseService {
   private pitchlakeClient?: Client;
 
   constructor() {
+    const fossilUrl = process.env.FOSSIL_DB_URL;
+    const pitchlakeUrl = process.env.PITCHLAKE_DB_URL;
+    if (!fossilUrl || !pitchlakeUrl) {
+      throw new Error("FOSSIL_DB_URL and PITCHLAKE_DB_URL must be set");
+    }
     this.fossilClient = new Client({
-      connectionString: process.env.FOSSIL_DB_URL,
+      connectionString: fossilUrl,
+      ssl: this.getSSLConfig(fossilUrl),
     });
     this.pitchlakeClient = new Client({
-      connectionString: process.env.PITCHLAKE_DB_URL,
+      connectionString: pitchlakeUrl,
+      ssl: this.getSSLConfig(pitchlakeUrl),
     });
   }
 
- async connect() {
-  try {
-    console.log("Connecting to Fossil database...");
-    await this.fossilClient?.connect();
-    console.log("Successfully connected to Fossil database");
-  } catch (error) {
-    console.error("Failed to connect to Fossil database:", error);
-    throw new Error(`Fossil database connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
+  private getSSLConfig(connectionString: string) {
+    // For localhost connections, don't use SSL
+    if (
+      connectionString.includes("localhost") ||
+      connectionString.includes("127.0.0.1")
+    ) {
+      return false;
+    }
 
-  try {
-    console.log("Connecting to Pitchlake database...");
-    await this.pitchlakeClient?.connect();
-    console.log("Successfully connected to Pitchlake database");
-  } catch (error) {
-    console.error("Failed to connect to Pitchlake database:", error);
-    throw new Error(`Pitchlake database connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    // For production/remote connections, use SSL with rejectUnauthorized: false
+    return {
+      rejectUnauthorized: false,
+    };
   }
-}
+  async connect() {
+    try {
+      console.log("Connecting to Fossil database...");
+      await this.fossilClient?.connect();
+      console.log("Successfully connected to Fossil database");
+    } catch (error) {
+      console.error("Failed to connect to Fossil database:", error);
+      throw new Error(
+        `Fossil database connection failed: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
+
+    try {
+      console.log("Connecting to Pitchlake database...");
+      await this.pitchlakeClient?.connect();
+      console.log("Successfully connected to Pitchlake database");
+    } catch (error) {
+      console.error("Failed to connect to Pitchlake database:", error);
+      throw new Error(
+        `Pitchlake database connection failed: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
+  }
   async getTWAPState(windowType: TWAPWindowType): Promise<TWAPState | null> {
     if (process.env.USE_DEMO_DATA === "true") {
       return null;
@@ -83,11 +112,23 @@ export class DatabaseService {
   LIMIT $2
 `;
 
-const result = await this.fossilClient?.query(query, [currentLastBlock, BATCH_SIZE]);
-    return result?.rows || [];
-  }
- 
+    const result = await this.fossilClient?.query(query, [
+      currentLastBlock,
+      BATCH_SIZE,
+    ]);
 
+    if (!result || !result.rows.length) {
+      return [];
+    }
+    // Map the database rows to the expected BlockWithNextTimestamp type
+    return result.rows.map((row, index, array) => ({
+      number: Number(row.number),
+      timestamp: Number(row.timestamp),
+      next_timestamp:
+        index < array.length - 1 ? Number(array[index + 1].timestamp) : null,
+      basefee: Number(row.base_fee_per_gas),
+    }));
+  }
 
   async fetchRelevantBlocks(
     oldestTimestamp: number,
@@ -268,20 +309,28 @@ const result = await this.fossilClient?.query(query, [currentLastBlock, BATCH_SI
     }
   }
 
-
   //Notify
 
-  async notify(blocks: FormattedBlockData[], startTimestamp: number, endTimestamp: number): Promise<void> {
-    await this.pitchlakeClient?.query(`
+  async notify(
+    blocks: FormattedBlockData[],
+    startTimestamp: number,
+    endTimestamp: number
+  ): Promise<void> {
+    await this.pitchlakeClient?.query(
+      `
         SELECT pg_notify(
           'confirmed_insert',
           $1::text
         )
-      `, [JSON.stringify({
-        start_timestamp: startTimestamp,
-        end_timestamp: endTimestamp
-      })]);
-    }
+      `,
+      [
+        JSON.stringify({
+          start_timestamp: startTimestamp,
+          end_timestamp: endTimestamp,
+        }),
+      ]
+    );
+  }
 
   //Transaction Methods
   async beginTransaction() {
@@ -301,8 +350,10 @@ const result = await this.fossilClient?.query(query, [currentLastBlock, BATCH_SI
   }
 
   async checkForNextBlock(blockNumber: number): Promise<boolean> {
-    if (process.env.USE_DEMO_DATA === 'true') {
-      const nextBlock = demoBlocks.find(block => block.blockNumber > blockNumber);
+    if (process.env.USE_DEMO_DATA === "true") {
+      const nextBlock = demoBlocks.find(
+        (block) => block.blockNumber > blockNumber
+      );
       return !!nextBlock;
     }
 
@@ -315,6 +366,6 @@ const result = await this.fossilClient?.query(query, [currentLastBlock, BATCH_SI
     `;
 
     const result = await this.fossilClient?.query(query, [blockNumber]);
-    return !!(result?.rows.length);
+    return !!result?.rows.length;
   }
 }
