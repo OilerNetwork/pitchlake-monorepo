@@ -18,7 +18,7 @@ use pitch_lake::tests::utils::lib::test_accounts::{
     liquidity_provider_1, liquidity_providers_get, option_bidder_buyer_1, option_bidders_get,
 };
 
-/// Failues ///
+/// Failures ///
 
 // Test bidding 0 amount is rejected
 #[test]
@@ -425,6 +425,6 @@ fn test_place_bid_id() {
     };
 }
 // @note Test bids are placed in pending bids
-// - Might need to revist pending bids entry point, shd return array of bid ids/hashes now
+// - Might need to revisit pending bids entry point, shd return array of bid ids/hashes now
 
 

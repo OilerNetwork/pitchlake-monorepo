@@ -26,6 +26,9 @@ jobs:
         with:
           files: contracts/
           extra-args: --config contracts/_typos.toml
+          run: |
+            cd contracts
+            typos
 
   format:
     runs-on: ubuntu-latest

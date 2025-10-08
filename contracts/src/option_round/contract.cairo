@@ -86,7 +86,7 @@ pub mod OptionRound {
         // Settling an option round
         pub const OptionSettlementDateNotReached: felt252 = 'Settlement date not reached';
         pub const OptionRoundAlreadySettled: felt252 = 'Option round already settled';
-        // Bidding & upating bids
+        // Bidding & updating bids
         pub const NoOptionsToBidFor: felt252 = 'No options to bid for';
         pub const BiddingWhileNotAuctioning: felt252 = 'Can only bid while auctioning';
         pub const BidAmountZero: felt252 = 'Bid amount cannot be 0';

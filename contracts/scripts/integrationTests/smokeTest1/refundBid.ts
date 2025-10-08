@@ -130,13 +130,13 @@ async function checkpoint2({
 }) {
   assert(
     BigInt(optionBalancesBefore[0]) === BigInt(optionBalancesBefore[1]),
-    "Intial options should be equal"
+    "Initial options should be equal"
   );
 
   assert(
     BigInt(optionBalancesBefore[0]) + BigInt(optionBalancesBefore[1]) ===
       BigInt(totalOptionAvailable),
-    "Intial sum of options should be total options available"
+    "Initial sum of options should be total options available"
   );
 
   assert(
@@ -154,6 +154,6 @@ async function checkpoint2({
     BigInt(optionBalancesBefore[1]) +
       BigInt(optionBalancesBefore[0]) / BigInt(2) ===
       BigInt(optionBalancesAfter[1]),
-    "Final option balance of D should be inital + half of C"
+    "Final option balance of D should be initial + half of C"
   );
 }
