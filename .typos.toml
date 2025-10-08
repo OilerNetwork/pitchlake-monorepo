@@ -1,0 +1,6 @@
+[files]
+extend-exclude = [
+  "**/go.mod",
+  "**/go.sum",
+  "contracts-indexer/event-logger/juno/**"
+]

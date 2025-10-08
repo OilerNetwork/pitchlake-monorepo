@@ -30,7 +30,6 @@ jobs:
       - uses: crate-ci/typos@master
         with:
           files: contracts-indexer/
-          extra-args: --file-extensions go --exclude contracts-indexer/event-logger/juno/
 
   event-processor-lint:
     name: Processor Lint
@@ -75,4 +74,4 @@ jobs:
         with:
           working-directory: contracts-indexer/event-logger
           version: latest
-          args: --timeout=5m --skip-dirs juno
+          args: --timeout=5m
