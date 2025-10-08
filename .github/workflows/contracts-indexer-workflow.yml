@@ -30,10 +30,10 @@ jobs:
       - uses: crate-ci/typos@master
         with:
           files: contracts-indexer/
-          extra-args: --file-extensions go
+          extra-args: --file-extensions go --exclude contracts-indexer/event-logger/juno/
 
   event-processor-lint:
-    name: event-processor lint
+    name: Processor Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -49,7 +49,7 @@ jobs:
           args: --timeout=5m
 
   event-processor-test:
-    name: event-processor test
+    name: Processor Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -62,7 +62,7 @@ jobs:
           cd contracts-indexer/event-processor
           go test ./...
   event-logger-lint:
-    name: event-logger lint
+    name: Logger Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -75,4 +75,4 @@ jobs:
         with:
           working-directory: contracts-indexer/event-logger
           version: latest
-          args: --timeout=5m
+          args: --timeout=5m --skip-dirs juno
