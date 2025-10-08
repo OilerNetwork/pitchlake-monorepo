@@ -59,4 +59,4 @@ jobs:
       - name: Run tests
         run: |
           cd backend
-          go test ./...
+          make test-unit
