@@ -2,7 +2,7 @@ run:
   modules-download-mode: readonly
   timeout: 5m
 
-version: 2
+version: "2"
 
 linters:
   disable:
