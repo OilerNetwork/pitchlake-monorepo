@@ -14,7 +14,7 @@ use starknet::ContractAddress;
 
 // @note move these tests to ./src/tests/option_round/state_transition/auction_end_tests
 
-// @note If premiums collected fails/is 0 amount, should an event be emiited or no ?
+// @note If premiums collected fails/is 0 amount, should an event be emitted or no ?
 // Test premiums collectable is 0 before auction end
 #[test]
 #[available_gas(50000000)]
@@ -228,7 +228,7 @@ fn test_premium_amount_for_liquidity_providers_5() {
 //     );
 // }
 
-// @note This is essentailly testing withdraw amount > unlocked balance, so should be a withdraw
+// @note This is essentially testing withdraw amount > unlocked balance, so should be a withdraw
 // test, but we still should test LP cannot double collect prmeiums
 // Test collecting premiums twice fails
 // @note Maybe this shouldnt fail, but just do nothing instead ?
@@ -256,7 +256,7 @@ fn test_premium_amount_for_liquidity_providers_5() {
 fn _test_premiums_collectable_helper(
     ref vault: VaultFacade, liquidity_providers: Span<ContractAddress>, amounts: Span<u256>,
 ) {
-    assert(liquidity_providers.len() == amounts.len(), 'Span missmatch');
+    assert(liquidity_providers.len() == amounts.len(), 'Span mismatch');
 
     // Deposit liquidity and start the auction
     accelerate_to_auctioning_custom(ref vault, liquidity_providers, amounts);

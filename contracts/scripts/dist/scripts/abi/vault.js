@@ -5,24 +5,6 @@ export const ABI = [
         "interface_name": "pitch_lake::vault::interface::IVault"
     },
     {
-        "type": "enum",
-        "name": "pitch_lake::vault::interface::VaultType",
-        "variants": [
-            {
-                "name": "InTheMoney",
-                "type": "()"
-            },
-            {
-                "name": "AtTheMoney",
-                "type": "()"
-            },
-            {
-                "name": "OutOfMoney",
-                "type": "()"
-            }
-        ]
-    },
-    {
         "type": "struct",
         "name": "core::integer::u256",
         "members": [
@@ -47,59 +29,27 @@ export const ABI = [
         ]
     },
     {
-        "type": "struct",
-        "name": "pitch_lake::fact_registry::interface::JobRequestParams",
-        "members": [
-            {
-                "name": "twap",
-                "type": "(core::integer::u64, core::integer::u64)"
-            },
-            {
-                "name": "volatility",
-                "type": "(core::integer::u64, core::integer::u64)"
-            },
-            {
-                "name": "reserve_price",
-                "type": "(core::integer::u64, core::integer::u64)"
-            }
-        ]
-    },
-    {
-        "type": "struct",
-        "name": "pitch_lake::fact_registry::interface::JobRequest",
-        "members": [
-            {
-                "name": "identifiers",
-                "type": "core::array::Span::<core::felt252>"
-            },
-            {
-                "name": "params",
-                "type": "pitch_lake::fact_registry::interface::JobRequestParams"
-            }
-        ]
-    },
-    {
         "type": "interface",
         "name": "pitch_lake::vault::interface::IVault",
         "items": [
             {
                 "type": "function",
-                "name": "get_vault_type",
+                "name": "get_alpha",
                 "inputs": [],
                 "outputs": [
                     {
-                        "type": "pitch_lake::vault::interface::VaultType"
+                        "type": "core::integer::u128"
                     }
                 ],
                 "state_mutability": "view"
             },
             {
                 "type": "function",
-                "name": "get_fact_registry_address",
+                "name": "get_strike_level",
                 "inputs": [],
                 "outputs": [
                     {
-                        "type": "core::starknet::contract_address::ContractAddress"
+                        "type": "core::integer::i128"
                     }
                 ],
                 "state_mutability": "view"
@@ -117,7 +67,18 @@ export const ABI = [
             },
             {
                 "type": "function",
-                "name": "get_auction_run_time",
+                "name": "get_verifier_address",
+                "inputs": [],
+                "outputs": [
+                    {
+                        "type": "core::starknet::contract_address::ContractAddress"
+                    }
+                ],
+                "state_mutability": "view"
+            },
+            {
+                "type": "function",
+                "name": "get_deployment_block",
                 "inputs": [],
                 "outputs": [
                     {
@@ -128,7 +89,7 @@ export const ABI = [
             },
             {
                 "type": "function",
-                "name": "get_option_run_time",
+                "name": "get_round_transition_duration",
                 "inputs": [],
                 "outputs": [
                     {
@@ -139,7 +100,18 @@ export const ABI = [
             },
             {
                 "type": "function",
-                "name": "get_round_transition_period",
+                "name": "get_auction_duration",
+                "inputs": [],
+                "outputs": [
+                    {
+                        "type": "core::integer::u64"
+                    }
+                ],
+                "state_mutability": "view"
+            },
+            {
+                "type": "function",
+                "name": "get_round_duration",
                 "inputs": [],
                 "outputs": [
                     {
@@ -154,7 +126,7 @@ export const ABI = [
                 "inputs": [],
                 "outputs": [
                     {
-                        "type": "core::integer::u256"
+                        "type": "core::integer::u64"
                     }
                 ],
                 "state_mutability": "view"
@@ -165,12 +137,34 @@ export const ABI = [
                 "inputs": [
                     {
                         "name": "option_round_id",
-                        "type": "core::integer::u256"
+                        "type": "core::integer::u64"
                     }
                 ],
                 "outputs": [
                     {
                         "type": "core::starknet::contract_address::ContractAddress"
+                    }
+                ],
+                "state_mutability": "view"
+            },
+            {
+                "type": "function",
+                "name": "get_program_id",
+                "inputs": [],
+                "outputs": [
+                    {
+                        "type": "core::felt252"
+                    }
+                ],
+                "state_mutability": "view"
+            },
+            {
+                "type": "function",
+                "name": "get_proving_delay",
+                "inputs": [],
+                "outputs": [
+                    {
+                        "type": "core::integer::u64"
                     }
                 ],
                 "state_mutability": "view"
@@ -225,7 +219,7 @@ export const ABI = [
                 "inputs": [],
                 "outputs": [
                     {
-                        "type": "core::integer::u16"
+                        "type": "core::integer::u128"
                     }
                 ],
                 "state_mutability": "view"
@@ -305,7 +299,29 @@ export const ABI = [
                 ],
                 "outputs": [
                     {
-                        "type": "core::integer::u16"
+                        "type": "core::integer::u128"
+                    }
+                ],
+                "state_mutability": "view"
+            },
+            {
+                "type": "function",
+                "name": "get_request_to_start_first_round",
+                "inputs": [],
+                "outputs": [
+                    {
+                        "type": "core::array::Span::<core::felt252>"
+                    }
+                ],
+                "state_mutability": "view"
+            },
+            {
+                "type": "function",
+                "name": "get_request_to_settle_round",
+                "inputs": [],
+                "outputs": [
+                    {
+                        "type": "core::array::Span::<core::felt252>"
                     }
                 ],
                 "state_mutability": "view"
@@ -352,7 +368,7 @@ export const ABI = [
                 "inputs": [
                     {
                         "name": "bps",
-                        "type": "core::integer::u16"
+                        "type": "core::integer::u128"
                     }
                 ],
                 "outputs": [],
@@ -372,18 +388,6 @@ export const ABI = [
                         "type": "core::integer::u256"
                     }
                 ],
-                "state_mutability": "external"
-            },
-            {
-                "type": "function",
-                "name": "refresh_round_pricing_data",
-                "inputs": [
-                    {
-                        "name": "job_request",
-                        "type": "pitch_lake::fact_registry::interface::JobRequest"
-                    }
-                ],
-                "outputs": [],
                 "state_mutability": "external"
             },
             {
@@ -410,11 +414,15 @@ export const ABI = [
             },
             {
                 "type": "function",
-                "name": "settle_round",
+                "name": "fossil_callback",
                 "inputs": [
                     {
                         "name": "job_request",
-                        "type": "pitch_lake::fact_registry::interface::JobRequest"
+                        "type": "core::array::Span::<core::felt252>"
+                    },
+                    {
+                        "name": "result",
+                        "type": "core::array::Span::<core::felt252>"
                     }
                 ],
                 "outputs": [
@@ -431,32 +439,44 @@ export const ABI = [
         "name": "pitch_lake::vault::interface::ConstructorArgs",
         "members": [
             {
-                "name": "round_transition_period",
-                "type": "core::integer::u64"
-            },
-            {
-                "name": "auction_run_time",
-                "type": "core::integer::u64"
-            },
-            {
-                "name": "option_run_time",
-                "type": "core::integer::u64"
+                "name": "verifier_address",
+                "type": "core::starknet::contract_address::ContractAddress"
             },
             {
                 "name": "eth_address",
                 "type": "core::starknet::contract_address::ContractAddress"
             },
             {
-                "name": "vault_type",
-                "type": "pitch_lake::vault::interface::VaultType"
-            },
-            {
-                "name": "fact_registry_address",
-                "type": "core::starknet::contract_address::ContractAddress"
-            },
-            {
                 "name": "option_round_class_hash",
                 "type": "core::starknet::class_hash::ClassHash"
+            },
+            {
+                "name": "alpha",
+                "type": "core::integer::u128"
+            },
+            {
+                "name": "strike_level",
+                "type": "core::integer::i128"
+            },
+            {
+                "name": "round_transition_duration",
+                "type": "core::integer::u64"
+            },
+            {
+                "name": "auction_duration",
+                "type": "core::integer::u64"
+            },
+            {
+                "name": "round_duration",
+                "type": "core::integer::u64"
+            },
+            {
+                "name": "program_id",
+                "type": "core::felt252"
+            },
+            {
+                "name": "proving_delay",
+                "type": "core::integer::u64"
             }
         ]
     },
@@ -536,7 +556,17 @@ export const ABI = [
             },
             {
                 "name": "bps",
-                "type": "core::integer::u16",
+                "type": "core::integer::u128",
+                "kind": "data"
+            },
+            {
+                "name": "round_id",
+                "type": "core::integer::u64",
+                "kind": "data"
+            },
+            {
+                "name": "account_queued_liquidity_before",
+                "type": "core::integer::u256",
                 "kind": "data"
             },
             {
@@ -574,33 +604,36 @@ export const ABI = [
         ]
     },
     {
+        "type": "struct",
+        "name": "pitch_lake::option_round::interface::PricingData",
+        "members": [
+            {
+                "name": "strike_price",
+                "type": "core::integer::u256"
+            },
+            {
+                "name": "cap_level",
+                "type": "core::integer::u128"
+            },
+            {
+                "name": "reserve_price",
+                "type": "core::integer::u256"
+            }
+        ]
+    },
+    {
         "type": "event",
         "name": "pitch_lake::vault::contract::Vault::OptionRoundDeployed",
         "kind": "struct",
         "members": [
             {
                 "name": "round_id",
-                "type": "core::integer::u256",
+                "type": "core::integer::u64",
                 "kind": "data"
             },
             {
                 "name": "address",
                 "type": "core::starknet::contract_address::ContractAddress",
-                "kind": "data"
-            },
-            {
-                "name": "reserve_price",
-                "type": "core::integer::u256",
-                "kind": "data"
-            },
-            {
-                "name": "strike_price",
-                "type": "core::integer::u256",
-                "kind": "data"
-            },
-            {
-                "name": "cap_level",
-                "type": "core::integer::u128",
                 "kind": "data"
             },
             {
@@ -615,6 +648,46 @@ export const ABI = [
             },
             {
                 "name": "option_settlement_date",
+                "type": "core::integer::u64",
+                "kind": "data"
+            },
+            {
+                "name": "pricing_data",
+                "type": "pitch_lake::option_round::interface::PricingData",
+                "kind": "data"
+            }
+        ]
+    },
+    {
+        "type": "struct",
+        "name": "pitch_lake::vault::interface::L1Data",
+        "members": [
+            {
+                "name": "twap",
+                "type": "core::integer::u256"
+            },
+            {
+                "name": "max_return",
+                "type": "core::integer::u128"
+            },
+            {
+                "name": "reserve_price",
+                "type": "core::integer::u256"
+            }
+        ]
+    },
+    {
+        "type": "event",
+        "name": "pitch_lake::vault::contract::Vault::FossilCallbackSuccess",
+        "kind": "struct",
+        "members": [
+            {
+                "name": "l1_data",
+                "type": "pitch_lake::vault::interface::L1Data",
+                "kind": "data"
+            },
+            {
+                "name": "timestamp",
                 "type": "core::integer::u64",
                 "kind": "data"
             }
@@ -648,6 +721,11 @@ export const ABI = [
             {
                 "name": "OptionRoundDeployed",
                 "type": "pitch_lake::vault::contract::Vault::OptionRoundDeployed",
+                "kind": "nested"
+            },
+            {
+                "name": "FossilCallbackSuccess",
+                "type": "pitch_lake::vault::contract::Vault::FossilCallbackSuccess",
                 "kind": "nested"
             }
         ]

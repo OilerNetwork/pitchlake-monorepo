@@ -78,7 +78,7 @@ fn test_starting_auction_while_round_settled_before_round_transition_period_over
 
 /// OptionRound Test
 // Test every time an auction starts, the auction started event emits correctly
-// @note Move to optoin round state transition tests
+// @note Move to option round state transition tests
 #[test]
 #[available_gas(1000000000)]
 fn test_auction_started_option_round_event() {
@@ -278,7 +278,7 @@ fn test_starting_auction_updates_locked_and_unlocked_balances() {
 //        }
 //    };
 //
-//    // Accelerate throught round 1 with premiums and payout
+//    // Accelerate through round 1 with premiums and payout
 //
 //    let (mut vault, _) = setup_facade();
 //    let mut liquidity_providers = liquidity_providers_get(4).span();
@@ -386,20 +386,20 @@ fn test_starting_auction_updates_locked_and_unlocked_balances() {
 //}
 
 //// Test that an auction cannot start if the minimum_collateral_required is not reached
-//// @note Tomasz said this is unneccesary, we may introduce a maximum_collateral_required.
+//// @note Tomasz said this is unnecessary, we may introduce a maximum_collateral_required.
 //// Tomasz said too much collateral leads to problems with manipulation for premium
 //// This is a much later concern
 //#[ignore]
 //#[test]
 //#[available_gas(10000000)]
 //#[should_panic(expected: ('Cannot start auction yet', 'ENTRYPOINT_FAILED',))]
-//fn test_start_auction_under_minium_collateral_required_failure() {
+//fn test_start_auction_under_minimum_collateral_required_failure() {
 //    let (mut vault_facade, _) = setup_facade();
 //
 //    // @dev Need to manually initialize round 1 unless it is initialed during the vault
 //    constructor // ... vault::_initialize_round_1()
 //
-//    // Get round 1's minium collateral requirements
+//    // Get round 1's minimum collateral requirements
 //    let mut next_round: OptionRoundFacade = vault_facade.get_next_round();
 //    let params = next_round.get_params();
 //    let minimum_collateral_required = params.minimum_collateral_required;

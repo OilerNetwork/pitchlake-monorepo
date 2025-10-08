@@ -39,7 +39,7 @@ pub struct AuctionStarted {
 // @dev Emitted when the auction ends
 // @member clearing_price: The calculated price per option after the auction
 // @member options_sold: The number of options that sold in the auction
-// @memeber unsold_liquidity: The amount of liquidity that was not sold in the auction
+// @member unsold_liquidity: The amount of liquidity that was not sold in the auction
 #[derive(Drop, Serde, PartialEq)]
 pub struct AuctionEnded {
     pub options_sold: u256,
@@ -58,9 +58,9 @@ pub struct OptionRoundSettled {
 }
 
 // @dev Emitted when a bid is placed
-// @memeber account: The account that placed the bid
+// @member account: The account that placed the bid
 // @member bid_id: The bid's identifier
-// @memeber amount: The max amount of options the account is bidding for
+// @member amount: The max amount of options the account is bidding for
 // @member price: The max price per option the account is bidding for
 // @member account_bid_nonce_now: The amount of bids the account has placed now
 // @member tree_bid_nonce_now: The bid tree's nonce now
@@ -177,7 +177,7 @@ pub trait IOptionRound<TContractState> {
     fn get_strike_price(self: @TContractState) -> u256;
 
     // @dev The percentage points (BPS) above the TWAP to cap the payout per option
-    // @note E.g. 3333 tranlates to a capped payout of 33.33% above the strike price
+    // @note E.g. 3333 translates to a capped payout of 33.33% above the strike price
     fn get_cap_level(self: @TContractState) -> u128;
 
     // @dev The total ETH locked at the start of the auction

@@ -90,7 +90,7 @@ fn test_ending_auction_while_round_settled_fails() {
 /// Event Tests ///
 
 // Test ending the auction emits the correct event
-// @note shold move to option round state transition tests
+// @note should move to option round state transition tests
 #[test]
 #[available_gas(100000000)]
 fn test_auction_ended_option_round_event() {
