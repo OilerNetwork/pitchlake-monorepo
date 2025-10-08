@@ -1,6 +1,3 @@
-[default]
-extend-glob = ["**/*.go"]
-
 [default.extend-words]
 # Go-specific terms
 "golang" = "golang"
