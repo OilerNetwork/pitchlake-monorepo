@@ -1,0 +1,18 @@
+run:
+  modules-download-mode: readonly
+  timeout: 5m
+
+version: "2"
+
+linters:
+  disable:
+    - errcheck
+    - ineffassign
+    - staticcheck
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  exclusions:
+    generated: lax
