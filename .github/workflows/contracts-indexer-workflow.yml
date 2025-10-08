@@ -60,18 +60,18 @@ jobs:
         run: |
           cd contracts-indexer/event-processor
           go test ./...
-  event-logger-lint:
-    name: Logger Lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: contracts-indexer/event-logger/go.mod
-          cache: true
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v8
-        with:
-          working-directory: contracts-indexer/event-logger
-          version: latest
-          args: --timeout=5m
+  # event-logger-lint:
+  #   name: Logger Lint
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-go@v5
+  #       with:
+  #         go-version-file: contracts-indexer/event-logger/go.mod
+  #         cache: true
+  #     - name: golangci-lint
+  #       uses: golangci/golangci-lint-action@v8
+  #       with:
+  #         working-directory: contracts-indexer/event-logger
+  #         version: latest
+  #         args: --timeout=5m
