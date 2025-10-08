@@ -1,16 +1,18 @@
-#syntax=docker/dockerfile:1.7
+#syntax=docker/dockerfile:1.4
 # Stage 1: Build golang dependencies and binaries
 
-FROM --platform=linux/arm64 golang:1.25-bookworm AS build
+FROM golang:1.25-bookworm AS build
 
 ARG RUST_VERSION=1.86.0
-
+ENV GOARCH=amd64
+ENV GOOS=linux
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl gcc make git build-essential \
     libjemalloc-dev libbz2-dev pkg-config \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+    
 # Install Rust
 RUN curl https://sh.rustup.rs -sSf | bash -s -- -y --default-toolchain ${RUST_VERSION} --profile minimal
 ARG VM_DEBUG=false
@@ -42,18 +44,12 @@ RUN go mod tidy
 RUN make build
 
 # Stage 2: Run Juno with the plugin
-FROM --platform=linux/arm64 debian:bookworm-slim
+FROM debian:bookworm-slim
 
 # Install necessary runtime dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates \
-    curl \
-    gawk \
-    grep \
-    libjemalloc-dev \
-    libjemalloc2 \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get -qq update && \
+    apt-get -qq install -y ca-certificates curl gawk grep libjemalloc-dev libjemalloc2 && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 ENV L1_URL=${L1_URL}
