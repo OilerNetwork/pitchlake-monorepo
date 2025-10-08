@@ -1,4 +1,6 @@
+#syntax=docker/dockerfile:1.7
 # Stage 1: Build golang dependencies and binaries
+
 FROM golang:1.25-bookworm AS build
 
 ARG RUST_VERSION=1.86.0
