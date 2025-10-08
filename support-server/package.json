@@ -9,7 +9,11 @@
     "dev": "ts-node src/index.ts",
     "dev:watch": "ts-node src/index.ts --watch --respawn",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "lint": "eslint src/**/*.ts --ignore-pattern 'src/abi/**'",
+    "lint:fix": "eslint src/**/*.ts --fix --ignore-pattern 'src/abi/**'",
+    "format": "prettier --write src/**/*.ts --ignore-path 'src/abi/**'",
+    "format:check": "prettier --check src/**/*.ts --ignore-path 'src/abi/**'"
   },
   "dependencies": {
     "@types/node-cron": "^3.0.11",

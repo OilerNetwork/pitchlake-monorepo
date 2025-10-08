@@ -11,11 +11,8 @@ export function setupLogger(serviceName: string): winston.Logger {
     defaultMeta: { service: serviceName },
     transports: [
       new winston.transports.Console({
-        format: winston.format.combine(
-          winston.format.colorize(),
-          winston.format.simple()
-        )
-      })
-    ]
+        format: winston.format.combine(winston.format.colorize(), winston.format.simple()),
+      }),
+    ],
   });
-} 
+}
