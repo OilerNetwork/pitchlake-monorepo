@@ -36,7 +36,7 @@ export default function useEditBidMulticall({
     tokenAddress: ethAddress,
   });
   const { optionRoundContract } = useOptionRoundContract({
-    contractAddress: vaultAddress,
+    contractAddress: roundAddress,
   });
 
   const calls: Call[] = useMemo(() => {

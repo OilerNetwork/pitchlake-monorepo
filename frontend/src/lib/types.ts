@@ -135,12 +135,6 @@ export type VaultActionsType = {
   withdrawLiquidity: (withdrawArgs: WithdrawLiquidityArgs) => Promise<string>;
   withdrawStash: (collectArgs: CollectArgs) => Promise<string>;
   queueWithdrawal: (queueArgs: QueueArgs) => Promise<string>;
-  // OB
-  placeBid: (placeBids: PlaceBidArgs) => Promise<string>;
-  updateBid: (updateBid: UpdateBidArgs) => Promise<string>;
-  refundUnusedBids: (refundBids: RefundBidsArgs) => Promise<string>;
-  mintOptions: (mintOptions: MintOptionsArgs) => Promise<string>;
-  exerciseOptions: (exerciseOptions: ExerciseOptionsArgs) => Promise<string>;
   // STATE TRANSITION
   startAuction: () => Promise<void>;
   endAuction: () => Promise<void>;
@@ -152,8 +146,8 @@ export type OptionRoundActionsType = {
   placeBid: (placeBids: PlaceBidArgs) => Promise<string>;
   updateBid: (updateBid: UpdateBidArgs) => Promise<string>;
   refundUnusedBids: (refundBids: RefundBidsArgs) => Promise<string>;
-  mintOptions: (mintOptions: MintOptionsArgs) => Promise<string>;
-  exerciseOptions: (exerciseOptions: ExerciseOptionsArgs) => Promise<string>;
+  mintOptions: () => Promise<string>;
+  exerciseOptions: () => Promise<string>;
 };
 
 export type SendFossiLRequestParams = {
@@ -249,19 +243,12 @@ export type UpdateBidArgs = {
   bidId: string;
   priceIncrease: number | bigint;
 };
-export type MintOptionsArgs = {
-  roundAddress: string;
-};
+
 export type RefundableBidsArgs = {
-  roundAddress: string;
   optionBuyer: string;
 };
 export type RefundBidsArgs = {
-  roundAddress: string;
   optionBuyer: string;
-};
-export type ExerciseOptionsArgs = {
-  roundAddress: string;
 };
 
 export interface InfoItemProps {

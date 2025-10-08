@@ -5,8 +5,6 @@ import {
   OptionRoundActionsType,
   PlaceBidArgs,
   UpdateBidArgs,
-  MintOptionsArgs,
-  ExerciseOptionsArgs,
   RefundBidsArgs,
 } from "@/lib/types";
 import { useCallback, useMemo } from "react";
@@ -40,16 +38,16 @@ const useOptionRoundActions = (args: {
         args?:
           | PlaceBidArgs
           | UpdateBidArgs
-          | MintOptionsArgs
-          | ExerciseOptionsArgs,
+          | RefundBidsArgs
+          | string
+          | string[],
       ) => {
         if (!typedContract || !provider || !account) return;
         let argsData;
         if (args) argsData = Object.values(args).map((value) => value);
-        const nonce = await provider?.getNonceForAddress(account?.address);
         const data = (
           argsData
-            ? await typedContract?.[functionName](...argsData, { nonce })
+            ? await typedContract?.[functionName](...argsData)
             : await typedContract?.[functionName]()
         ) as TransactionResult;
 
@@ -85,21 +83,15 @@ const useOptionRoundActions = (args: {
     [callContract],
   );
 
-  const mintOptions = useCallback(
-    async (args: MintOptionsArgs): Promise<string> => {
-      const response = await callContract("mint_options")(args);
-      return response?.transaction_hash || "";
-    },
-    [callContract],
-  );
+  const mintOptions = useCallback(async (): Promise<string> => {
+    const response = await callContract("mint_options")();
+    return response?.transaction_hash || "";
+  }, [callContract]);
 
-  const exerciseOptions = useCallback(
-    async (args: ExerciseOptionsArgs): Promise<string> => {
-      const response = await callContract("exercise_options")(args);
-      return response?.transaction_hash || "";
-    },
-    [callContract],
-  );
+  const exerciseOptions = useCallback(async (): Promise<string> => {
+    const response = await callContract("exercise_options")();
+    return response?.transaction_hash || "";
+  }, [callContract]);
 
   //State Transition
 

@@ -60,11 +60,7 @@ const Mint: React.FC<MintProps> = ({ showConfirmation }) => {
   }, [account, pendingTx, obState?.mintableOptions]);
 
   const handleMintOptions = async (): Promise<string> => {
-    return (
-      (await optionRoundActions?.mintOptions({
-        roundAddress: selectedRoundAddress || "0x0",
-      })) || ""
-    );
+    return (await optionRoundActions?.mintOptions()) || "";
   };
 
   const handleSubmit = () => {

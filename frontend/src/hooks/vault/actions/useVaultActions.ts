@@ -7,11 +7,6 @@ import {
   WithdrawLiquidityArgs,
   QueueArgs,
   CollectArgs,
-  PlaceBidArgs,
-  UpdateBidArgs,
-  RefundBidsArgs,
-  MintOptionsArgs,
-  ExerciseOptionsArgs,
   SendFossiLRequestParams,
 } from "@/lib/types";
 import { useCallback, useMemo } from "react";
@@ -53,11 +48,6 @@ const useVaultActions = () => {
           | WithdrawLiquidityArgs
           | QueueArgs
           | CollectArgs
-          | PlaceBidArgs
-          | UpdateBidArgs
-          | RefundBidsArgs
-          | MintOptionsArgs
-          | ExerciseOptionsArgs
           | SendFossiLRequestParams,
       ) => {
         if (!typedContract || !provider || !account) return;
@@ -158,7 +148,6 @@ const useVaultActions = () => {
     [vaultAddress],
   );
 
-
   // @NOTE: rm and consider adding demo_fossil_callback to actions
   const settleOptionRound = useCallback(async () => {
     try {
@@ -167,47 +156,6 @@ const useVaultActions = () => {
       console.log(error);
     }
   }, [callContract]);
-
-  // OB
-  const placeBid = useCallback(
-    async (args: PlaceBidArgs): Promise<string> => {
-      const response = await callContract("place_bid")(args);
-      return response?.transaction_hash || "";
-    },
-    [callContract],
-  );
-
-  const updateBid = useCallback(
-    async (args: UpdateBidArgs): Promise<string> => {
-      const response = await callContract("update_bid")(args);
-      return response?.transaction_hash || "";
-    },
-    [callContract],
-  );
-
-  const refundUnusedBids = useCallback(
-    async (args: RefundBidsArgs): Promise<string> => {
-      const response = await callContract("refund_unused_bids")(args);
-      return response?.transaction_hash || "";
-    },
-    [callContract],
-  );
-
-  const mintOptions = useCallback(
-    async (args: MintOptionsArgs): Promise<string> => {
-      const response = await callContract("mint_options")(args);
-      return response?.transaction_hash || "";
-    },
-    [callContract],
-  );
-
-  const exerciseOptions = useCallback(
-    async (args: ExerciseOptionsArgs): Promise<string> => {
-      const response = await callContract("exercise_options")(args);
-      return response?.transaction_hash || "";
-    },
-    [callContract],
-  );
 
   //State Transition
 
@@ -220,11 +168,6 @@ const useVaultActions = () => {
     endAuction,
     demoFossilCallback,
     settleOptionRound,
-    placeBid,
-    updateBid,
-    refundUnusedBids,
-    mintOptions,
-    exerciseOptions,
   } as VaultActionsType;
 };
 

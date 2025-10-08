@@ -79,11 +79,7 @@ const Exercise: React.FC<ExerciseProps> = ({ showConfirmation }) => {
   };
 
   const handleExerciseOptions = async (): Promise<string> => {
-    return (
-      (await optionRoundActions?.exerciseOptions({
-        roundAddress: selectedRoundAddress || "0x0",
-      })) || ""
-    );
+    return (await optionRoundActions?.exerciseOptions()) || "";
   };
 
   const handleSubmit = () => {
