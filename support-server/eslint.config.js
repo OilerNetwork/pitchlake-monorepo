@@ -32,7 +32,11 @@ module.exports = [
     },
     rules: {
       // TypeScript specific rules
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': ['error', { 
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        ignoreRestSiblings: true
+      }],
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
@@ -44,6 +48,7 @@ module.exports = [
       'no-debugger': 'error',
       'prefer-const': 'error',
       'no-var': 'error',
+      'no-unused-vars': 'off', // Turn off base rule as it can report incorrect errors
 
       // Prettier integration
       'prettier/prettier': 'error',
