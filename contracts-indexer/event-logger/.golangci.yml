@@ -1,8 +1,6 @@
 run:
   modules-download-mode: readonly
   timeout: 5m
-  skip-dirs:
-    - juno
 
 version: "2"
 
@@ -11,6 +9,9 @@ linters:
     - errcheck
     - ineffassign
     - staticcheck
+  exclusions:
+    paths:
+      - juno
 
 formatters:
   enable:
