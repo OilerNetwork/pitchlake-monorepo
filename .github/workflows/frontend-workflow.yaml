@@ -1,13 +1,21 @@
-name: Frontend Unit Tests
+name: Frontend Workflow
 
 on:
   push:
     branches:
       - main
       - staging
+    paths:
+      - "frontend/**"
   pull_request:
     branches:
       - "**"
+    paths:
+      - "frontend/**"
+    types:
+      - reopened
+      - ready_for_review
+      - synchronize
 
 jobs:
   frontend-test:
@@ -29,6 +37,11 @@ jobs:
         run: |
           cd frontend
           pnpm install --frozen-lockfile
+
+      - name: Lint code with ESLint
+        run: |
+          cd frontend
+          pnpm lint
 
       - name: Run tests
         run: |
