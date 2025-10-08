@@ -1,6 +1,3 @@
-[default]
-extend_glob = ["**/*.cairo"]
-
 [default.extend-words]
 # Project-specific terms
 "pitchlake" = "pitchlake"
