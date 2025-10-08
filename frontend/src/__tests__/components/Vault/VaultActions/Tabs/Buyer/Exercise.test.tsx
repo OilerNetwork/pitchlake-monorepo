@@ -8,6 +8,7 @@ import useVaultState from "@/hooks/vault/states/useVaultState";
 import useRoundState from "@/hooks/vault/states/useRoundState";
 import useOBState from "@/hooks/vault/states/useOBState";
 import useVaultActions from "@/hooks/vault/actions/useVaultActions";
+import useOptionRoundActions from "@/hooks/optionRound/actions/useOptionRoundActions";
 import { HelpProvider } from "@/context/HelpProvider";
 
 // Mock the new context
@@ -59,7 +60,7 @@ jest.mock("@/hooks/vault/states/useRoundState", () => jest.fn());
 
 jest.mock("@/hooks/vault/states/useOBState", () => jest.fn());
 
-jest.mock("@/hooks/vault/actions/useVaultActions", () => jest.fn());
+jest.mock("@/hooks/optionRound/actions/useOptionRoundActions", () => jest.fn());
 
 jest.mock("@/lang/en/help.json", () => ({
   exerciseButton: {
@@ -106,7 +107,7 @@ describe("Exercise Component", () => {
       balance: "100",
     });
 
-    (useVaultActions as jest.Mock).mockReturnValue({
+    (useOptionRoundActions as jest.Mock).mockReturnValue({
       exerciseOptions: mockExerciseOptions,
     });
   });
