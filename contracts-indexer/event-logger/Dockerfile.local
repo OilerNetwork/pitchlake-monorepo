@@ -15,8 +15,6 @@ ARG VM_DEBUG=false
 
 WORKDIR /plugin
 
-RUN git submodule update --init --remote --recursive
-
 COPY juno/ ./juno/
 
 #RUN git submodule update --init --remote --recursive
