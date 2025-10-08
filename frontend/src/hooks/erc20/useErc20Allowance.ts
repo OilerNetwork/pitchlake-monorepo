@@ -1,6 +1,7 @@
 import { useAccount, useReadContract } from "@starknet-react/core";
 import { useMemo } from "react";
 import { erc20ABI } from "@/lib/abi";
+import { BlockTag } from "starknet";
 
 const useErc20Allowance = (
   tokenAddress: `0x${string}` | undefined,
@@ -14,6 +15,7 @@ const useErc20Allowance = (
     functionName: "allowance",
     args: account?.address && spender ? [account.address, spender] : undefined,
     watch: true,
+    blockIdentifier: BlockTag.LATEST,
   });
 
   const allowance: bigint = useMemo(() => {
