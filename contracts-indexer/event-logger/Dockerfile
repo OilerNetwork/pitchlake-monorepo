@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install Rust
 RUN curl https://sh.rustup.rs -sSf | bash -s -- -y --default-toolchain ${RUST_VERSION} --profile minimal
-ENV PATH="/root/.cargo/bin:${PATH}"
+ARG VM_DEBUG=false
 
 WORKDIR /plugin
 
