@@ -1,4 +1,4 @@
-name: Frontend Linter
+name: Frontend Workflow
 
 on:
   push:
@@ -12,6 +12,10 @@ on:
       - "**"
     paths:
       - "frontend/**"
+    types:
+      - reopened
+      - ready_for_review
+      - synchronize
 
 jobs:
   frontend-test:
