@@ -45,9 +45,15 @@ RUN make build
 FROM --platform=linux/arm64 debian:bookworm-slim
 
 # Install necessary runtime dependencies
-RUN apt-get -qq update && \
-    apt-get -qq install -y ca-certificates curl gawk grep libjemalloc-dev libjemalloc2 && \
-    rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    gawk \
+    grep \
+    libjemalloc-dev \
+    libjemalloc2 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 ENV L1_URL=${L1_URL}
