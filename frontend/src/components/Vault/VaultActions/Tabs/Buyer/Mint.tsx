@@ -7,7 +7,7 @@ import { useTransactionContext } from "@/context/TransactionProvider";
 import Hoverable from "@/components/BaseComponents/Hoverable";
 import useVaultState from "@/hooks/vault/states/useVaultState";
 import useOBState from "@/hooks/vault/states/useOBState";
-import useVaultActions from "@/hooks/vault/actions/useVaultActions";
+import useOptionRoundActions from "@/hooks/optionRound/actions/useOptionRoundActions";
 import { useNewContext } from "@/context/NewProvider";
 import useErc20Balance from "@/hooks/erc20/useErc20Balance";
 import useRoundState from "@/hooks/vault/states/useRoundState";
@@ -23,7 +23,9 @@ interface MintProps {
 const Mint: React.FC<MintProps> = ({ showConfirmation }) => {
   const { conn } = useNewContext();
   const { selectedRoundAddress } = useVaultState();
-  const vaultActions = useVaultActions();
+  const optionRoundActions = useOptionRoundActions({
+    optionRoundAddress: selectedRoundAddress,
+  });
   const obState = useOBState(selectedRoundAddress);
   const selectedRoundState = useRoundState(selectedRoundAddress);
   const { account } = useAccount();
@@ -59,7 +61,7 @@ const Mint: React.FC<MintProps> = ({ showConfirmation }) => {
 
   const handleMintOptions = async (): Promise<string> => {
     return (
-      (await vaultActions?.mintOptions({
+      (await optionRoundActions?.mintOptions({
         roundAddress: selectedRoundAddress || "0x0",
       })) || ""
     );

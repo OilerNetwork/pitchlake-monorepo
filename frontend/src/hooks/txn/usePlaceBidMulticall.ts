@@ -5,7 +5,7 @@ import { useSendTransaction } from "@starknet-react/core";
 import { isValidHex64 } from "@/lib/utils";
 import { useTransactionContext } from "@/context/TransactionProvider";
 import { useErc20Contract } from "@/hooks/contracts/useErc20Contract";
-import { useVaultContract } from "@/hooks/contracts/useVaultContract";
+import { useOptionRoundContract } from "../contracts/useOptionRoundContract";
 
 interface PlaceBidMulticallProps {
   accountAddress: string | undefined;
@@ -34,8 +34,8 @@ export default function usePlaceBidMulticall({
   const { erc20Contract: ethContract } = useErc20Contract({
     tokenAddress: ethAddress,
   });
-  const { vaultContract } = useVaultContract({
-    vaultAddress: vaultAddress,
+  const { optionRoundContract } = useOptionRoundContract({
+    contractAddress: vaultAddress,
   });
 
   const calls: Call[] = useMemo(() => {
@@ -48,7 +48,7 @@ export default function usePlaceBidMulticall({
       !roundAddress ||
       !bidAmount ||
       !bidPrice ||
-      !vaultContract ||
+      !optionRoundContract ||
       !ethContract ||
       Number(bidAmount) <= 0 ||
       Number(bidPrice) <= 0
@@ -67,7 +67,7 @@ export default function usePlaceBidMulticall({
       roundAddress,
       totalWei,
     );
-    const bidCall = vaultContract.populateTransaction.place_bid(
+    const bidCall = optionRoundContract.populateTransaction.place_bid(
       BigInt(bidAmount),
       parseUnits(bidPrice, "gwei"),
     );
@@ -88,7 +88,7 @@ export default function usePlaceBidMulticall({
     allowance,
     bidAmount,
     bidPrice,
-    vaultContract,
+    optionRoundContract,
     ethContract,
     vaultAddress,
     ethAddress,

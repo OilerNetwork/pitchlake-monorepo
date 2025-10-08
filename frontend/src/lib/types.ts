@@ -148,6 +148,14 @@ export type VaultActionsType = {
   demoFossilCallback: (fossilArgs: DemoFossilCallParams) => Promise<boolean>;
 };
 
+export type OptionRoundActionsType = {
+  placeBid: (placeBids: PlaceBidArgs) => Promise<string>;
+  updateBid: (updateBid: UpdateBidArgs) => Promise<string>;
+  refundUnusedBids: (refundBids: RefundBidsArgs) => Promise<string>;
+  mintOptions: (mintOptions: MintOptionsArgs) => Promise<string>;
+  exerciseOptions: (exerciseOptions: ExerciseOptionsArgs) => Promise<string>;
+};
+
 export type SendFossiLRequestParams = {
   targetTimestamp: number;
   roundDuration: number;
