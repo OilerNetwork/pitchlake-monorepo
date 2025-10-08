@@ -3,7 +3,7 @@ ifeq ($(VM_DEBUG),true)
     VM_TARGET = debug
 else
     GO_TAGS = -tags 'no_coverage'
-    VM_TARGET = all
+    VM_TARGET = amd64
 endif
 
 # Build commands
