@@ -15,9 +15,7 @@ ARG VM_DEBUG=false
 
 WORKDIR /plugin
 
-RUN git submodule update --init --remote --recursive
-
-COPY juno/ ./juno/
+RUN git clone https://github.com/NethermindEth/juno.git juno
 
 #RUN git submodule update --init --remote --recursive
 RUN bash -c 'cd juno && source ~/.cargo/env && VM_DEBUG=${VM_DEBUG} make juno'
