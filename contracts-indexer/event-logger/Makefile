@@ -4,29 +4,22 @@ build:
 	go build -tags 'purego no_coverage' -buildmode=plugin -o myplugin.so plugin/myplugin.go
 
 # Docker commands
-docker-build:
+start-docker:
+	@echo "Building event logger..."
 	docker compose build
-
-docker-up:
-	docker compose up
-
-docker-up-detached:
+	@echo ""
+	@echo "Starting event logger..."
 	docker compose up -d
 
-docker-down:
+stop-docker:
+	@echo "Stopping event logger..."
 	docker compose down
 
-docker-logs:
-	docker compose logs -f
-
-docker-restart:
-	docker compose restart
-
-docker-clean:
+clean-docker:
 	docker compose down -v --remove-orphans
 	docker system prune -f
 
-docker-restart-network:
+restart-docker-network:
 	docker compose down --remove-orphans
 	docker compose up -d
 

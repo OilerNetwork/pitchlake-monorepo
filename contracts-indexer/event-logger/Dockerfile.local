@@ -12,13 +12,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install Rust
 RUN curl https://sh.rustup.rs -sSf | bash -s -- -y --default-toolchain ${RUST_VERSION} --profile minimal
 ARG VM_DEBUG=false
-
+ARG GO_TAGS="-tags 'purego no_coverage'"
 WORKDIR /plugin
 
 COPY juno/ ./juno/
 
 #RUN git submodule update --init --remote --recursive
-RUN bash -c 'cd juno && source ~/.cargo/env && VM_DEBUG=${VM_DEBUG} make juno'
+RUN bash -c 'cd juno && source ~/.cargo/env && GO_TAGS=${GO_TAGS} make juno'
 
 RUN pwd
 RUN ls

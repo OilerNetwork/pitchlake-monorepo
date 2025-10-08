@@ -64,7 +64,7 @@ jobs:
           IMAGE_TAG=pitchlake-indexer-${{ github.sha }}
           IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
-          docker buildx build --platform=linux/amd64 -f ./contracts-indexer/event-logger/Dockerfile -t $IMAGE_URI ./contracts-indexer/event-logger
+          docker buildx build --platform=linux/arm64 -f ./contracts-indexer/event-logger/Dockerfile -t $IMAGE_URI ./contracts-indexer/event-logger
           docker push $IMAGE_URI
       
       - name: Change key permission

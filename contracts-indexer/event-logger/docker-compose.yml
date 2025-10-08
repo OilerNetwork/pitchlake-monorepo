@@ -10,7 +10,7 @@ services:
 
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.local
     environment:
       UDC_ADDRESS: ${UDC_ADDRESS}
       RPC_URL: ${RPC_URL}
