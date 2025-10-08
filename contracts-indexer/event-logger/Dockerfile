@@ -12,6 +12,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install Rust
 RUN curl https://sh.rustup.rs -sSf | bash -s -- -y --default-toolchain ${RUST_VERSION} --profile minimal
 ARG VM_DEBUG=false
+ENV CGO_ENABLED=1
+ENV GOAMD64=v1
 
 WORKDIR /plugin
 
