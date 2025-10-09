@@ -62,7 +62,6 @@ export class UnconfirmedTWAPsRunner {
 
           currentBlock = Number(await this.rpcClient.getBlockNumber());
           blockNumber += length;
-          console.log("currentBlock, blockNumber", currentBlock, blockNumber);
 
           if (shouldRecalibrate) {
             return true; // Signal recalibration needed

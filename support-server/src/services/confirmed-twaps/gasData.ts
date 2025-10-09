@@ -142,7 +142,6 @@ export class GasDataService {
   private async getTWAPs(blockData: FormattedBlockData[]): Promise<void> {
     if (!blockData?.length) return;
 
-    console.log("blockData", blockData);
     try {
       // Sort blocks by timestamp and remove any blocks with undefined basefee
       const sortedBlocks = [...blockData]

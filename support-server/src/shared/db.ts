@@ -270,7 +270,6 @@ export class DB {
     const startBlock =
       blockResult.rows.length > 0 ? Number(blockResult.rows[0].block_number) + 1 : currentBlock;
 
-    console.log(`No TWAP state found. Starting from block ${startBlock}`);
 
     // Initialize TWAP states with the starting block
     await Promise.all([
@@ -327,7 +326,6 @@ export class DB {
 
       // If the block was confirmed, trigger recalibration
       if (blockInsertResult.rows.length === 0 || blockInsertResult.rows[0].is_confirmed) {
-        console.log('HERE');
         client.query('ROLLBACK');
         return {
           shouldRecalibrate: true,
