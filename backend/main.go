@@ -33,7 +33,7 @@ func main() {
 // OR Trigger:or_update
 func run() error {
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	dbs := server.NewDBServer(ctx)
 	s := &http.Server{
