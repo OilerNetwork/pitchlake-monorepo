@@ -255,13 +255,12 @@ func (db *DB) CreateVault(vault *models.VaultState) error {
 }
 
 func (db *DB) UpdateVaultBalanceAuctionStart(vaultAddress string, blockNumber uint64) error {
-	query := `
-		UPDATE vault_states
+	query := `UPDATE vault_states
 		SET
-			unlocked_balance = 0,
 			locked_balance = unlocked_balance,
-			latest_block = ?
-		WHERE address = ?;`
+			unlocked_balance = 0,
+			latest_block = $1
+		WHERE address = $2`
 
 	if _, err := db.tx.Exec(
 		context.Background(),
@@ -272,13 +271,6 @@ func (db *DB) UpdateVaultBalanceAuctionStart(vaultAddress string, blockNumber ui
 		return err
 	}
 	return nil
-
-	// return db.tx.Model(models.VaultState{}).Where("address=?", vaultAddress).Updates(
-	// 	map[string]interface{}{
-	// 		"unlocked_balance": 0,
-	// 		"locked_balance":   gorm.Expr("unlocked_balance"),
-	// 		"latest_block":     blockNumber,
-	// 	}).Error
 }
 
 func (db *DB) UpdateVaultBalancesAuctionEnd(
@@ -286,13 +278,12 @@ func (db *DB) UpdateVaultBalancesAuctionEnd(
 	unsoldLiquidity,
 	premiums models.BigInt,
 	blockNumber uint64) error {
-	query := `
-		UPDATE vault_states
+	query := `UPDATE vault_states
 		SET
-			unlocked_balance = unlocked_balance + ?,
-			locked_balance = locked_balance - ?,
-			latest_block = ?
-		WHERE address = ?;`
+			unlocked_balance = unlocked_balance + $1,
+			locked_balance = locked_balance - $2,
+			latest_block = $3
+		WHERE address = $4`
 
 	if _, err := db.tx.Exec(
 		context.Background(),
@@ -305,23 +296,14 @@ func (db *DB) UpdateVaultBalancesAuctionEnd(
 		return err
 	}
 	return nil
-	// return db.tx.Model(models.VaultState{}).Where("address=?", vaultAddress).Updates(
-	// 	map[string]interface{}{
-	// 		"unlocked_balance": gorm.Expr("unlocked_balance+?+?", unsoldLiquidity, premiums),
-	// 		"locked_balance":   gorm.Expr("locked_balance-?", unsoldLiquidity),
-	// 		"latest_block":     blockNumber,
-	// 	}).Error
-
 }
-
 func (db *DB) UpdateAllLiquidityProvidersBalancesAuctionStart(vaultAddress string, blockNumber uint64) error {
 
-	query := `UPDATE vault_states
-	SET
-		unlocked_balance = 0,
-		locked_balance = unlocked_balance,
-		latest_block = ?
-	WHERE address = ?;	`
+	query := `UPDATE liquidity_providers SET locked_balance = unlocked_balance, unlocked_balance = 0, latest_block = $1 WHERE vault_address = $2`
+
+	log.Printf("Executing query: %s", query)
+	log.Printf("Parameters: blockNumber=%d, vaultAddress=%s", blockNumber, vaultAddress)
+	log.Printf("Transaction state: %v", db.tx)
 
 	if _, err := db.tx.Exec(
 		context.Background(),
@@ -329,15 +311,10 @@ func (db *DB) UpdateAllLiquidityProvidersBalancesAuctionStart(vaultAddress strin
 		blockNumber,
 		vaultAddress,
 	); err != nil {
+		log.Printf("Query execution failed: %v", err)
 		return err
 	}
 	return nil
-	// return db.tx.Model(models.LiquidityProviderState{}).Where("vault_address=? AND unlocked_balance > 0", vaultAddress).Updates(
-	// 	map[string]interface{}{
-	// 		"locked_balance":   gorm.Expr("unlocked_balance"),
-	// 		"unlocked_balance": 0,
-	// 		"latest_block":     blockNumber,
-	// 	}).Error
 }
 
 func (db *DB) UpdateAllLiquidityProvidersBalancesAuctionEnd(
@@ -457,12 +434,13 @@ func (db *DB) UpdateVaultBalancesOptionSettle(
 	remainingLiquidityNotStashed models.BigInt,
 	blockNumber uint64,
 ) error {
-	query := `UPDATE vault_states SET
-		stashed_balance = stashed_balance + ?,
-		unlocked_balance = unlocked_balance + ?,
+	query := `UPDATE vault_states 
+	SET
+		stashed_balance = stashed_balance + $1,
+		unlocked_balance = unlocked_balance + $2,
 		locked_balance = 0,
-		latest_block = ?
-	WHERE address = ?;`
+		latest_block = $3
+	WHERE address = $4`
 
 	if _, err := db.tx.Exec(
 		context.Background(),
@@ -504,9 +482,9 @@ func (db *DB) UpdateAllLiquidityProvidersBalancesOptionSettle(
 			WHEN $1::numeric - $2::numeric <> 0 
 			THEN locked_balance * $3 / ($4::numeric - $5::numeric) 
 			ELSE locked_balance
-		END,
+		END),
 	latest_block = $6
-	WHERE vault_address = $7 AND locked_balance > 0;`
+	WHERE vault_address = $7 AND locked_balance > 0`
 	db.tx.Exec(
 		context.Background(),
 		query,
@@ -518,6 +496,7 @@ func (db *DB) UpdateAllLiquidityProvidersBalancesOptionSettle(
 		blockNumber,
 		vaultAddress,
 	)
+	log.Printf("Executed query: %s", query)
 
 	// //	totalPayout := models.BigInt{Int: new(big.Int).Mul(optionsSold.Int, payoutPerOption.Int)}
 	// db.tx.Model(models.LiquidityProviderState{}).Where("vault_address = ? AND locked_balance > 0", vaultAddress).Updates(map[string]interface{}{
@@ -534,6 +513,7 @@ func (db *DB) UpdateAllLiquidityProvidersBalancesOptionSettle(
 	// })
 	queuedAmounts, err := db.GetAllQueuedLiquidityForRound(roundAddress)
 	if err != nil {
+		log.Printf("Error getting all queued liquidity for round: %v", err)
 		return err
 	}
 	for _, queuedAmount := range queuedAmounts {
@@ -543,7 +523,7 @@ func (db *DB) UpdateAllLiquidityProvidersBalancesOptionSettle(
 		stashed_balance = stashed_balance + $1,
 		unlocked_balance = unlocked_balance - $2
 		WHERE vault_address = $3 AND address = $4;`
-		db.tx.Exec(
+		_, err = db.tx.Exec(
 			context.Background(),
 			query,
 			amountToAdd,
@@ -551,12 +531,16 @@ func (db *DB) UpdateAllLiquidityProvidersBalancesOptionSettle(
 			vaultAddress,
 			queuedAmount.Address,
 		)
-
+		if err != nil {
+			log.Printf("Error executing query: %v", err)
+			return err
+		}
 		// db.tx.Model(models.LiquidityProviderState{}).Where("vault_address=? AND address = ?", vaultAddress, queuedAmount.Address).
 		// 	Updates(map[string]interface{}{
 		// 		"stashed_balance":  gorm.Expr("stashed_balance + ?", amountToAdd),
 		// 		"unlocked_balance": gorm.Expr("unlocked_balance - ?", amountToAdd),
 		// 	})
+		log.Printf("Executed query: %s", query)
 	}
 
 	/* Use this JOIN query to update this without creating 2 entries on the historic table
@@ -946,7 +930,7 @@ func (db *DB) UpdateOptionRoundFields(address string, updates map[string]interfa
 	if _, err := db.tx.Exec(context.Background(), query, values...); err != nil {
 		return fmt.Errorf("failed to update option round fields: %w", err)
 	}
-
+	log.Printf("Updated option round fields: %v", values)
 	return nil
 }
 
@@ -1367,7 +1351,7 @@ func (db *DB) GetAllQueuedLiquidityForRound(roundAddress string) ([]models.Queue
 			bps,
 			queued_liquidity
 		FROM queued_liquidity
-		WHERE round_address=?`
+		WHERE round_address=$1`
 	rows, err := db.tx.Query(context.Background(), query, roundAddress)
 	if err != nil {
 		return nil, err
@@ -1406,12 +1390,6 @@ func (db *DB) RevertVaultState(address string, blockNumber uint64) error {
 	//
 	// if err := db.tx.Delete(&vaultHistoric).Error; err != nil {
 	// 	return err
-	// }
-	//
-	// if err := db.tx.Where("address = ?", address).
-	// 	Order("latest_block DESC").
-	// 	First(&postRevert).Error; err != nil {
-	// 	return nil
 	// }
 	//
 	// if err := db.tx.Where("address = ?").Updates(map[string]interface{}{
