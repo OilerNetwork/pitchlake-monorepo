@@ -109,7 +109,7 @@ export const sendFossilRequest = async (
     };
 
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_WS_URL}sendJobRequest`,
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}sendJobRequest`,
       {
         method: "POST",
         headers: {
