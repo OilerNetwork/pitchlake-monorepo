@@ -7,7 +7,11 @@ import {
   Bid,
 } from "@/lib/types";
 import { useAccount } from "@starknet-react/core";
-import { getPerformanceLP, getPerformanceOB, removeLeadingZeroes } from "@/lib/utils";
+import {
+  getPerformanceLP,
+  getPerformanceOB,
+  removeLeadingZeroes,
+} from "@/lib/utils";
 
 type InitialPayload = {
   payloadType: string;
@@ -43,7 +47,7 @@ const useWebSocketVault = (conn: string, vaultAddress?: string) => {
   >(null);
   const ws = useRef<WebSocket | null>(null);
   const { address } = useAccount();
-  const accountAddress=address?removeLeadingZeroes(address):undefined
+  const accountAddress = address ? removeLeadingZeroes(address) : undefined;
   const [isLoaded, setIsLoaded] = useState(false);
   useEffect(() => {
     setIsLoaded(true);
@@ -62,8 +66,7 @@ const useWebSocketVault = (conn: string, vaultAddress?: string) => {
             address: accountAddress,
             userType: "ob", // Adjust based on your logic
             vaultAddress: removeLeadingZeroes(vaultAddress),
-          })
-
+          }),
         );
       };
 
