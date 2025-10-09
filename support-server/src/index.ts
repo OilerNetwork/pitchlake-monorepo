@@ -26,12 +26,12 @@ class ArchitectureSupportServer {
       await Promise.all([
         runner.initialize(),
         runTWAPUpdate()(),
-        //runStateTransition()(),
+        runStateTransition()(),
       ]);
       runner.startListening();
 
-      // Start all services
-      //cron.schedule(CRON_SCHEDULE_STATE as string, runStateTransition());
+      cron.schedule(CRON_SCHEDULE as string, runTWAPUpdate());
+      cron.schedule(CRON_SCHEDULE_STATE as string, runStateTransition());
 
       // Handle graceful shutdown
       this.setupGracefulShutdown();
