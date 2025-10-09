@@ -24,7 +24,6 @@ pub enum OptionRoundEvent {
 }
 #[derive(Drop, Serde, PartialEq)]
 pub struct PricingDataSet {
-    event_name:"PricingDataSet",
     pub pricing_data: PricingData,
 }
 
@@ -33,7 +32,6 @@ pub struct PricingDataSet {
 // @member options_available: The max number of options that can sell in the auction
 #[derive(Drop, Serde, PartialEq)]
 pub struct AuctionStarted {
-    event_name:"AuctionStarted",
     pub starting_liquidity: u256,
     pub options_available: u256,
 }
@@ -44,7 +42,6 @@ pub struct AuctionStarted {
 // @member unsold_liquidity: The amount of liquidity that was not sold in the auction
 #[derive(Drop, Serde, PartialEq)]
 pub struct AuctionEnded {
-    event_name:"AuctionEnded",
     pub options_sold: u256,
     pub clearing_price: u256,
     pub unsold_liquidity: u256,
@@ -56,7 +53,6 @@ pub struct AuctionEnded {
 // @member settlement_price: The basefee TWAP used to settle the round
 #[derive(Drop, Serde, PartialEq)]
 pub struct OptionRoundSettled {
-    event_name:"OptionRoundSettled",
     pub settlement_price: u256,
     pub payout_per_option: u256,
 }
@@ -72,7 +68,6 @@ pub struct OptionRoundSettled {
 pub struct BidPlaced {
     #[key]
     pub account: ContractAddress,
-    pub event_name:"BidPlaced",
     pub bid_id: felt252,
     pub amount: u256,
     pub price: u256,
@@ -88,7 +83,6 @@ pub struct BidPlaced {
 pub struct BidUpdated {
     #[key]
     pub account: ContractAddress,
-    pub event_name:"BidUpdated",
     pub bid_id: felt252,
     pub price_increase: u256,
     pub bid_tree_nonce_before: u64,
@@ -102,7 +96,6 @@ pub struct BidUpdated {
 pub struct OptionsMinted {
     #[key]
     pub account: ContractAddress,
-    pub event_name:"OptionsMinted",
     pub minted_amount: u256,
 }
 
@@ -113,7 +106,6 @@ pub struct OptionsMinted {
 pub struct UnusedBidsRefunded {
     #[key]
     pub account: ContractAddress,
-    pub event_name:"UnusedBidsRefunded",
     pub refunded_amount: u256,
 }
 
@@ -126,7 +118,6 @@ pub struct UnusedBidsRefunded {
 pub struct OptionsExercised {
     #[key]
     pub account: ContractAddress,
-    pub event_name:"OptionsExercised",
     pub total_options_exercised: u256,
     pub mintable_options_exercised: u256,
     pub exercised_amount: u256,
@@ -136,7 +127,6 @@ pub struct OptionsExercised {
 // @dev Option pricing data, needed for a round's auction to start
 #[derive(Default, PartialEq, Copy, Drop, Serde, starknet::Store)]
 pub struct PricingData {
-    pub event_name:"PricingData",
     pub strike_price: u256,
     pub cap_level: u128,
     pub reserve_price: u256,

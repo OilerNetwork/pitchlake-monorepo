@@ -437,6 +437,7 @@ pub mod OptionRound {
             // @dev Emit event
             self
                 .emit_option_round_event(
+                    'PricingDataSet',
                     OptionRoundEvent::PricingDataSet(PricingDataSet { pricing_data }),
                 );
         }
@@ -459,6 +460,7 @@ pub mod OptionRound {
             self.transition_state_to(OptionRoundState::Auctioning);
             self
                 .emit_option_round_event(
+                    'AuctionStarted',
                     OptionRoundEvent::AuctionStarted(
                         AuctionStarted { starting_liquidity, options_available },
                     ),
@@ -491,6 +493,7 @@ pub mod OptionRound {
             self.transition_state_to(OptionRoundState::Running);
             self
                 .emit_option_round_event(
+                    'AuctionEnded',
                     OptionRoundEvent::AuctionEnded(
                         AuctionEnded {
                             options_sold, clearing_price, unsold_liquidity, clearing_bid_tree_nonce,
@@ -518,6 +521,7 @@ pub mod OptionRound {
             self.transition_state_to(OptionRoundState::Settled);
             self
                 .emit_option_round_event(
+                    'OptionRoundSettled',
                     OptionRoundEvent::OptionRoundSettled(
                         OptionRoundSettled { settlement_price, payout_per_option },
                     ),
@@ -561,6 +565,7 @@ pub mod OptionRound {
             // @dev Emit bid placed event
             self
                 .emit_option_round_event(
+                    'BidPlaced',
                     OptionRoundEvent::BidPlaced(
                         BidPlaced {
                             account, bid_id, amount, price, bid_tree_nonce_now: tree_nonce + 1,
@@ -600,6 +605,7 @@ pub mod OptionRound {
             // @dev Emit bid updated event
             self
                 .emit_option_round_event(
+                    'BidUpdated',
                     OptionRoundEvent::BidUpdated(
                         BidUpdated {
                             account,
@@ -631,6 +637,7 @@ pub mod OptionRound {
             // @dev Emit bids refunded event
             self
                 .emit_option_round_event(
+                    'UnusedBidsRefunded',
                     OptionRoundEvent::UnusedBidsRefunded(
                         UnusedBidsRefunded { account, refunded_amount },
                     ),
@@ -657,6 +664,7 @@ pub mod OptionRound {
             // @dev Emit options minted event
             self
                 .emit_option_round_event(
+                    'OptionsMinted',
                     OptionRoundEvent::OptionsMinted(OptionsMinted { account, minted_amount }),
                 );
 
@@ -689,6 +697,7 @@ pub mod OptionRound {
             // @dev Emit options exercised event
             self
                 .emit_option_round_event(
+                    'OptionsExercised',
                     OptionRoundEvent::OptionsExercised(
                         OptionsExercised {
                             account,
@@ -712,11 +721,11 @@ pub mod OptionRound {
     impl InternalImpl of OptionRoundInternalTrait {
         // @dev Used by an option round to emit events through the vault contract (for indexer
         // purposes)
-        fn emit_option_round_event(ref self: ContractState, option_round_event: OptionRoundEvent) {
+        fn emit_option_round_event(ref self: ContractState, event_name: felt252, option_round_event: OptionRoundEvent) {
             // @dev Get the round dispatcher to validate the round exists
             let vault = self.get_vault_dispatcher();
             let round_id = self.get_round_id();
-            vault.emit_option_round_event(round_id, option_round_event);
+            vault.emit_option_round_event(round_id, event_name, option_round_event);
         }
 
         // @dev Transitions the round's state to `to_state` if the proper conditions are met
