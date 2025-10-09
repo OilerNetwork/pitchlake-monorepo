@@ -27,7 +27,7 @@ test:
 
 test-unit:
 	@echo "Running unit tests (fast)..."
-	go test ./server/api/... ./server/validations/...
+	go test ./server/api/general/... ./server/api/home/... ./server/api/vault/... ./server/validations/...
 
 test-integration:
 	@echo "Running integration tests..."

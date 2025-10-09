@@ -7,13 +7,6 @@ import {
   WithdrawLiquidityArgs,
   QueueArgs,
   CollectArgs,
-  PlaceBidArgs,
-  Bid,
-  RefundBidsArgs,
-  UpdateBidArgs,
-  MintOptionsArgs,
-  ExerciseOptionsArgs,
-  SendFossiLRequestParams,
 } from "@/lib/types";
 import { useMemo, useState } from "react";
 import useMockOptionRounds from "./useMockOptionRounds";
@@ -101,66 +94,6 @@ const useMockVault = ({ address }: { address?: string }) => {
       });
   };
 
-  const placeBid = async (placeBidArgs: PlaceBidArgs): Promise<string> => {
-    setBuyerStates((prevState) => {
-      const newState = [...prevState];
-      const buyerStateIndex = newState.findIndex(
-        (state) => state.address === (address ?? "0xbuyer"),
-      );
-
-      if (buyerStateIndex === -1) {
-        return prevState;
-      }
-
-      const newBid: Bid = {
-        bidId: "3",
-        address: address ?? "",
-        roundAddress: rounds[selectedRound - 1].address ?? "",
-        treeNonce: "2",
-        amount: placeBidArgs.amount,
-        price: placeBidArgs.price,
-      };
-
-      // Initialize bids array if it doesn't exist
-      if (!newState[buyerStateIndex].bids) {
-        newState[buyerStateIndex].bids = [];
-      }
-
-      newState[buyerStateIndex].bids = [
-        ...(newState[buyerStateIndex].bids || []),
-        newBid,
-      ];
-      return newState;
-    });
-    return "";
-  };
-
-  const refundUnusedBids = async (
-    refundBidsArgs: RefundBidsArgs,
-  ): Promise<string> => {
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    return "";
-  };
-
-  const updateBid = async (updateBidArgs: UpdateBidArgs): Promise<string> => {
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    return "";
-  };
-
-  const mintOptions = async (
-    mintOptionsArgs: MintOptionsArgs,
-  ): Promise<string> => {
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    return "";
-  };
-
-  const exerciseOptions = async (
-    exerciseOptionsArgs: ExerciseOptionsArgs,
-  ): Promise<string> => {
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    return "";
-  };
-
   const settleOptionRound = async () => {
     const newRoundId = BigInt(vaultState.currentRoundId) + BigInt(1);
     const newRoundAddress = "0x1" + newRoundId.toString();
@@ -229,7 +162,6 @@ const useMockVault = ({ address }: { address?: string }) => {
     return true;
   };
 
-
   const vaultActions: VaultActionsType = {
     // User actions
     depositLiquidity,
@@ -239,11 +171,6 @@ const useMockVault = ({ address }: { address?: string }) => {
     startAuction,
     endAuction,
     settleOptionRound,
-    placeBid,
-    updateBid,
-    refundUnusedBids,
-    mintOptions,
-    exerciseOptions,
     demoFossilCallback,
   };
 

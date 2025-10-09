@@ -170,7 +170,7 @@ func (db *DB) GetLastBlock() (*models.StarknetBlocks, error) {
 func (db *DB) StoreEvent(txHash, vaultAddress string, blockNumber uint64, blockHash string, eventName string, eventKeys []string, eventData []string) error {
 
 	if db.tx == nil {
-		return errors.New("No transaction found")
+		return errors.New("no transaction found")
 	}
 	log.Printf("Storing event %s %s %d %s %v %v", txHash, vaultAddress, blockNumber, eventName, eventKeys, eventData)
 	query := `

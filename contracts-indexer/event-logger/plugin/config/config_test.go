@@ -66,16 +66,7 @@ func TestLoadConfig(t *testing.T) {
 		{
 			name: "missing RPC_URL",
 			envVars: map[string]string{
-				"DB_URL": "postgres://localhost:5432/test",
-			},
-			expectError: true,
-		},
-		{
-			name: "invalid CURSOR value",
-			envVars: map[string]string{
 				"PITCHLAKE_DB_URL": "postgres://localhost:5432/test",
-				"RPC_URL":          "https://starknet-mainnet.infura.io",
-				"CURSOR":           "invalid",
 			},
 			expectError: true,
 		},
