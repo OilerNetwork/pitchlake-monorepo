@@ -1,3 +1,4 @@
 .env
 /starknet.go
 myplugin.so
+!.env.example

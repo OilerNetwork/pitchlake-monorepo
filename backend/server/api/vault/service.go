@@ -304,13 +304,13 @@ func (router *VaultRouter) sendJobRequest(ctx context.Context, w http.ResponseWr
 			// Check if the job has been pending for too long
 			if router.isJobStuck(refreshedJob) {
 				log.Printf("Job %s has been pending for too long, marking as failed", refreshedJob.JobID)
-				
+
 				// Mark the stuck job as failed
 				err = jobRepo.UpdateJobRequestStatus(ctx, refreshedJob.JobID, models.JobStatusFailed)
 				if err != nil {
 					log.Printf("Error marking stuck job as failed: %v", err)
 				}
-				
+
 				// Continue to send a new job below
 			} else {
 				// Job is still valid and pending
@@ -401,12 +401,12 @@ func (router *VaultRouter) refreshJobStatus(ctx context.Context, job *models.Job
 func (router *VaultRouter) isJobStuck(job *models.JobRequest) bool {
 	// Get the stuck timeout from environment variable or use default
 	stuckTimeout := router.getStuckJobTimeout()
-	
+
 	// Convert both times to UTC for proper comparison
 	now := time.Now().UTC()
 	createdAt := job.CreatedAt.UTC()
 	timeSince := now.Sub(createdAt)
-	
+
 	// Check if the job has been pending for longer than the timeout
 	return timeSince > stuckTimeout
 }

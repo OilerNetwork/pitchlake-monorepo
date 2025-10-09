@@ -12,9 +12,6 @@ services:
       - POSTGRES_DB=fossil
       - POSTGRES_USER=fossil_user
       - POSTGRES_PASSWORD=fossil_password
-    volumes:
-      - fossil_data:/var/lib/postgresql/data
-      - ./migrations/fossil:/docker-entrypoint-initdb.d
     ports:
       - "5436:5432"
     networks:
@@ -36,9 +33,6 @@ services:
       - POSTGRES_DB=pitchlake
       - POSTGRES_USER=pitchlake_user
       - POSTGRES_PASSWORD=pitchlake_password
-    volumes:
-      - pitchlake_data:/var/lib/postgresql/data
-      - ./migrations/pitchlake:/docker-entrypoint-initdb.d
     ports:
       - "5437:5432"
     networks:
@@ -150,9 +144,6 @@ services:
       - IS_DEVNET=${IS_DEVNET:-false}
       - INITIAL_BLOCK_NUMBER=${INITIAL_BLOCK_NUMBER:-0}
       - BLOCK_BATCH_SIZE=${BLOCK_BATCH_SIZE:-500}
-    
-    volumes:
-      - ./logs:/app/logs
     
     networks:
       - pitchlake-network

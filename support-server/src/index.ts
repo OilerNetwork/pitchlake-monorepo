@@ -31,7 +31,7 @@ class ArchitectureSupportServer {
       runner.startListening();
 
       // Start all services
-      cron.schedule(CRON_SCHEDULE_STATE as string, runStateTransition());
+      //cron.schedule(CRON_SCHEDULE_STATE as string, runStateTransition());
 
       // Handle graceful shutdown
       this.setupGracefulShutdown();

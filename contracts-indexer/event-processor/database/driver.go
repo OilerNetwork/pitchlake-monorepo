@@ -14,7 +14,7 @@ func (db *DB) CatchupDriverEvents() error {
 			return err
 		}
 		if events == nil {
-			log.Printf("No unprocessed driver events found")
+			log.Printf("No unprocessed driver events")
 			break
 		}
 		log.Printf("Processing %d driver events", len(events))

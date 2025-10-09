@@ -21,7 +21,11 @@ export class StateHandlers {
 
   private getRequestFunction() {
     const useMockVerifier = process.env.USE_MOCK_VERIFIER === "true";
-    return useMockVerifier ? sendMockFossilRequest : sendFossilRequest;
+    if (useMockVerifier) {
+      return (fossilRequest: any, vaultContract: Contract, logger: any) => 
+        sendMockFossilRequest(fossilRequest, vaultContract, logger, this.account);
+    }
+    return sendFossilRequest;
   }
 
   private async refreshJobStatus(jobRequest: JobRequest): Promise<JobRequest> {

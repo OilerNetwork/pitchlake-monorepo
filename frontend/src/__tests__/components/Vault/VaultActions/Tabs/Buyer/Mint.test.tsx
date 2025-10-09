@@ -2,13 +2,12 @@ import React from "react";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import Mint from "@/components/Vault/VaultActions/Tabs/Buyer/Mint";
 import { TestWrapper } from "../../../../../utils/TestWrapper";
-import useVaultActions from "@/hooks/vault/actions/useVaultActions";
+import useOptionRoundActions from "@/hooks/optionRound/actions/useOptionRoundActions";
 import useOptionBuyerStateRPC from "@/hooks/vault/rpc/useOptionBuyerStateRPC";
 import useOBState from "@/hooks/vault/states/useOBState";
-import { useHelpContext } from "@/context/HelpProvider";
 
 // Mock the hooks
-jest.mock("@/hooks/vault/actions/useVaultActions", () => ({
+jest.mock("@/hooks/optionRound/actions/useOptionRoundActions", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
@@ -154,7 +153,7 @@ describe("Mint Component", () => {
     (useOBState as jest.Mock).mockReturnValue({
       mintableOptions: "1000",
     });
-    (useVaultActions as jest.Mock).mockReturnValue({
+    (useOptionRoundActions as jest.Mock).mockReturnValue({
       mintOptions: mockTokenizeOptions,
     });
   });
@@ -201,8 +200,6 @@ describe("Mint Component", () => {
       await onConfirm();
     });
 
-    expect(mockTokenizeOptions).toHaveBeenCalledWith({
-      roundAddress: expect.any(String),
-    });
+    expect(mockTokenizeOptions).toHaveBeenCalledWith();
   });
 });

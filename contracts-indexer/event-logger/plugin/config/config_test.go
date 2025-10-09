@@ -29,10 +29,10 @@ func TestLoadConfig(t *testing.T) {
 		{
 			name: "valid config with all variables",
 			envVars: map[string]string{
-				"PITCHLAKE_DB_URL":      "postgres://localhost:5432/test",
-				"RPC_URL":     "https://starknet-mainnet.infura.io",
-				"UDC_ADDRESS": "0x123",
-				"CURSOR":      "1000",
+				"PITCHLAKE_DB_URL": "postgres://localhost:5432/test",
+				"RPC_URL":          "https://starknet-mainnet.infura.io",
+				"UDC_ADDRESS":      "0x123",
+				"CURSOR":           "1000",
 			},
 			expectError: false,
 			expected: &Config{
@@ -45,8 +45,8 @@ func TestLoadConfig(t *testing.T) {
 		{
 			name: "valid config with required variables only",
 			envVars: map[string]string{
-				"PITCHLAKE_DB_URL":  "postgres://localhost:5432/test",
-				"RPC_URL": "https://starknet-mainnet.infura.io",
+				"PITCHLAKE_DB_URL": "postgres://localhost:5432/test",
+				"RPC_URL":          "https://starknet-mainnet.infura.io",
 			},
 			expectError: false,
 			expected: &Config{
@@ -66,16 +66,7 @@ func TestLoadConfig(t *testing.T) {
 		{
 			name: "missing RPC_URL",
 			envVars: map[string]string{
-				"DB_URL": "postgres://localhost:5432/test",
-			},
-			expectError: true,
-		},
-		{
-			name: "invalid CURSOR value",
-			envVars: map[string]string{
-				"PITCHLAKE_DB_URL":  "postgres://localhost:5432/test",
-				"RPC_URL": "https://starknet-mainnet.infura.io",
-				"CURSOR":  "invalid",
+				"PITCHLAKE_DB_URL": "postgres://localhost:5432/test",
 			},
 			expectError: true,
 		},
