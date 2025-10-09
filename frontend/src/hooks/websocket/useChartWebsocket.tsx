@@ -28,7 +28,6 @@ const useWebsocketChart = ({
 
   const handleUnconfirmedBlocks = (blockdata: Block[]) => {
 
-    console.log("blockdataUnconf",blockdata,lowerTimestampRef.current,upperTimestampRef.current)
     if (blockdata.length === 0) {
       return [] as Block[];
     }
