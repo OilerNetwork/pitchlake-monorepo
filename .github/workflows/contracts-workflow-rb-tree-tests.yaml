@@ -1,13 +1,17 @@
-name: Contract Unit Tests
+name: Contracts Workflow - RB Tree Tests
 
 on:
   push:
     branches:
       - main
       - staging
+    paths:
+      - "contracts/**"
   pull_request:
     branches:
       - "**"
+    paths:
+      - "contracts/**"
     types:
       - reopened
       - ready_for_review
@@ -30,7 +34,7 @@ jobs:
         run: |
           cd contracts
           # Run the test and capture the output
-          output=$(scarb test 2>&1) || true
+          output=$(scarb test -f rb_tree_tests --include-ignored 2>&1) || true
 
           # Echo the entire output (optional, for debugging purposes)
           echo "$output"

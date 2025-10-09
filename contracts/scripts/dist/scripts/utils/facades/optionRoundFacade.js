@@ -8,8 +8,9 @@ export class OptionRoundFacade {
     async createJobRequest() {
         const state = await this.optionRoundContract.get_state();
         const upperBound = state && Object.keys(state)[0] === "Open"
-            ? Number(await this.optionRoundContract.get_auction_start_date())
-            : Number(await this.optionRoundContract.get_option_settlement_date());
+            ? Number(await this.optionRoundContract.get_auction_start_date()) - 1
+            : Number(await this.optionRoundContract.get_option_settlement_date()) -
+                1;
         const DAY = 24 * 3600;
         const job_request = {
             identifiers: ["PITCHLAKE_V1"],

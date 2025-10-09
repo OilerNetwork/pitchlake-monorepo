@@ -10,6 +10,7 @@ jest.mock("@starknet-react/core", () => ({
 
 describe("useMockOptionRounds", () => {
   const mockAddress = "0x123";
+  const mockSelectedRound = 1;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -23,7 +24,7 @@ describe("useMockOptionRounds", () => {
   });
 
   it("initializes with correct initial states", () => {
-    const { result } = renderHook(() => useMockOptionRounds());
+    const { result } = renderHook(() => useMockOptionRounds({ selectedRound: mockSelectedRound }));
 
     // Check rounds state
     expect(result.current.rounds).toHaveLength(1);
@@ -61,13 +62,13 @@ describe("useMockOptionRounds", () => {
       address: undefined,
     });
 
-    const { result } = renderHook(() => useMockOptionRounds());
+    const { result } = renderHook(() => useMockOptionRounds({ selectedRound: mockSelectedRound }));
 
     expect(result.current.buyerStates[0].address).toBe("0xbuyer");
   });
 
   it("allows updating rounds state", () => {
-    const { result } = renderHook(() => useMockOptionRounds());
+    const { result } = renderHook(() => useMockOptionRounds({ selectedRound: mockSelectedRound }));
 
     const newRound = {
       ...result.current.rounds[0],
@@ -82,7 +83,7 @@ describe("useMockOptionRounds", () => {
   });
 
   it("allows updating buyer states", () => {
-    const { result } = renderHook(() => useMockOptionRounds());
+    const { result } = renderHook(() => useMockOptionRounds({ selectedRound: mockSelectedRound }));
 
     const newBuyerState = {
       ...result.current.buyerStates[0],
@@ -95,5 +96,85 @@ describe("useMockOptionRounds", () => {
 
     expect(result.current.buyerStates[0].mintableOptions).toBe(20);
   });
-});
 
+  it("provides mock round actions", () => {
+    const { result } = renderHook(() => useMockOptionRounds({ selectedRound: mockSelectedRound }));
+
+    expect(result.current.roundActions).toHaveProperty("placeBid");
+    expect(result.current.roundActions).toHaveProperty("updateBid");
+    expect(result.current.roundActions).toHaveProperty("mintOptions");
+    expect(result.current.roundActions).toHaveProperty("refundUnusedBids");
+    expect(result.current.roundActions).toHaveProperty("exerciseOptions");
+  });
+
+  it("handles place bid action", async () => {
+    const { result } = renderHook(() => useMockOptionRounds({ selectedRound: mockSelectedRound }));
+
+    await act(async () => {
+      await result.current.roundActions.placeBid({
+        amount: BigInt(1000),
+        price: BigInt(2000),
+      });
+    });
+
+    // Verify bid was added
+    expect(result.current.buyerStates[0].bids).toHaveLength(1);
+    expect(result.current.buyerStates[0].bids[0]).toMatchObject({
+      bidId: "3",
+      address: mockAddress,
+      roundAddress: "0x1",
+      treeNonce: "2",
+      amount: BigInt(1000),
+      price: BigInt(2000),
+    });
+  });
+
+  it("handles refund unused bids action", async () => {
+    const { result } = renderHook(() => useMockOptionRounds({ selectedRound: mockSelectedRound }));
+
+    await act(async () => {
+      await result.current.roundActions.refundUnusedBids({
+        optionBuyer: mockAddress,
+      });
+    });
+
+    // Action should complete without error
+    expect(result.current.roundActions.refundUnusedBids).toBeDefined();
+  });
+
+  it("handles update bid action", async () => {
+    const { result } = renderHook(() => useMockOptionRounds({ selectedRound: mockSelectedRound }));
+
+    await act(async () => {
+      await result.current.roundActions.updateBid({
+        bidId: "1",
+        priceIncrease: BigInt(2000),
+      });
+    });
+
+    // Action should complete without error
+    expect(result.current.roundActions.updateBid).toBeDefined();
+  });
+
+  it("handles mint options action", async () => {
+    const { result } = renderHook(() => useMockOptionRounds({ selectedRound: mockSelectedRound }));
+
+    await act(async () => {
+      await result.current.roundActions.mintOptions();
+    });
+
+    // Action should complete without error
+    expect(result.current.roundActions.mintOptions).toBeDefined();
+  });
+
+  it("handles exercise options action", async () => {
+    const { result } = renderHook(() => useMockOptionRounds({ selectedRound: mockSelectedRound }));
+
+    await act(async () => {
+      await result.current.roundActions.exerciseOptions();
+    });
+
+    // Action should complete without error
+    expect(result.current.roundActions.exerciseOptions).toBeDefined();
+  });
+});

@@ -7,7 +7,7 @@ import { formatEther } from "ethers";
 import { useTransactionContext } from "@/context/TransactionProvider";
 import useVaultState from "@/hooks/vault/states/useVaultState";
 import useOBState from "@/hooks/vault/states/useOBState";
-import useVaultActions from "@/hooks/vault/actions/useVaultActions";
+import useOptionRoundActions from "@/hooks/optionRound/actions/useOptionRoundActions";
 import { useNewContext } from "@/context/NewProvider";
 
 interface RefundProps {
@@ -24,7 +24,9 @@ const Refund: React.FC<RefundProps> = ({ showConfirmation }) => {
   const { pendingTx, setStatusModalProps, updateStatusModalProps } =
     useTransactionContext();
   const obState = useOBState(selectedRoundAddress);
-  const vaultActions = useVaultActions();
+  const optionRoundActions = useOptionRoundActions({
+    optionRoundAddress: selectedRoundAddress,
+  });
   const { conn } = useNewContext();
 
   const { refundBalanceWei, refundBalanceEth } = useMemo(() => {
@@ -50,9 +52,9 @@ const Refund: React.FC<RefundProps> = ({ showConfirmation }) => {
   }, [account, pendingTx, refundBalanceWei]);
 
   const handleRefundBid = async (): Promise<string> => {
+    console.log("Refunding bids for:", address);
     return (
-      (await vaultActions?.refundUnusedBids({
-        roundAddress: selectedRoundAddress || "0x0",
+      (await optionRoundActions?.refundUnusedBids({
         optionBuyer: address || "0x0",
       })) || ""
     );

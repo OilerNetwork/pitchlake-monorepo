@@ -12,19 +12,19 @@ export const HomeView = () => {
   const { chain } = useNetwork();
   const [vaults, setVaults] = useState<string[] | undefined>(undefined);
   const [mode, setMode] = useState<string>("");
-  
 
   useEffect(() => {
-    if(process.env.NEXT_PUBLIC_ENVIRONMENT){  
-    const environment = process.env.NEXT_PUBLIC_ENVIRONMENT;
-    setMode(environment);
+    if (process.env.NEXT_PUBLIC_ENVIRONMENT) {
+      const environment = process.env.NEXT_PUBLIC_ENVIRONMENT;
+      setMode(environment);
     }
   }, []);
   // Handle vault addresses after hydration to prevent mismatch
   useEffect(() => {
-    
     if (mode === "demo") {
-      setVaults(["0x0677ead18a571524525eb1d5fbb18431efe869f07d700f03aa66ad0abb5de01d"]);
+      setVaults([
+        "0x0677ead18a571524525eb1d5fbb18431efe869f07d700f03aa66ad0abb5de01d",
+      ]);
     } else if (mode === "ws") {
       const wsVaultList = [
         "0x2e0f81a9f5179c2be73cabeb92e8a6e526add4bab32e4855aa5522690c78217",
@@ -33,8 +33,15 @@ export const HomeView = () => {
       ].filter((addr) => wsVaults?.includes(addr));
       setVaults(wsVaultList);
     } else {
-      console.log("process.env", process.env.NEXT_PUBLIC_ENVIRONMENT, process.env.NEXT_PUBLIC_RPC_URL_DEVNET);
-      console.log("process.env.NEXT_PUBLIC_VAULT_ADDRESSES", process.env.NEXT_PUBLIC_VAULT_ADDRESSES);
+      console.log(
+        "process.env",
+        process.env.NEXT_PUBLIC_ENVIRONMENT,
+        process.env.NEXT_PUBLIC_RPC_URL_DEVNET,
+      );
+      console.log(
+        "process.env.NEXT_PUBLIC_VAULT_ADDRESSES",
+        process.env.NEXT_PUBLIC_VAULT_ADDRESSES,
+      );
       setVaults(process.env.NEXT_PUBLIC_VAULT_ADDRESSES?.split(","));
     }
   }, [mode]);

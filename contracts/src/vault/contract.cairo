@@ -515,7 +515,7 @@ pub mod Vault {
         }
 
         fn queue_withdrawal(ref self: ContractState, bps: u128) {
-            // @dev If the current round is Open, there is no locked liqudity to queue, exit early
+            // @dev If the current round is Open, there is no locked liquidity to queue, exit early
             let current_round_id = self.current_round_id.read();
             let current_round = self.get_round_dispatcher(current_round_id);
             let state = current_round.get_state();
@@ -1167,25 +1167,24 @@ pub mod Vault {
 
             // @dev If the current round is Running, there could be premiums/unsold liquidity to
             // to move to the upcoming round
-            if self
+            // @dev If the premiums/unsold liquidity were not moved as a deposit into the
+            // next round, move them
+            if (self
                 .get_round_dispatcher(current_round_id)
-                .get_state() == OptionRoundState::Running {
-                // @dev If the premiums/unsold liquidity were not moved as a deposit into the
-                // next round, move them
-                if !self.is_premium_moved.entry(account).entry(current_round_id).read() {
-                    self.is_premium_moved.entry(account).entry(current_round_id).write(true);
-                    // @dev Update the account's upcoming round deposit if it has changed
-                    if upcoming_round_deposit != self
+                .get_state() == OptionRoundState::Running)
+                && (!self.is_premium_moved.entry(account).entry(current_round_id).read()) {
+                self.is_premium_moved.entry(account).entry(current_round_id).write(true);
+                // @dev Update the account's upcoming round deposit if it has changed
+                if upcoming_round_deposit != self
+                    .positions
+                    .entry(account)
+                    .entry(current_round_id + 1)
+                    .read() {
+                    self
                         .positions
                         .entry(account)
                         .entry(current_round_id + 1)
-                        .read() {
-                        self
-                            .positions
-                            .entry(account)
-                            .entry(current_round_id + 1)
-                            .write(upcoming_round_deposit);
-                    }
+                        .write(upcoming_round_deposit);
                 }
             }
         }

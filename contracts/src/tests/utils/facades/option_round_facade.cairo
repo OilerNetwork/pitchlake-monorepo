@@ -472,7 +472,7 @@ pub impl OptionRoundFacadeImpl of OptionRoundFacadeTrait {
         self.option_round_dispatcher.get_round_id()
     }
 
-    /// Previously OptionRoundParms
+    /// Previously OptionRoundParams
 
     fn get_strike_price(ref self: OptionRoundFacade) -> u256 {
         self.option_round_dispatcher.get_strike_price()

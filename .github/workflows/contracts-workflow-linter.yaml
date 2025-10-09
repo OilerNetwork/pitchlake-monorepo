@@ -1,0 +1,48 @@
+name: Contracts Workflow - Linter
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+    paths:
+      - "contracts/**"
+  pull_request:
+    branches:
+      - "**"
+    paths:
+      - "contracts/**"
+    types:
+      - reopened
+      - ready_for_review
+      - synchronize
+
+jobs:
+  typos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: crate-ci/typos@master
+        with:
+          files: contracts/
+          config: contracts/_typos.toml
+
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: software-mansion/setup-scarb@v1.5.0
+      - name: Check Cairo formatting
+        run: |
+          cd contracts
+          scarb fmt --check
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: software-mansion/setup-scarb@v1.5.0
+      - name: Run Cairo linter
+        run: |
+          cd contracts
+          scarb lint

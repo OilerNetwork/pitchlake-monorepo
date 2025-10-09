@@ -52,7 +52,7 @@ fi
 if [ ! -f "$STARKNET_ACCOUNT" ]; then
 	starkli account fetch $SIGNER_ADDRESS --output $STARKNET_ACCOUNT
 else
-	echo "Acount config already exists at path $STARKNET_ACCOUNT"
+	echo "Account config already exists at path $STARKNET_ACCOUNT"
 fi
 
 # Declare and deploy the ETH contract
