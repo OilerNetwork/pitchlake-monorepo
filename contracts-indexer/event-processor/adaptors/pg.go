@@ -35,7 +35,7 @@ func GetJunoEvent(event models.Event) models.JunoEvent {
 	return junoEvent
 }
 
-func OptionRoundEmitted(event models.JunoEvent) OptionRoundEvent {
+func OptionRoundEmittedEventName(event models.JunoEvent) OptionRoundEvent {
 	optionRoundEvent := OptionRoundEvent(event.Data[1].String())
 	return optionRoundEvent
 }
