@@ -137,27 +137,27 @@ const (
 )
 
 type FossilRequest struct {
-	ProgramID   string `json:"program_id"`
+	ProgramID    string `json:"program_id"`
 	VaultAddress string `json:"vault_address"`
-	Params      struct {
-		Twap        [2]uint64 `json:"twap"`
-		MaxReturn   [2]uint64 `json:"max_return"`
+	Params       struct {
+		Twap         [2]uint64 `json:"twap"`
+		MaxReturn    [2]uint64 `json:"max_return"`
 		ReservePrice [2]uint64 `json:"reserve_price"`
 	} `json:"params"`
 }
 
 type JobRequest struct {
-	JobID       string    `json:"job_id"`
-	Status      JobStatus `json:"status"`
-	VaultAddress string   `json:"vault_address"`
-	RoundID     int       `json:"round_id"`
-	CreatedAt   time.Time `json:"created_at"`
+	JobID        string    `json:"job_id"`
+	Status       JobStatus `json:"status"`
+	VaultAddress string    `json:"vault_address"`
+	RoundID      int       `json:"round_id"`
+	CreatedAt    time.Time `json:"created_at"`
 }
 
 type SendJobRequestResponse struct {
-	JobID       string    `json:"job_id"`
-	Status      JobStatus `json:"status"`
-	Message     string    `json:"message"`
+	JobID   string    `json:"job_id"`
+	Status  JobStatus `json:"status"`
+	Message string    `json:"message"`
 }
 
 func (Bid) IsAllowedPayload()                    {}
