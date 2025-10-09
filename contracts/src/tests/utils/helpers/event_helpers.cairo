@@ -87,6 +87,7 @@ pub fn assert_event_auction_start(
             let expected = Vault::Event::OptionRoundEmitted(
                 Vault::OptionRoundEmitted {
                     round_id,
+                    event_name: 'AuctionStarted',
                     event: OptionRoundEvent::AuctionStarted(
                         AuctionStarted { starting_liquidity, options_available },
                     ),
@@ -113,6 +114,7 @@ pub fn assert_event_auction_bid_placed(
             let expected = Vault::Event::OptionRoundEmitted(
                 Vault::OptionRoundEmitted {
                     round_id,
+                    event_name: 'BidPlaced',
                     event: OptionRoundEvent::BidPlaced(
                         BidPlaced { account, bid_id, amount, price, bid_tree_nonce_now },
                     ),
@@ -140,6 +142,7 @@ pub fn assert_event_auction_bid_updated(
             let expected = Vault::Event::OptionRoundEmitted(
                 Vault::OptionRoundEmitted {
                     round_id,
+                    event_name: 'BidUpdated',
                     event: OptionRoundEvent::BidUpdated(
                         BidUpdated {
                             account,
@@ -170,6 +173,7 @@ pub fn assert_event_pricing_data_set(
             let expected = Vault::Event::OptionRoundEmitted(
                 Vault::OptionRoundEmitted {
                     round_id,
+                    event_name: 'PricingDataSet',
                     event: OptionRoundEvent::PricingDataSet(
                         PricingDataSet {
                             pricing_data: PricingData { strike_price, cap_level, reserve_price },
@@ -196,6 +200,7 @@ pub fn assert_event_auction_end(
             let expected = Vault::Event::OptionRoundEmitted(
                 Vault::OptionRoundEmitted {
                     round_id,
+                    event_name: 'AuctionEnded',
                     event: OptionRoundEvent::AuctionEnded(
                         AuctionEnded {
                             options_sold, clearing_price, unsold_liquidity, clearing_bid_tree_nonce,
@@ -218,12 +223,13 @@ pub fn assert_event_option_settle(
             let expected = Vault::Event::OptionRoundEmitted(
                 Vault::OptionRoundEmitted {
                     round_id,
+                    event_name: 'OptionRoundSettled',
                     event: OptionRoundEvent::OptionRoundSettled(
                         OptionRoundSettled { settlement_price, payout_per_option },
                     ),
                 },
             );
-            assert_events_equal(e, expected);
+            assert_events_equal(e, expected);   
         },
         Option::None => { panic(array!['No events found']); },
     };
@@ -238,6 +244,7 @@ pub fn assert_event_unused_bids_refunded(
             let expected = Vault::Event::OptionRoundEmitted(
                 Vault::OptionRoundEmitted {
                     round_id,
+                    event_name: 'UnusedBidsRefunded',
                     event: OptionRoundEvent::UnusedBidsRefunded(
                         UnusedBidsRefunded { account, refunded_amount },
                     ),
@@ -265,6 +272,7 @@ pub fn assert_event_options_tokenized(
                     let expected = Vault::Event::OptionRoundEmitted(
                         Vault::OptionRoundEmitted {
                             round_id,
+                            event_name: 'OptionsMinted',
                             event: OptionRoundEvent::OptionsMinted(
                                 OptionsMinted { account, minted_amount },
                             ),
@@ -298,6 +306,7 @@ pub fn assert_event_options_exercised(
             let expected = Vault::Event::OptionRoundEmitted(
                 Vault::OptionRoundEmitted {
                     round_id,
+                    event_name: 'OptionsExercised',
                     event: OptionRoundEvent::OptionsExercised(
                         OptionsExercised {
                             account,

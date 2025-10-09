@@ -109,7 +109,6 @@ export default function Header() {
 
   const handleSwitchChain = async (chainId: string) => {
     let chain: string | undefined = undefined;
-    console.log("chainId", chainId);
     switch (chainId) {
       case "sepolia":
         chain = constants.StarknetChainId.SN_SEPOLIA;
@@ -128,7 +127,6 @@ export default function Header() {
         break;
     }
     switchChain({chainId: chain});
-    console.log(" switched chain", chain);
     setIsDropdownChainOpen(false);
     if (!chain) {
       return Error("Chain not found");

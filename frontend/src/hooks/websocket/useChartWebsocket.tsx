@@ -25,10 +25,10 @@ const useWebsocketChart = ({
   const [confirmedGasData, setConfirmedGasData] = useState<Block[]>([]);
   const [unconfirmedGasData, setUnconfirmedGasData] = useState<Block[]>([]);
 
+  console.log("TImeRange",lowerTimestampRef.current,upperTimestampRef.current)
 
   const handleUnconfirmedBlocks = (blockdata: Block[]) => {
 
-    console.log("blockdataUnconf",blockdata,lowerTimestampRef.current,upperTimestampRef.current)
     if (blockdata.length === 0) {
       return [] as Block[];
     }

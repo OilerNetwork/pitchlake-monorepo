@@ -1,9 +1,10 @@
 import { poseidonHashSingle } from "@scure/starknet";
 import { OptionRoundStateType, FossilParams } from "@/lib/types";
-import { Result } from "starknet";
+import { Contract, Provider, ProviderInterface, Result } from "starknet";
 import { FormattedBlockData } from "@/lib/types";
 import { formatUnits } from "ethers";
 import { getDemoRoundId } from "./demo/utils";
+import { optionRoundABI, vaultABI } from "./abi";
 
 export const createJobRequestParams = (
   targetTimestamp: number,
@@ -689,3 +690,166 @@ export const roundIdFormatter = (roundId: string, conn: string): string => {
 ///
 ///   const mockData = generateMockData("2024-11-21T01:11:00Z", 10000, 20); // 20 seconds x 10000 steps ~ 2 days
 ///   console.log(JSON.stringify(mockData, null, 2));
+
+
+const getRoundParams = async (fromRound: number, toRound: number) => {
+  const response = await fetch(`/api/getRoundParams?fromRound=${fromRound}&toRound=${toRound}`);
+  const data = await response.json();
+  return data;
+}
+
+interface RoundData {
+  roundAddress: string;
+  capLevel?: string;
+  strikePrice?: string;
+  deploymentDate?: string;
+  auctionStartDate?: string;
+  auctionEndDate?: string;
+  optionSettleDate?: string;
+  error?: string;
+}
+
+export interface HistoricalRoundData {
+  vaultAddress: string;
+  currentRoundId: number;
+  rounds: RoundData[];
+}
+
+
+const getRoundData = async (
+  roundAddress: string,
+  provider: ProviderInterface,
+): Promise<RoundData> => {
+  try {
+    const [
+      capLevel,
+      strikePrice,
+      deploymentDate,
+      auctionStartDate,
+      auctionEndDate,
+      optionSettleDate,
+    ] = await Promise.all([
+      provider.callContract({
+        contractAddress: roundAddress,
+        entrypoint: "get_cap_level",
+        calldata: []
+      }, "latest"),
+      provider.callContract({
+        contractAddress: roundAddress,
+        entrypoint: "get_strike_price",
+        calldata: []
+      }, "latest"),
+      provider.callContract({
+        contractAddress: roundAddress,
+        entrypoint: "get_deployment_date",
+        calldata: []
+      }, "latest"),
+      provider.callContract({
+        contractAddress: roundAddress,
+        entrypoint: "get_auction_start_date",
+        calldata: []
+      }, "latest"),
+      provider.callContract({
+        contractAddress: roundAddress,
+        entrypoint: "get_auction_end_date",
+        calldata: []
+      }, "latest"),
+      provider.callContract({
+        contractAddress: roundAddress,
+        entrypoint: "get_option_settlement_date",
+        calldata: []
+      }, "latest"),
+    ]);
+
+    return {
+      roundAddress,
+      capLevel: capLevel[0].toString(),
+      strikePrice: strikePrice[0].toString(),
+      deploymentDate: deploymentDate[0].toString(),
+      auctionStartDate: auctionStartDate[0].toString(),
+      auctionEndDate: auctionEndDate[0].toString(),
+      optionSettleDate: optionSettleDate[0].toString(),
+    };
+  } catch (error: any) {
+    console.error(`Error reading contract at ${roundAddress}:`, error);
+    return {
+      roundAddress,
+      error: error.message || "Failed to read contract data.",
+    };
+  }
+};
+
+const getRoundAddress = async (roundId: number, provider: ProviderInterface, vaultAddress: string) => {
+  const result = await provider.callContract({
+    contractAddress: vaultAddress,
+    entrypoint: "get_round_address",
+    calldata: [roundId.toString()]
+  }, "latest");
+  return result[0];
+}
+
+const getCurrentRoundId = async (provider: ProviderInterface, vaultAddress: string) => {
+  const result = await provider.callContract({
+    contractAddress: vaultAddress,
+    entrypoint: "get_current_round_id",
+    calldata: []
+  }, "latest");
+  return result[0];
+}
+
+export const getHistoricalRoundData = async (
+  fromRound: number,
+  toRound: number,
+  provider: ProviderInterface,
+  vaultAddress: string,
+) => {
+  const roundPromises: Promise<RoundData>[] = [];
+  const currentRoundId = await getCurrentRoundId(provider, vaultAddress);
+  
+  console.log("getHistoricalRoundData - currentRoundId:", currentRoundId, "fromRound:", fromRound, "toRound:", toRound);
+  
+  const stop =
+    Number(toRound) > Number(currentRoundId)
+      ? Number(currentRoundId)
+      : Number(toRound);
+  const start = Number(fromRound);
+  
+  console.log("Will fetch rounds from", start, "to", stop);
+  
+  for (let roundId = start; roundId <= stop; roundId++) {
+    try {
+      console.log("Fetching round", roundId);
+      const roundAddress = await getRoundAddress(roundId, provider, vaultAddress);
+      console.log("Round", roundId, "address:", roundAddress);
+      if (!roundAddress) {
+        console.log("No address for round", roundId, "- skipping");
+        continue;
+      }
+      roundPromises.push(
+        getRoundData(roundAddress, provider).then((data) => ({
+          roundId,
+          ...data,
+        })),
+      );
+    } catch (error: any) {
+      console.log("Error fetching round", roundId, ":", error.message);
+      // If fetching the round address fails, push an error entry
+      roundPromises.push(
+        Promise.resolve({
+          roundId,
+          roundAddress: "",
+          error: error.message || "Failed to fetch round address.",
+        }),
+      );
+    }
+  }
+
+    const rounds: RoundData[] = await Promise.all(roundPromises);
+    const response: HistoricalRoundData = {
+      vaultAddress,
+      currentRoundId: Number(currentRoundId),
+      rounds,
+    };
+
+    return response;  
+}

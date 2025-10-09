@@ -33,22 +33,9 @@ export const HomeView = () => {
       ].filter((addr) => wsVaults?.includes(addr));
       setVaults(wsVaultList);
     } else {
-      console.log(
-        "process.env",
-        process.env.NEXT_PUBLIC_ENVIRONMENT,
-        process.env.NEXT_PUBLIC_RPC_URL_DEVNET,
-      );
-      console.log(
-        "process.env.NEXT_PUBLIC_VAULT_ADDRESSES",
-        process.env.NEXT_PUBLIC_VAULT_ADDRESSES,
-      );
       setVaults(process.env.NEXT_PUBLIC_VAULT_ADDRESSES?.split(","));
     }
   }, [mode]);
-
-  useEffect(() => {
-    console.log("vaults123", vaults);
-  }, [wsVaults]);
 
   const { isMobile } = useIsMobile();
 

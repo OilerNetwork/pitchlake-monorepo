@@ -158,6 +158,7 @@ func (db *DB) processVaultEvent(
 
 	var err error
 	junoEvent := adaptors.GetJunoEvent(event)
+	log.Printf("event.EventName %v", event.EventName)
 	switch event.EventName {
 	case "Deposit": //Add withdrawQueue and collect queue case based on event
 		lpAddress,
@@ -311,15 +312,15 @@ func (db *DB) processOptionRoundEvent(
 ) error {
 
 	junoEvent := adaptors.GetJunoEvent(event)
-	optionRoundEvent := adaptors.OptionRoundEmitted(junoEvent)
+	optionRoundEventName := adaptors.OptionRoundEmittedEventName(junoEvent)
 	roundId := junoEvent.Data[0].Uint64()
 	prevStateOptionRound, err := db.GetRoundById(roundId, event.VaultAddress)
 	if err != nil {
 		log.Printf("Error getting round by id %v", err)
 		return err
 	}
-	log.Printf("Processing OptionRoundEmitted event %v", optionRoundEvent)
-	switch optionRoundEvent {
+	log.Printf("Processing OptionRoundEmitted event %v", optionRoundEventName)
+	switch optionRoundEventName {
 	case "PricingDataSet":
 		strikePrice, capLevel, reservePrice, roundAddress := adaptors.PricingDataSet(junoEvent)
 		err = db.PricingDataSetIndex(roundAddress, strikePrice, capLevel, reservePrice)

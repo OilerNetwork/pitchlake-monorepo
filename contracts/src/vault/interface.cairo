@@ -173,7 +173,7 @@ pub trait IVault<TContractState> {
 
     // @dev Used by an option round to emit events through the vault contract (for indexer purposes)
     fn emit_option_round_event(
-        ref self: TContractState, round_id: u64, option_round_event: OptionRoundEvent,
+        ref self: TContractState, round_id: u64, event_name: felt252, option_round_event: OptionRoundEvent,
     );
 }
 
