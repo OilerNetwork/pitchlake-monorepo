@@ -30,7 +30,7 @@
     "react-dom": "19.1.1",
     "react-query": "^3.39.3",
     "react-toastify": "^10.0.6",
-    "recharts": "^2.13.2",
+    "recharts": "3.2.1",
     "starknet": "^7.6.4"
   },
   "devDependencies": {

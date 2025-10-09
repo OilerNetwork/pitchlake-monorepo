@@ -15,7 +15,7 @@ const useErc20Allowance = (
     functionName: "allowance",
     args: account?.address && spender ? [account.address, spender] : undefined,
     watch: true,
-    blockIdentifier: BlockTag.LATEST,
+    blockIdentifier: BlockTag.PENDING,
   });
 
   const allowance: bigint = useMemo(() => {

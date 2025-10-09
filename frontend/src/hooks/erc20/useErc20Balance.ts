@@ -29,7 +29,7 @@ const useErc20Balance = (tokenAddress: `0x${string}` | undefined) => {
     functionName: "balance_of",
     args: account ? [account.address] : undefined,
     watch: true,
-    blockIdentifier: BlockTag.LATEST,
+    blockIdentifier: BlockTag.PENDING,
   });
 
   // No increase_allowance on ETH ?

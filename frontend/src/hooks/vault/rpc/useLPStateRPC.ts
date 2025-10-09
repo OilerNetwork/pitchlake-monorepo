@@ -17,28 +17,28 @@ const useLPStateRPC = ({ vaultAddress }: { vaultAddress?: string }) => {
   const { data: lockedBalance } = useReadContract({
     ...contractData,
     watch: true,
-    blockIdentifier: BlockTag.LATEST,
+    blockIdentifier: BlockTag.PENDING,
     functionName: "get_account_locked_balance",
     args: [account?.address as string],
   });
   const { data: unlockedBalance } = useReadContract({
     ...contractData,
     watch: true,
-    blockIdentifier: BlockTag.LATEST,
+    blockIdentifier: BlockTag.PENDING,
     functionName: "get_account_unlocked_balance",
     args: [account?.address as string],
   });
   const { data: stashedBalance } = useReadContract({
     ...contractData,
     watch: true,
-    blockIdentifier: BlockTag.LATEST,
+    blockIdentifier: BlockTag.PENDING,
     functionName: "get_account_stashed_balance",
     args: [account?.address as string],
   });
   const { data: queuedBps } = useReadContract({
     ...contractData,
     watch: true,
-    blockIdentifier: BlockTag.LATEST,
+    blockIdentifier: BlockTag.PENDING,
     functionName: "get_account_queued_bps",
     args: [account?.address as string],
   });
