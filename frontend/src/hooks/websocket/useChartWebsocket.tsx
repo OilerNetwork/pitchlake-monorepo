@@ -30,9 +30,13 @@ const useWebsocketChart = ({
   const handleUnconfirmedBlocks = (blockdata: Block[]) => {
 
     console.log("blockdataUnconf",blockdata,lowerTimestampRef.current,upperTimestampRef.current)
+    if (blockdata.length === 0) {
+      return [] as Block[];
+    }
     const blocks = blockdata.filter((block: Block) => {
       return block.timestamp >= lowerTimestampRef.current && block.timestamp <= upperTimestampRef.current
     })
+
     setUnconfirmedGasData((prevData) => {
       if (!prevData || prevData.length === 0) {
         return blocks || [];
@@ -90,11 +94,7 @@ const useWebsocketChart = ({
   }
 
   useEffect(() => {
-    setIsLoaded(true)
-  },[])
-  useEffect(() => {
     
-    if(!isLoaded) return
       ws.current = new WebSocket(
         `${process.env.NEXT_PUBLIC_WS_URL}/subscribeGas`
       );
@@ -132,7 +132,7 @@ const useWebsocketChart = ({
     return () => {
       ws.current?.close(1000,"Closing connection");
     };
-  }, [isLoaded]);
+  }, []);
 
   useEffect(() => {
     lowerTimestampRef.current = lowerTimestamp
@@ -143,11 +143,12 @@ const useWebsocketChart = ({
     if (!isConnected) {
       return;
     }
+
     ws.current?.send(
       JSON.stringify({
         startTimestamp: lowerTimestamp,
         endTimestamp: upperTimestamp,
-        roundDuration: roundDuration,
+        roundDuration: roundDuration>13200?2631600:roundDuration>960?13200:960,
       })
     );
   }, [lowerTimestamp, upperTimestamp, roundDuration, isConnected]);

@@ -63,8 +63,6 @@ func (router *VaultRouter) subscribeVault(ctx context.Context, w http.ResponseWr
 		return err
 	}
 
-	log.Printf("%v", sm)
-
 	s := &types.SubscriberVault{
 		Address:      sm.Address,
 		VaultAddress: sm.VaultAddress,
@@ -148,7 +146,7 @@ func (router *VaultRouter) subscribeVault(ctx context.Context, w http.ResponseWr
 				log.Printf("Error reading message: %v", err)
 				break
 			}
-			log.Printf("Received message from client: %s", msg)
+			log.Printf("Received message from client")
 			err = json.Unmarshal(msg, &request)
 			if err != nil {
 				log.Printf("Incorrect message format: %v", err)
@@ -191,7 +189,6 @@ func (router *VaultRouter) subscribeVault(ctx context.Context, w http.ResponseWr
 				log.Printf("Incorrect response generated: %v", err)
 			}
 			s.Msgs <- []byte(jsonPayload)
-			log.Printf("Client Info %v", s)
 			// Handle the received message here
 		}
 	}()

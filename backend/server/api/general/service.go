@@ -106,7 +106,7 @@ func (router *GeneralRouter) subscribeGasData(ctx context.Context, w http.Respon
 				s.StartTimestamp = request.StartTimestamp
 				s.EndTimestamp = request.EndTimestamp
 				s.RoundDuration = request.RoundDuration
-				blockRepo := repositories.NewBlockRepository(&router.pool)
+				blockRepo := repositories.NewBlockRepository(router.pool)
 				blocks, err := blockRepo.GetBlocks(ctx, request.StartTimestamp, request.EndTimestamp, request.RoundDuration)
 				if err != nil {
 					log.Printf("Error fetching blocks: %v", err)

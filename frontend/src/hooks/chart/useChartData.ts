@@ -6,12 +6,13 @@ import { useNewContext } from "@/context/NewProvider";
 import demoRoundData from "@/lib/demo/demo-round-data.json";
 import { FormattedBlockData } from "@/lib/types";
 import { formatUnits } from "ethers";
+import useGasData from "./useGasData";
 
 const useChartData = (activeLines: any, vaultAddress?: string) => {
   const { conn, selectedRound } = useNewContext();
   // Chart context
   const { isExpandedView, xMax, xMin } = useChartContext();
-  const { gasData } = {gasData: []};
+  const { gasData } = useGasData();
   // Help context
 
   // Strike and cap for all possibly displayed rounds
