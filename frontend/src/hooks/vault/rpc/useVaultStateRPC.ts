@@ -62,14 +62,14 @@ const useVaultStateRPC = ({
     functionName: "get_current_round_id",
     args: [],
     watch: true,
-    blockIdentifier: BlockTag.LATEST,
+    blockIdentifier: BlockTag.PENDING,
   });
   const { data: lockedBalance } = useReadContract({
     ...contractData,
     functionName: "get_vault_locked_balance",
     args: [],
     watch: true,
-    blockIdentifier: BlockTag.LATEST,
+    blockIdentifier: BlockTag.PENDING,
   });
   const { data: unlockedBalance } = useReadContract({
     ...contractData,
@@ -77,7 +77,7 @@ const useVaultStateRPC = ({
     functionName: "get_vault_unlocked_balance",
     args: [],
     watch: true,
-    blockIdentifier: BlockTag.LATEST,
+    blockIdentifier: BlockTag.PENDING,
   });
   const { data: stashedBalance } = useReadContract({
     ...contractData,
@@ -85,7 +85,7 @@ const useVaultStateRPC = ({
     functionName: "get_vault_stashed_balance",
     args: [],
     watch: true,
-    blockIdentifier: BlockTag.LATEST,
+    blockIdentifier: BlockTag.PENDING,
   });
   const { data: queuedBps } = useReadContract({
     ...contractData,
@@ -93,7 +93,7 @@ const useVaultStateRPC = ({
     functionName: "get_vault_queued_bps",
     args: [],
     watch: true,
-    blockIdentifier: BlockTag.LATEST,
+    blockIdentifier: BlockTag.PENDING,
   });
 
   const { data: round1Address } = useReadContract({
