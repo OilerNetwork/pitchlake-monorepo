@@ -1,6 +1,7 @@
 import { useAccount, useReadContract } from "@starknet-react/core";
 import { useMemo } from "react";
 import { erc20ABI } from "@/lib/abi";
+import { BlockTag } from "starknet";
 
 const useErc20Balance = (tokenAddress: `0x${string}` | undefined) => {
   const { account } = useAccount();
@@ -28,6 +29,7 @@ const useErc20Balance = (tokenAddress: `0x${string}` | undefined) => {
     functionName: "balance_of",
     args: account ? [account.address] : undefined,
     watch: true,
+    blockIdentifier: BlockTag.LATEST,
   });
 
   // No increase_allowance on ETH ?

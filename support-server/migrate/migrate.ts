@@ -20,7 +20,10 @@ class Migrator {
   private client: Client;
 
   constructor(connectionString: string) {
-    this.client = new Client({ connectionString });
+    const sslConfig = connectionString.includes("sslmode=disable")
+      ? false
+      : {rejectUnauthorized: false};
+    this.client = new Client({ connectionString, ssl: sslConfig });
   }
 
   async connect(): Promise<void> {
