@@ -7,7 +7,6 @@ import (
 	"event-processor/models"
 	"fmt"
 	"log"
-	"math/big"
 )
 
 func (db *DB) Listener() error {
@@ -77,73 +76,6 @@ func (db *DB) revertVaultEvent(
 	case "OptionRoundDeployed":
 		roundAddress := adaptors.FeltToHexString(junoEvent.Data[2].Bytes())
 		err = db.DeleteOptionRound(roundAddress)
-
-	case "AuctionStarted":
-		_, _, roundAddress := adaptors.AuctionStarted(junoEvent)
-		prevStateOptionRound, err := db.GetOptionRoundByAddress(roundAddress)
-		if err != nil {
-			return err
-		}
-		err = db.AuctionStartedRevert(prevStateOptionRound.VaultAddress, roundAddress, event.BlockNumber)
-		if err != nil {
-			return err
-		}
-	case "AuctionEnded":
-		_, _, _, _, _, roundAddress := adaptors.AuctionEnded(junoEvent)
-		prevStateOptionRound, err := db.GetOptionRoundByAddress(roundAddress)
-		if err != nil {
-			return err
-		}
-		err = db.AuctionEndedRevert(prevStateOptionRound.VaultAddress, roundAddress, event.BlockNumber)
-		if err != nil {
-			return err
-		}
-	case "OptionRoundSettled":
-		_, _, roundAddress := adaptors.OptionRoundSettled(junoEvent)
-		prevStateOptionRound, err := db.GetOptionRoundByAddress(roundAddress)
-		if err != nil {
-			return err
-		}
-		err = db.RoundSettledRevert(prevStateOptionRound.VaultAddress, roundAddress, event.BlockNumber)
-		if err != nil {
-			return err
-		}
-	case "BidPlaced":
-		bid, _ := adaptors.BidPlaced(junoEvent)
-		err = db.BidPlacedRevert(bid.BidID, bid.RoundAddress)
-	case "BidUpdated":
-		bidId, amount, treeNonceOld, _, roundAddress := adaptors.BidUpdated(junoEvent)
-		err = db.BidUpdatedRevert(bidId, roundAddress, amount, treeNonceOld)
-	case "OptionsMinted":
-		buyerAddress, _, roundAddress := adaptors.OptionsMinted(junoEvent)
-		err = db.UpdateOptionBuyerFields(
-			buyerAddress,
-			roundAddress,
-			map[string]interface{}{
-				"has_minted": false,
-			})
-	case "OptionsExercised":
-		buyerAddress, _, mintableOptionsExercised, _, roundAddress := adaptors.OptionsExercised(junoEvent)
-
-		zero := models.BigInt{
-			Int: big.NewInt(0),
-		}
-		if mintableOptionsExercised.Cmp(zero.Int) == 1 {
-			err = db.UpdateOptionBuyerFields(
-				buyerAddress,
-				roundAddress,
-				map[string]interface{}{
-					"has_minted": false,
-				})
-		}
-	case "UnusedBidsRefunded":
-		buyerAddress, _, roundAddress := adaptors.UnusedBidsRefunded(junoEvent)
-		err = db.UpdateOptionBuyerFields(
-			buyerAddress,
-			roundAddress,
-			map[string]interface{}{
-				"has_refunded": false,
-			})
 
 	}
 	if err != nil {
@@ -217,89 +149,6 @@ func (db *DB) processVaultEvent(
 	case "OptionRoundEmitted":
 		log.Printf("Processing OptionRoundEmitted event")
 		err = db.processOptionRoundEvent(event)
-	case "PricingDataSet":
-		strikePrice, capLevel, reservePrice, roundAddress := adaptors.PricingDataSet(junoEvent)
-		err = db.PricingDataSetIndex(roundAddress, strikePrice, capLevel, reservePrice)
-	case "AuctionStarted":
-		availableOptions, startingLiquidity, roundAddress := adaptors.AuctionStarted(junoEvent)
-		err = db.AuctionStartedIndex(
-			event.VaultAddress,
-			roundAddress,
-			event.BlockNumber,
-			availableOptions,
-			startingLiquidity,
-		)
-	case "AuctionEnded":
-		optionsSold,
-			clearingPrice,
-			unsoldLiquidity,
-			clearingNonce,
-			premiums,
-			roundAddress := adaptors.AuctionEnded(junoEvent)
-
-		prevStateOptionRound, err := db.GetOptionRoundByAddress(roundAddress)
-		if err != nil {
-			return err
-		}
-		if err := db.AuctionEndedIndex(
-			*prevStateOptionRound,
-			roundAddress,
-			event.BlockNumber,
-			clearingNonce,
-			optionsSold,
-			clearingPrice,
-			premiums,
-			unsoldLiquidity,
-		); err != nil {
-			return err
-		}
-	case "OptionRoundSettled":
-		settlementPrice, payoutPerOption, roundAddress := adaptors.OptionRoundSettled(junoEvent)
-		prevStateOptionRound, err := db.GetOptionRoundByAddress(roundAddress)
-		if err != nil {
-			return err
-		}
-		if err := db.RoundSettledIndex(
-			*prevStateOptionRound,
-			roundAddress,
-			event.BlockNumber,
-			settlementPrice,
-			prevStateOptionRound.OptionsSold,
-			payoutPerOption,
-		); err != nil {
-			return err
-		}
-	case "BidPlaced":
-		bid, buyer := adaptors.BidPlaced(junoEvent)
-		err = db.BidPlacedIndex(bid, buyer)
-	case "BidUpdated":
-		bidId, price, _, treeNonceNew, roundAddress := adaptors.BidUpdated(junoEvent)
-		err = db.BidUpdatedIndex(roundAddress, bidId, price, treeNonceNew)
-	case "OptionsMinted":
-		buyerAddress, _, roundAddress := adaptors.OptionsMinted(junoEvent)
-
-		err = db.UpdateOptionBuyerFields(
-			buyerAddress,
-			roundAddress,
-			map[string]interface{}{
-				"has_minted": true,
-			})
-	case "OptionsExercised":
-		buyerAddress, _, _, _, roundAddress := adaptors.OptionsExercised(junoEvent)
-		err = db.UpdateOptionBuyerFields(
-			buyerAddress,
-			roundAddress,
-			map[string]interface{}{
-				"has_minted": true,
-			})
-	case "UnusedBidsRefunded":
-		buyerAddress, _, roundAddress := adaptors.UnusedBidsRefunded(junoEvent)
-		err = db.UpdateOptionBuyerFields(
-			buyerAddress,
-			roundAddress,
-			map[string]interface{}{
-				"has_refunded": true,
-			})
 	}
 	if err != nil {
 		return err
@@ -314,24 +163,26 @@ func (db *DB) processOptionRoundEvent(
 	junoEvent := adaptors.GetJunoEvent(event)
 	optionRoundEventName := adaptors.OptionRoundEmittedEventName(junoEvent)
 	roundId := junoEvent.Data[0].Uint64()
+	log.Printf("Round ID %v", roundId)
+	log.Printf("Processing OptionRoundEmitted event %v", optionRoundEventName)
 	prevStateOptionRound, err := db.GetRoundById(roundId, event.VaultAddress)
 	if err != nil {
 		log.Printf("Error getting round by id %v", err)
 		return err
 	}
-	log.Printf("Processing OptionRoundEmitted event %v", optionRoundEventName)
+
 	switch optionRoundEventName {
 	case "PricingDataSet":
-		strikePrice, capLevel, reservePrice, roundAddress := adaptors.PricingDataSet(junoEvent)
-		err = db.PricingDataSetIndex(roundAddress, strikePrice, capLevel, reservePrice)
+		strikePrice, capLevel, reservePrice := adaptors.PricingDataSet(junoEvent)
+		err = db.PricingDataSetIndex(prevStateOptionRound.Address, strikePrice, capLevel, reservePrice)
 	case "AuctionStarted":
-		availableOptions, startingLiquidity, roundAddress := adaptors.AuctionStarted(junoEvent)
-		err = db.AuctionStartedIndex(event.VaultAddress, roundAddress, event.BlockNumber, availableOptions, startingLiquidity)
+		availableOptions, startingLiquidity := adaptors.AuctionStarted(junoEvent)
+		err = db.AuctionStartedIndex(event.VaultAddress, prevStateOptionRound.Address, event.BlockNumber, availableOptions, startingLiquidity)
 	case "AuctionEnded":
-		optionsSold, clearingPrice, unsoldLiquidity, clearingNonce, premiums, roundAddress := adaptors.AuctionEnded(junoEvent)
+		optionsSold, clearingPrice, unsoldLiquidity, clearingNonce, premiums := adaptors.AuctionEnded(junoEvent)
 		err = db.AuctionEndedIndex(
 			*prevStateOptionRound,
-			roundAddress,
+			prevStateOptionRound.Address,
 			event.BlockNumber,
 			clearingNonce,
 			optionsSold,
@@ -340,10 +191,10 @@ func (db *DB) processOptionRoundEvent(
 			unsoldLiquidity,
 		)
 	case "OptionRoundSettled":
-		settlementPrice, payoutPerOption, roundAddress := adaptors.OptionRoundSettled(junoEvent)
+		settlementPrice, payoutPerOption := adaptors.OptionRoundSettled(junoEvent)
 		err = db.RoundSettledIndex(
 			*prevStateOptionRound,
-			roundAddress,
+			prevStateOptionRound.Address,
 			event.BlockNumber,
 			settlementPrice,
 			prevStateOptionRound.OptionsSold,
@@ -353,29 +204,29 @@ func (db *DB) processOptionRoundEvent(
 		bid, buyer := adaptors.BidPlaced(junoEvent)
 		err = db.BidPlacedIndex(bid, buyer)
 	case "BidUpdated":
-		bidId, price, _, treeNonceNew, roundAddress := adaptors.BidUpdated(junoEvent)
-		err = db.BidUpdatedIndex(roundAddress, bidId, price, treeNonceNew)
+		bidId, price, _, treeNonceNew := adaptors.BidUpdated(junoEvent)
+		err = db.BidUpdatedIndex(prevStateOptionRound.Address, bidId, price, treeNonceNew)
 	case "OptionsMinted":
-		buyerAddress, _, roundAddress := adaptors.OptionsMinted(junoEvent)
+		buyerAddress, _ := adaptors.OptionsMinted(junoEvent)
 		err = db.UpdateOptionBuyerFields(
 			buyerAddress,
-			roundAddress,
+			prevStateOptionRound.Address,
 			map[string]interface{}{
 				"has_minted": true,
 			})
 	case "OptionsExercised":
-		buyerAddress, _, _, _, roundAddress := adaptors.OptionsExercised(junoEvent)
+		buyerAddress, _, _, _ := adaptors.OptionsExercised(junoEvent)
 		err = db.UpdateOptionBuyerFields(
 			buyerAddress,
-			roundAddress,
+			prevStateOptionRound.Address,
 			map[string]interface{}{
 				"has_minted": true,
 			})
 	case "UnusedBidsRefunded":
-		buyerAddress, _, roundAddress := adaptors.UnusedBidsRefunded(junoEvent)
+		buyerAddress, _ := adaptors.UnusedBidsRefunded(junoEvent)
 		err = db.UpdateOptionBuyerFields(
 			buyerAddress,
-			roundAddress,
+			prevStateOptionRound.Address,
 			map[string]interface{}{
 				"has_refunded": true,
 			})

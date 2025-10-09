@@ -138,10 +138,13 @@ func (dbc *DB) AuctionStartedIndex(
 	}); err != nil {
 		return err
 	}
+	log.Printf("Updating all liquidity providers balances auction start %v %v", vaultAddress, blockNumber)
 	if err := dbc.UpdateAllLiquidityProvidersBalancesAuctionStart(vaultAddress, blockNumber); err != nil {
+		log.Printf("Error updating all liquidity providers balances auction start: %v", err)
 		return err
 	}
 	if err := dbc.UpdateVaultBalanceAuctionStart(vaultAddress, blockNumber); err != nil {
+		log.Printf("Error updating vault balance auction start: %v", err)
 		return err
 	}
 	return nil
@@ -160,6 +163,7 @@ func (db *DB) AuctionEndedIndex(
 		premiums,
 		blockNumber,
 	); err != nil {
+		log.Printf("Error updating all liquidity providers balances auction end: %v", err)
 		return err
 	}
 	if err := db.UpdateVaultBalancesAuctionEnd(
@@ -168,6 +172,7 @@ func (db *DB) AuctionEndedIndex(
 		premiums,
 		blockNumber,
 	); err != nil {
+		log.Printf("Error updating vault balances auction end: %v", err)
 		return err
 	}
 	if err := db.UpdateBiddersAuctionEnd(
@@ -176,6 +181,7 @@ func (db *DB) AuctionEndedIndex(
 		optionsSold,
 		clearingNonce,
 	); err != nil {
+		log.Printf("Error updating bidders auction end: %v", err)
 		return err
 	}
 	if err := db.UpdateOptionRoundAuctionEnd(
@@ -185,6 +191,7 @@ func (db *DB) AuctionEndedIndex(
 		unsoldLiquidity,
 		premiums,
 	); err != nil {
+		log.Printf("Error updating option round auction end: %v", err)
 		return err
 	}
 	return nil
@@ -203,6 +210,7 @@ func (db *DB) RoundSettledIndex(prevStateOptionRound models.OptionRound, roundAd
 		remainingLiquidityStashed,
 		remainingLiquidityNotStashed,
 		blockNumber); err != nil {
+		log.Printf("Error updating vault balances option settle: %v", err)
 		return err
 	}
 
@@ -216,15 +224,17 @@ func (db *DB) RoundSettledIndex(prevStateOptionRound models.OptionRound, roundAd
 		payoutPerOption,
 		optionsSold,
 		blockNumber); err != nil {
+		log.Printf("Error updating all liquidity providers balances option settle: %v", err)
 		return err
 	}
-
+	log.Printf("PayoutPerOption:%v, SettlementPrice:%v, RemainingLiquidity:%v, OptionsSold:%v", payoutPerOption, settlementPrice, remainingLiquidity, optionsSold)
 	if err := db.UpdateOptionRoundFields(prevStateOptionRound.Address, map[string]interface{}{
 		"settlement_price":    settlementPrice,
 		"payout_per_option":   payoutPerOption,
 		"remaining_liquidity": remainingLiquidity,
 		"state":               "Settled",
 	}); err != nil {
+		log.Printf("Error updating option round fields option settle: %v", err)
 		return err
 	}
 	return nil

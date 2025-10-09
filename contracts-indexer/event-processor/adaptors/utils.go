@@ -1,13 +1,37 @@
 package adaptors
 
 import (
+	"encoding/hex"
 	"event-processor/models"
 	"fmt"
+	"log"
 	"math/big"
 
 	"golang.org/x/crypto/sha3"
 )
 
+func DecodeEventNameRound(eventKey string) (string, error) {
+	log.Printf("Decoding event name %s", eventKey)
+
+	// Remove "0x" prefix if present
+	hexString := eventKey
+	if len(eventKey) >= 2 && eventKey[:2] == "0x" {
+		hexString = eventKey[2:]
+	}
+
+	// Convert hex string to bytes
+	bytes, err := hex.DecodeString(hexString)
+	if err != nil {
+		log.Printf("Error decoding hex string %v", err)
+		return "", fmt.Errorf("invalid hex string: %s", eventKey)
+	}
+
+	// Convert bytes to ASCII string
+	asciiString := string(bytes)
+
+	log.Printf("Converted hex %s to ASCII: %s", eventKey, asciiString)
+	return asciiString, nil
+}
 func CombineFeltToBigInt(highFelt, lowFelt [32]byte) models.BigInt {
 	combinedBytes := make([]byte, 64) // 32 bytes for highFelt and 32 bytes for lowFelt
 
@@ -23,6 +47,13 @@ func CombineFeltToBigInt(highFelt, lowFelt [32]byte) models.BigInt {
 	return combinedInt
 }
 
+func FeltToBigIntReverse(felt [32]byte) models.BigInt {
+	byteData := make([]byte, 32)
+	for i := 0; i < 32; i++ {
+		byteData[i] = felt[31-i]
+	}
+	return models.BigInt{Int: new(big.Int).SetBytes(byteData)}
+}
 func FeltToBigInt(felt [32]byte) models.BigInt {
 
 	byteData := make([]byte, 32)
@@ -118,12 +149,3 @@ func Keccak256(eventName string) string {
 // 	}
 // 	return "", fmt.Errorf("event name not found for key: %s", eventKey)
 // }
-
-func DecodeEventNameVault(eventKey string) (string, error) {
-	for _, name := range vaultEventNames {
-		if Keccak256(name) == eventKey {
-			return name, nil
-		}
-	}
-	return "", fmt.Errorf("event name not found for key: %s", eventKey)
-}
