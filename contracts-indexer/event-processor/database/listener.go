@@ -312,7 +312,7 @@ func (db *DB) processOptionRoundEvent(
 ) error {
 
 	junoEvent := adaptors.GetJunoEvent(event)
-	optionRoundEventName := adaptors.OptionRoundEmitted(junoEvent)
+	optionRoundEventName := adaptors.OptionRoundEmittedEventName(junoEvent)
 	roundId := junoEvent.Data[0].Uint64()
 	prevStateOptionRound, err := db.GetRoundById(roundId, event.VaultAddress)
 	if err != nil {
