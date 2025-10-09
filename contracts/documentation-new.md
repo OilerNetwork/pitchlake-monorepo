@@ -2,14 +2,13 @@
 
 ## Overview
 
-1. [Constructor, Events, Interfaces](#contracts-events-interfaces)
+1. [Deployment, Events, Interfaces](#contracts-events-interfaces)
 
    - [Vault](#vaults)
    - [Option Round](#option-round)
    - [Types](#types)
 
 2. [Technical](#technical)
-
    - [Round Life Cycle](#round-life-cycle)
    - [Liquidity Flow](#liquidity)
    - [Transitioning Round States](#transitioning-round-states)
@@ -18,8 +17,10 @@
 ## Vaults
 
 <details>
-<summary>Constructor</summary>
+<summary>Deployment</summary>
 <br>
+
+**TODO**: Link to deployment guide
 
 ```rust
 struct ConstructorArgs {
@@ -48,6 +49,8 @@ struct ConstructorArgs {
 
 - `strike_level`: The strike level of the vault (in basis points, e.g., -1000 means the strike price for round n + 1 is 10% below the settlement price of round n; 0 means the strike price for round n + 1 is equal to the settlement price of round n; 2500 means the strike price for round n + 1 is 25% above the settlement price of round n)
 
+  - Range: (-∞%, ∞%) (`-MAX_i128 < strike_level < MAX_i128`) 
+
 - `round_transition_duration`: The number of seconds between a round deploying and its auction starting
 
 - `auction_duration`: The number of seconds a round's auction runs for
@@ -64,11 +67,9 @@ struct ConstructorArgs {
 <summary>Interface & Events</summary>
 <br>
 
-**Deposit**: Emitted when there is a deposit into a vault. Anyone can make a deposit for `account`. 
-
 ### Deposit
 
-Use this function to add ETH to an `account`'s unlocked balance. Alice can deposit ETH into Bob's position but he is in control of it afterwards. `amount` is in wei; 123456789123456789 = 0.123456789123456789 ETH
+Use this function to add ETH to an `account`'s unlocked balance; `amount` is in wei, i.e, `123456789123456789 = 0.123456789123456789 ETH`. Alice can deposit ETH into Bob's position but he is in control of it afterwards; 
 
 ```rust 
 // Returns the account's updated unlocked balance
@@ -229,13 +230,11 @@ pub struct OptionRoundEmitted {
     }
 ```
 
-#### Fossil Callback (Round Settlement/Initialization)
+#### Fossil Callback (Two Use Cases)
 
-The first time this function is used is to initialize round 1; all subsequent times it is used to settle the current round. This function is only callable by the Pitcklake Verifier; it is used to send verified L1 data/calculations to the vault.
+The first time this function is used is to initialize round 1; all subsequent times it is used to settle the current round. This function is only callable by the Pitcklake Verifier to send verified L1 data/calculations to the vault.
 
-**Initializing Round 1**:
-
-**Settling Round N**:
+The L1 data is used the settle the current round and initialize the next. Since round 1 is the first round, the first time this function is called the data is used to initialize it. All other times this function will be used to settle round N and initialize round N + 1 (same txn).
 
 ```rust
 // @dev This function is called by the Pitchlake Verifier to provide L1 data to
@@ -251,15 +250,177 @@ fn fossil_callback(
 
 Emits: 
 
-init:
-- PricingDataSet
+Different events are emitted depending on the context of the call. These are the different event paths in order.
 
-settlement:
+**Initializing Round 1**:
 
-- OptionRoundSettled
-- OptionRoundDeployed
+1.  `PricingDataSet` (routed from round to vault for emission)
 
-FossilCallbackSuccess
+2.  `FossilCallbackSuccessful`
+
+**Settling Round N**:
+
+1.  `OptionRoundSettled` (routed from round to vault for emission)
+
+2. `OptionRoundDeployed`
+
+3. `FossilCallbackSuccess`
+
+First time this function is called:
+```rust
+// OptionRound's event (not emitted from OptionRound)
+pub struct PricingDataSet {
+    pub pricing_data: PricingData,
+}
+
+// (Event 1) What the Vault emits to centralize event emittions (this is what is emitted)
+pub struct OptionRoundEmitted {
+   pub round_id: u64,
+   pub event_name: felt252,
+   pub event: OptionRoundEvent, // OptionRoundEvent::PricingDataSet
+}
+
+// (Event 2)
+pub struct FossilCallbackSuccess {
+  pub l1_data: L1Data,
+  pub timestamp: u64,
+}
+```
+
+All other times this function is called:
+```rust
+// OptionRound's event (not emitted from OptionRound)
+pub struct OptionRoundSettled {
+  pub settlement_price: u256,
+  pub payout_per_option: u256,
+}  
+ 
+// (Event 1) What the Vault emits to centralize event emittions (this is what is emitted)
+pub struct OptionRoundEmitted {
+  pub round_id: u64,
+  pub event_name: felt252,
+  pub event: OptionRoundEvent, // OptionRoundEvent::OptionRoundSettled
+}
+
+// (Event 2)
+pub struct OptionRoundDeployed {
+  pub round_id: u64,
+  pub address: ContractAddress,
+  pub auction_start_date: u64,
+  pub auction_end_date: u64,
+  pub option_settlement_date: u64,
+  pub pricing_data: PricingData,
+} 
+
+// (Event 3)
+pub struct FossilCallbackSuccess {
+  pub l1_data: L1Data,
+  pub timestamp: u64,
+}
+```
+</details>
+
+## Option Rounds
+
+<details>
+<summary>Deployment</summary>
+<br>
+
+**TODO**: Link to deployment guide
+
+```rust
+struct ConstructorArgs {
+  pub vault_address: ContractAddress,
+  pub round_id: u64,
+  pub pricing_data: PricingData,
+  pub round_transition_duration: u64,
+  pub auction_duration: u64,
+  pub round_duration: u64,
+}
+```
+
+- `vault_address`: The parent vault of this option round.
+
+- `round_id`: This round's ID (1, 2, 3, ...)
+
+- `pricing_data`: The L1 data from fossil converted into pricing data for the options (strike price, cap level, reserve price)
+
+- `round_transition_duration`: The number of seconds between a round deploying and its auction starting
+
+- `auction_duration`: The number of seconds a round's auction runs for
+
+- `round_duration`: The number of seconds between a round's auction ending and the round settling
+</details>
+
+<details>
+<summary>Interface & Events</summary>
+<br>
+
+### State Transitioning
+
+#### Set Pricing Data
+
+This function is called by the parent vault when `Vault::fossil_callback()` is called for the first time. This sets the pricing data for the options so that the auction can start. This function is only needed for round 1's initialization. All future calls will set the pricing data in the round's constructor. 
+```rust
+fn set_pricing_data(ref self: TContractState, pricing_data: PricingData) -> u256;
+```
+
+Emits: 
+
+For indexing purposes, all option round events are emitted from their parent vault contracts. This is the event that is routed to the vault for it to emit:
+
+
+```rust
+// OptionRound's event (not emitted from OptionRound)
+pub struct PricingDataSet {
+    pub pricing_data: PricingData,
+}
+
+// What the Vault emits to centralize event emittions (this is what is emitted)
+pub struct OptionRoundEmitted {
+  pub round_id: u64,
+  pub event_name: felt252,
+  pub event: OptionRoundEvent, // OptionRoundEvent::PricingDataSet
+}
+```
+
+#### Start Auction
+
+This function is called by the parent vault when `Vault::start_action()` is called; `starting_liquidity` is the amount of ETH (in wei) that is locked to start this round. 
+```rust
+    fn start_auction(ref self: TContractState, starting_liquidity: u256) -> u256;
+```
+
+Emits: 
+
+For indexing purposes, all option round events are emitted from their parent vault contracts. This is the event that is routed to the vault for it to emit:
+
+```rust
+// OptionRound's event (not emitted from OptionRound)
+pub struct AuctionStarted {
+  // The amount of ETH (in wei) that is locked into this round at the time of the auction starting
+  pub starting_liquidity: u256,
+  // The number of options this round is able to auction
+  pub options_available: u256,
+}
+
+// What the Vault emits to centralize event emittions (this is what is emitted)
+pub struct OptionRoundEmitted {
+  pub round_id: u64,
+  pub event_name: felt252,
+  pub event: OptionRoundEvent, // OptionRoundEvent::AuctionStarted
+}
+```
+
+#### End Auction
+
+This function is called by the parent vault when `Vault::end_action()` is called.
+```rust
+// Return the clearing price (price per option) and total options sold
+fn end_auction(ref self: TContractState) -> (u256, u256);
+```
+
+Emits: 
 
 For indexing purposes, all option round events are emitted from their parent vault contracts. This is the event that is routed to the vault for it to emit:
 
@@ -276,74 +437,132 @@ pub struct AuctionEnded {
 
 // What the Vault emits to centralize event emittions (this is what is emitted)
 pub struct OptionRoundEmitted {
-        pub round_id: u64,
-        pub event_name: felt252,
-        pub event: OptionRoundEvent, // OptionRoundEvent::AuctionEnded
-    }
-```
-
-
-
-
-```rust
-
-// Emitted when a new option round is deployed
-struct OptionRoundDeployed {
-  // The round ID of the newly deployed option round
-  round_id: u64,
-  // The address of the newly deployed option round contract
-  address: ContractAddress,
-  // The auction start date (unix timestamp in seconds) of the newly deployed option round
-  auction_start_date: u64,
-  // The auction end date (unix timestamp in seconds) of the newly deployed option round
-  auction_end_date: u64,
-  // The option settlement date (unix timestamp in seconds) of the newly deployed option round
-  option_settlement_date: u64,
-  // The strike level, cap level, and reserve price for the newly deployed option round
-  pricing_data: PricingData,
+    pub round_id: u64,
+    pub event_name: felt252,
+    pub event: OptionRoundEvent, // OptionRoundEvent::AuctionEnded
 }
 ```
 
+#### Settle Round
 
-    
+This function is called by the parent vault when `Vault::fossil_callback()` is called any time but the first. This settles the round and calculates the payout per options based on the `settlement_price`. 
 ```rust
-
-    // @dev Ends the current round's auction
-    // @return The clearing price and total options sold
-    fn end_auction(ref self: TContractState) -> (u256, u256);
-
-    // @dev This function is called by the Pitchlake Verifier to provide L1 data to
-    // the vault.
-    // @dev This function uses the data to initialize round 1 or to settle the current round (and
-    // open the next).
-    // @returns 0 if the callback was used to initialize round 1, or the total payout of the settled
-    // round if it was used to settle
-    fn fossil_callback(
-        ref self: TContractState, job_request: Span<felt252>, result: Span<felt252>,
-    ) -> u256;
-
+// Return the clearing price (price per option) and total options sold
+fn settle_round(ref self: TContractState, settlement_price: u256) -> u256;
 
 ```
 
+Emits: 
 
-```
+For indexing purposes, all option round events are emitted from their parent vault contracts. This is the event that is routed to the vault for it to emit:
 
-
-
-
-
-
-// Emitted when the vault successfully accepts the data from the Pitchlake verifier
-struct FossilCallbackSuccess {
-  // The L1 data sent from Fossil
-  l1_data: L1Data,
-  // The upper bound for each of the pricing parameter calculations
-  timestamp: u64,
+```rust
+// OptionRound's event (not emitted from OptionRound)
+pub struct OptionRoundSettled {
+    pub settlement_price: u256,
+    pub payout_per_option: u256,
 }
 
+// What the Vault emits to centralize event emittions (this is what is emitted)
+pub struct OptionRoundEmitted {
+    pub round_id: u64,
+    pub event_name: felt252,
+    pub event: OptionRoundEvent, // OptionRoundEvent::OptionRoundSettled
+}
 ```
+
+### Place Bids
+
+Use this function to place a bid for this round's options. This call only succeeds if the round's state is `Auctioning` and if now <= the auction end date.
+
+The ETH for each bid is sent to the option round contract where it is locked until the auction is over. When you place a bid, you are bidding an `amount` and `price`. Amount is the max number of options you want, and price is the max price you will pay per option (in wei).
+```rust 
+// Returns the bid that was just created
+fn place_bid(ref self: TContractState, amount: u256, price: u256) -> Bid;
+```
+
+Emits:
+
+```rust
+// Emitted when a bid is placed in the auction. 
+#[derive(Drop, Serde, PartialEq)]
+pub struct BidPlaced {
+    #[key]
+    pub account: ContractAddress,
+    // The ID given to this bid
+    pub bid_id: felt252,
+    // The max amount of options for this bid
+    pub amount: u256,
+    // The max price per option for this bid
+    pub price: u256,
+    // The nonce of the bids list (rb tree) after the bid is added
+    pub bid_tree_nonce_now: u64,
+}
+```
+
+### Update Bids
+
+Use this function to edit one of your current bids. This call only succeeds if the round's state is `Auctioning` and if now <= the auction end date.
+
+You can only increase the price of your bid (`bid_id`), you cannot decrease it. You cannot update a bid's amount, you may just create a new bid to do so.
+```rust 
+// Returns the new bid after editing
+fn update_bid(ref self: TContractState, bid_id: felt252, price_increase: u256) -> Bid;
+```
+
+Emits:
+
+```rust
+// Emitted when a bid is updated
+pub struct BidUpdated {
+    #[key]
+    pub account: ContractAddress,
+    pub bid_id: felt252,
+    pub price_increase: u256,
+    pub bid_tree_nonce_before: u64,
+    pub bid_tree_nonce_now: u64,
+}
+```
+
+### Refund Losing Bids
+
+Use this function to refund the ETH from losing bids after the auction is over for an `account`. This call will succeed any time after the auction is over, even many moons later if forgotton about. Alice can dispatch Bob's refunds for him. 
+```rust 
+fn refund_unused_bids(ref self: TContractState, account: ContractAddress) -> u256;
+```
+
+Emits:
+
+```rust
+// Emitted when an accounts refunds have been dispatched
+pub struct UnusedBidsRefunded {
+    #[key]
+    pub account: ContractAddress,
+    pub refunded_amount: u256,
+}
+```
+
+...
 
 </details>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
  <details>
 <summary>Interface</summary>
