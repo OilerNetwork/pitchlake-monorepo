@@ -56,7 +56,7 @@ const useVaultActions = () => {
         const nonce = await provider?.getNonceForAddress(account?.address);
         const data = (
           argsData
-            ? await typedContract?.[functionName](...argsData, { nonce })
+            ? await typedContract?.[functionName](...argsData, { nonce, blockTag: "latest" })
             : await typedContract?.[functionName]()
         ) as TransactionResult;
 
