@@ -1,7 +1,7 @@
-import { StarknetBlock } from "../types/types";
-import { Block } from "starknet";
-import { createPublicClient, http, PublicClient } from "viem";
-import { mainnet } from "viem/chains";
+import { StarknetBlock } from '../types/types';
+import { Block } from 'starknet';
+import { createPublicClient, http, PublicClient } from 'viem';
+import { mainnet } from 'viem/chains';
 
 export class RPCClient {
   private client: PublicClient;

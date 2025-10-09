@@ -1,5 +1,5 @@
-import { PoolClient, Pool } from "pg";
-import { JobRequest, JobStatus } from "../types/types";
+import { PoolClient, Pool } from 'pg';
+import { JobRequest, JobStatus } from '../types/types';
 
 export class DB {
   private fossilPool: Pool;
@@ -7,14 +7,12 @@ export class DB {
 
   constructor() {
     // Check if we're in demo mode
-    if (process.env.USE_DEMO_DATA === "true") {
+    if (process.env.USE_DEMO_DATA === 'true') {
       // In demo mode, create mock pools or use fallback connection strings
       const fallbackFossilUrl =
-        process.env.FOSSIL_DB_URL ||
-        "postgresql://demo:demo@localhost:5432/fossil_demo";
+        process.env.FOSSIL_DB_URL || 'postgresql://demo:demo@localhost:5432/fossil_demo';
       const fallbackPitchlakeUrl =
-        process.env.PITCHLAKE_DB_URL ||
-        "postgresql://demo:demo@localhost:5433/pitchlake_demo";
+        process.env.PITCHLAKE_DB_URL || 'postgresql://demo:demo@localhost:5433/pitchlake_demo';
 
       this.fossilPool = new Pool({
         connectionString: fallbackFossilUrl,
@@ -27,10 +25,10 @@ export class DB {
     } else {
       // Production mode - require the database URLs
       if (!process.env.FOSSIL_DB_URL) {
-        throw new Error("FOSSIL_DB_URL is required in production mode");
+        throw new Error('FOSSIL_DB_URL is required in production mode');
       }
       if (!process.env.PITCHLAKE_DB_URL) {
-        throw new Error("PITCHLAKE_DB_URL is required in production mode");
+        throw new Error('PITCHLAKE_DB_URL is required in production mode');
       }
 
       this.fossilPool = new Pool({
@@ -46,10 +44,7 @@ export class DB {
 
   private getSSLConfig(connectionString: string) {
     // For localhost connections, don't use SSL
-    if (
-      connectionString.includes("localhost") ||
-      connectionString.includes("127.0.0.1")
-    ) {
+    if (connectionString.includes('localhost') || connectionString.includes('127.0.0.1')) {
       return false;
     }
 
@@ -83,7 +78,7 @@ export class DB {
     SELECT job_id, status, vault_address, round_id, created_at FROM job_requests
     `;
     const result = await this.pitchlakePool.query(query);
-    const jobRequests: JobRequest[] = result.rows.map((row) => ({
+    const jobRequests: JobRequest[] = result.rows.map(row => ({
       job_id: row.job_id,
       status: row.status as JobStatus,
       vaultAddress: row.vault_address,
@@ -93,7 +88,10 @@ export class DB {
     return jobRequests;
   }
 
-  async getLatestJobRequestByVaultAndRound(vaultAddress: string, roundId: number): Promise<JobRequest | null> {
+  async getLatestJobRequestByVaultAndRound(
+    vaultAddress: string,
+    roundId: number
+  ): Promise<JobRequest | null> {
     const result = await this.pitchlakePool.query(
       `SELECT vault_address, job_id, status, round_id, created_at 
        FROM job_requests 
@@ -102,11 +100,11 @@ export class DB {
        LIMIT 1`,
       [vaultAddress, roundId]
     );
-    
+
     if (result.rows.length === 0) {
       return null;
     }
-    
+
     const row = result.rows[0];
     return {
       job_id: row.job_id,
@@ -117,12 +115,7 @@ export class DB {
     };
   }
 
-  async insertJobRequest(
-    vaultAddress: string,
-    job_id: string,
-    status: JobStatus,
-    roundId: number
-  ) {
+  async insertJobRequest(vaultAddress: string, job_id: string, status: JobStatus, roundId: number) {
     await this.pitchlakePool.query(
       `INSERT INTO job_requests (vault_address, job_id, status, round_id) VALUES ($1, $2, $3, $4)`,
       [vaultAddress, job_id, status, roundId]
@@ -134,7 +127,7 @@ export class DB {
       await this.pitchlakePool.query(query, [status, job_id]);
       return true;
     } catch (error) {
-      console.error("Error updating job request status:", error);
+      console.error('Error updating job request status:', error);
       return false;
     }
   }
@@ -145,7 +138,7 @@ export class DB {
       await this.pitchlakePool.query(query, [vaultAddress, roundId]);
       return true;
     } catch (error) {
-      console.error("Error deleting job request:", error);
+      console.error('Error deleting job request:', error);
       return false;
     }
   }
@@ -156,7 +149,7 @@ export class DB {
       await this.pitchlakePool.query(query, [JobStatus.Completed, vaultAddress, roundId]);
       return true;
     } catch (error) {
-      console.error("Error marking job request as completed:", error);
+      console.error('Error marking job request as completed:', error);
       return false;
     }
   }
@@ -176,11 +169,10 @@ export class DB {
       );
       return result.rowCount || 0;
     } catch (error) {
-      console.error("Error marking latest pending job as completed:", error);
+      console.error('Error marking latest pending job as completed:', error);
       return 0;
     }
   }
-
 
   async clearAllJobRequests() {
     try {
@@ -189,11 +181,10 @@ export class DB {
       console.log(`Cleared ${result.rowCount} job requests from the database`);
       return true;
     } catch (error) {
-      console.error("Error clearing all job requests:", error);
+      console.error('Error clearing all job requests:', error);
       return false;
     }
   }
-
 
   async getRelevantBlocks(currentTimestamp: number, timeWindow: number) {
     const query = `
@@ -217,21 +208,15 @@ export class DB {
   `;
 
     try {
-      const result = await this.pitchlakePool.query(query, [
-        currentTimestamp,
-        timeWindow,
-      ]);
+      const result = await this.pitchlakePool.query(query, [currentTimestamp, timeWindow]);
 
       return result.rows;
     } catch (error) {
-      console.error("Error getting relevant blocks:", error);
+      console.error('Error getting relevant blocks:', error);
       throw error;
     }
   }
-  async initializeTWAPState(
-    windowType: string,
-    initialBlock: number
-  ): Promise<void> {
+  async initializeTWAPState(windowType: string, initialBlock: number): Promise<void> {
     await this.pitchlakePool.query(
       `
       INSERT INTO twap_state (
@@ -283,17 +268,15 @@ export class DB {
 
     const blockResult = await this.pitchlakePool.query(confirmedBlockQuery);
     const startBlock =
-      blockResult.rows.length > 0
-        ? Number(blockResult.rows[0].block_number) + 1
-        : currentBlock;
+      blockResult.rows.length > 0 ? Number(blockResult.rows[0].block_number) + 1 : currentBlock;
 
     console.log(`No TWAP state found. Starting from block ${startBlock}`);
 
     // Initialize TWAP states with the starting block
     await Promise.all([
-      this.initializeTWAPState("twelve_min", startBlock),
-      this.initializeTWAPState("three_hour", startBlock),
-      this.initializeTWAPState("thirty_day", startBlock),
+      this.initializeTWAPState('twelve_min', startBlock),
+      this.initializeTWAPState('three_hour', startBlock),
+      this.initializeTWAPState('thirty_day', startBlock),
     ]);
 
     return startBlock;
@@ -311,7 +294,7 @@ export class DB {
     const client = await this.pitchlakePool.connect();
 
     try {
-      await client.query("BEGIN");
+      await client.query('BEGIN');
       // Use direct parameterized query instead of prepared statement
       const blockInsertResult = await client.query(
         `
@@ -343,12 +326,9 @@ export class DB {
       );
 
       // If the block was confirmed, trigger recalibration
-      if (
-        blockInsertResult.rows.length === 0 ||
-        blockInsertResult.rows[0].is_confirmed
-      ) {
-        console.log("HERE");
-        client.query("ROLLBACK");
+      if (blockInsertResult.rows.length === 0 || blockInsertResult.rows[0].is_confirmed) {
+        console.log('HERE');
+        client.query('ROLLBACK');
         return {
           shouldRecalibrate: true,
         };
@@ -372,27 +352,27 @@ export class DB {
         WHERE twap_state.is_confirmed = false AND twap_state.window_type = EXCLUDED.window_type::twap_window_type
         `,
         [
-          "twelve_min",
+          'twelve_min',
           twaps.twelveMin.weightedSum,
           twaps.twelveMin.totalSeconds,
           twaps.twelveMin.twap,
           blockNumber,
           timestamp,
-          "three_hour",
+          'three_hour',
           twaps.threeHour.weightedSum,
           twaps.threeHour.totalSeconds,
           twaps.threeHour.twap,
-          "thirty_day",
+          'thirty_day',
           twaps.thirtyDay.weightedSum,
           twaps.thirtyDay.totalSeconds,
           twaps.thirtyDay.twap,
         ]
       );
 
-      await client.query("COMMIT");
+      await client.query('COMMIT');
       return { shouldRecalibrate: false };
     } catch (error) {
-      await client.query("ROLLBACK");
+      await client.query('ROLLBACK');
       throw error;
     } finally {
       client.release();
@@ -455,7 +435,7 @@ export async function updateBlockAndTWAPStates(
     thirtyDay: { weightedSum: number; totalSeconds: number; twap: number };
   }
 ): Promise<{ shouldRecalibrate: boolean }> {
-  await client.query("BEGIN");
+  await client.query('BEGIN');
 
   try {
     // Use direct parameterized query instead of prepared statement
@@ -489,11 +469,8 @@ export async function updateBlockAndTWAPStates(
     );
 
     // If the block was confirmed, trigger recalibration
-    if (
-      blockInsertResult.rows.length === 0 ||
-      blockInsertResult.rows[0].is_confirmed
-    ) {
-      client.query("ROLLBACK");
+    if (blockInsertResult.rows.length === 0 || blockInsertResult.rows[0].is_confirmed) {
+      client.query('ROLLBACK');
       return {
         shouldRecalibrate: true,
       };
@@ -517,27 +494,27 @@ export async function updateBlockAndTWAPStates(
       WHERE twap_state.is_confirmed = false AND twap_state.window_type = EXCLUDED.window_type::twap_window_type
       `,
       [
-        "twelve_min",
+        'twelve_min',
         twaps.twelveMin.weightedSum,
         twaps.twelveMin.totalSeconds,
         twaps.twelveMin.twap,
         blockNumber,
         timestamp,
-        "three_hour",
+        'three_hour',
         twaps.threeHour.weightedSum,
         twaps.threeHour.totalSeconds,
         twaps.threeHour.twap,
-        "thirty_day",
+        'thirty_day',
         twaps.thirtyDay.weightedSum,
         twaps.thirtyDay.totalSeconds,
         twaps.thirtyDay.twap,
       ]
     );
 
-    await client.query("COMMIT");
+    await client.query('COMMIT');
     return { shouldRecalibrate: false };
   } catch (error) {
-    await client.query("ROLLBACK");
+    await client.query('ROLLBACK');
     throw error;
   }
 }

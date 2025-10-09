@@ -8,10 +8,10 @@ export interface StateTransitionConfig {
 }
 
 export enum JobStatus {
-  Pending = "Pending",
-  Completed = "Completed",
-  Failed = "Failed",
-  NOT_FOUND = "not_found",
+  Pending = 'Pending',
+  Completed = 'Completed',
+  Failed = 'Failed',
+  NOT_FOUND = 'not_found',
 }
 
 export type JobRequest = {
@@ -20,9 +20,9 @@ export type JobRequest = {
   vaultAddress: string;
   roundId: number;
   createdAt: Date;
-}
+};
 
-enum OptionRoundState {
+export enum OptionRoundState {
   Open = 0,
   Auctioning = 1,
   Running = 2,
@@ -43,4 +43,3 @@ export type StarknetBlock = {
   blockNumber: number;
   timestamp: number;
 };
-export { OptionRoundState };

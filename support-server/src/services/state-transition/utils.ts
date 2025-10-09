@@ -13,14 +13,11 @@ export const formatTimeLeft = (current: number, target: number) => {
 
 export const formatRawFossilRequest = (rawData: any): FossilRequest => {
   return {
-    program_id: "0x" + rawData.program_id.toString(16),
-    vault_address: "0x" + rawData.vault_address.toString(16),
+    program_id: '0x' + rawData.program_id.toString(16),
+    vault_address: '0x' + rawData.vault_address.toString(16),
     params: {
       twap: [Number(rawData.params.twap[0]), Number(rawData.params.twap[1])],
-      max_return: [
-        Number(rawData.params.max_return[0]),
-        Number(rawData.params.max_return[1]),
-      ],
+      max_return: [Number(rawData.params.max_return[0]), Number(rawData.params.max_return[1])],
       reserve_price: [
         Number(rawData.params.reserve_price[0]),
         Number(rawData.params.reserve_price[1]),
@@ -33,15 +30,15 @@ export const getJobStatus = async (jobId: string) => {
   try {
     const response = await axios.get(`${FOSSIL_API_URL}/job_status/${jobId}`, {
       headers: {
-        "Content-Type": "application/json",
-        "x-api-key": FOSSIL_API_KEY,
+        'Content-Type': 'application/json',
+        'x-api-key': FOSSIL_API_KEY,
       },
     });
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 404) {
       // Job not found - return a default status
-      return { status: "not_found", job_id: jobId };
+      return { status: 'not_found', job_id: jobId };
     }
     // Re-throw other errors
     throw error;
@@ -50,26 +47,20 @@ export const getJobStatus = async (jobId: string) => {
 export const sendFossilRequest = async (
   fossilRequest: FossilRequest,
   vaultContract: Contract,
-  logger: Logger,
+  logger: Logger
 ) => {
   try {
-    const response = await axios.post(
-      `${FOSSIL_API_URL}/pricing_data`,
-      fossilRequest,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": FOSSIL_API_KEY,
-        },
+    const response = await axios.post(`${FOSSIL_API_URL}/pricing_data`, fossilRequest, {
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': FOSSIL_API_KEY,
       },
-    );
+    });
 
-    logger.info(
-      "Fossil request sent. Response: " + JSON.stringify(response.data),
-    );
+    logger.info('Fossil request sent. Response: ' + JSON.stringify(response.data));
     return response.data;
   } catch (error) {
-    logger.error("Error sending Fossil request:", error);
+    logger.error('Error sending Fossil request:', error);
     throw error;
   }
 };
@@ -80,7 +71,7 @@ export const sendMockFossilRequest = async (
   logger: Logger,
   account?: Account,
 ) => {
-  logger.info("Sending request to Mock Verifier");
+  logger.info('Sending request to Mock Verifier');
   logger.debug({ request: fossilRequest });
 
   try {
@@ -93,13 +84,12 @@ export const sendMockFossilRequest = async (
     // Calculate timestamp: upper bound + proving delay + tolerance
     // For now, using a tolerance of 60 seconds (can be made configurable later)
     const tolerance = 60; // seconds
-    const timestamp =
-      Number(params.reserve_price[1]) + Number(provingDelay) + tolerance;
+    const timestamp = Number(params.reserve_price[1]) + Number(provingDelay) + tolerance;
 
     // Hardcoded values as specified
-    const RESERVE_PRICE = "34028236692093846346337460743176821145600000000";
-    const TWAP = "680564733841876926926749214863536422912000000000";
-    const MAX_RETURN = "113416112894748789872342756657008344878";
+    const RESERVE_PRICE = '34028236692093846346337460743176821145600000000';
+    const TWAP = '680564733841876926926749214863536422912000000000';
+    const MAX_RETURN = '113416112894748789872342756657008344878';
 
     // Serialize job request: [vault_address, timestamp, program_id]
     const jobRequestSerialized = [
@@ -127,7 +117,7 @@ export const sendMockFossilRequest = async (
       throw new Error("No account provided for mock verifier");
     }
 
-    logger.info("Calling fossil_callback directly on vault contract", {
+    logger.info('Calling fossil_callback directly on vault contract', {
       vaultAddress: vaultContract.address,
       automatorAddress: automatorAddress,
       jobRequest: jobRequestSerialized,
@@ -137,28 +127,25 @@ export const sendMockFossilRequest = async (
     // Call fossil_callback directly on the vault contract
     const { transaction_hash } = await vaultContract.fossil_callback(
       jobRequestSerialized,
-      resultSerialized,
+      resultSerialized
     );
 
-    logger.info("Mock verifier callback sent successfully", {
+    logger.info('Mock verifier callback sent successfully', {
       transactionHash: transaction_hash,
     });
 
     // Return a mock response similar to Fossil API
     const mockResponse = {
       job_id: `mock_job_${Date.now()}`,
-      status: "completed", // Since we're calling directly, it's immediately completed
+      status: 'completed', // Since we're calling directly, it's immediately completed
       verifier_address: automatorAddress,
       transaction_hash: transaction_hash,
     };
 
-    logger.info(
-      "Mock verifier request completed. Response: " +
-        JSON.stringify(mockResponse),
-    );
+    logger.info('Mock verifier request completed. Response: ' + JSON.stringify(mockResponse));
     return mockResponse;
   } catch (error) {
-    logger.error("Error in mock verifier request:", error);
+    logger.error('Error in mock verifier request:', error);
     throw error;
   }
 };
