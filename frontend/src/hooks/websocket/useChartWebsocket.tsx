@@ -25,6 +25,7 @@ const useWebsocketChart = ({
   const [confirmedGasData, setConfirmedGasData] = useState<Block[]>([]);
   const [unconfirmedGasData, setUnconfirmedGasData] = useState<Block[]>([]);
 
+  console.log("TImeRange",lowerTimestampRef.current,upperTimestampRef.current)
 
   const handleUnconfirmedBlocks = (blockdata: Block[]) => {
 

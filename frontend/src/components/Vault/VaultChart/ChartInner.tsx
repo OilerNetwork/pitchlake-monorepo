@@ -42,12 +42,13 @@ const GasPriceChart: React.FC<GasPriceChartProps> = ({ activeLines }) => {
     yTicks,
   } = useChartData(activeLines, vaultState?.address);
 
+  console.log("parsedData",parsedData)
   // Strike and cap for all possibly displayed rounds
 
   //// Hover logic //
   //const isInChartRef = useRef(false);
   //const hoverTimer = useRef<NodeJS.Timeout | null>(null);
-  //const clearHoverTimer = () => {
+  //const clearHoverTimer = () => 
   //  if (hoverTimer.current) {
   //    clearTimeout(hoverTimer.current);
   //    hoverTimer.current = null;

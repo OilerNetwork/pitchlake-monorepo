@@ -9,6 +9,7 @@ import {
 } from "@/components/Icons";
 import { History } from "lucide-react";
 import GasPriceChart from "@/components/Vault/VaultChart/ChartInner";
+import ChartInnerNew from "@/components/Vault/VaultChart/ChartInnerNew";
 import Hoverable from "@/components/BaseComponents/Hoverable";
 import useVaultState from "@/hooks/vault/states/useVaultState";
 import { useNewContext } from "@/context/NewProvider";
@@ -107,7 +108,7 @@ const RoundPerformanceChart = () => {
   };
 
   return (
-    <div className="w-full h-[800px] bg-black-alt rounded-[12px] border border-greyscale-800 relative">
+    <div className="w-full max-w-[60%] h-[800px] bg-black-alt rounded-[12px] border border-greyscale-800 relative">
       {/* Round Navigation */}
       <div className="flex flex-row items-center p-5 justify-between border-b-[1px] border-greyscale-800 pb-4 h-[56px]">
         <Hoverable
@@ -274,7 +275,7 @@ const RoundPerformanceChart = () => {
       </div>
 
       {/* Chart */}
-      <GasPriceChart activeLines={activeLines} />
+      <ChartInnerNew activeLines={activeLines} />
     </div>
   );
 };
