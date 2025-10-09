@@ -8,8 +8,6 @@ import {
   CheckIcon,
 } from "@/components/Icons";
 import { History } from "lucide-react";
-import GasPriceChart from "@/components/Vault/VaultChart/ChartInner";
-import ChartInnerNew from "@/components/Vault/VaultChart/ChartInnerNew";
 import ChartInner from "@/components/Vault/VaultChart/ChartInner";
 import Hoverable from "@/components/BaseComponents/Hoverable";
 import useVaultState from "@/hooks/vault/states/useVaultState";
