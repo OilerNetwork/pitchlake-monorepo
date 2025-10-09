@@ -20,7 +20,6 @@ const useWebsocketChart = ({
   const ws = useRef<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
-  const [isLoaded, setIsLoaded] = useState(false);
   const lowerTimestampRef = useRef(lowerTimestamp);
   const upperTimestampRef = useRef(upperTimestamp);
   const [confirmedGasData, setConfirmedGasData] = useState<Block[]>([]);
@@ -84,13 +83,16 @@ const useWebsocketChart = ({
     });
 
     // Remove confirmed blocks from unconfirmed data
-    setUnconfirmedGasData(prevUnconfirmed => 
-      prevUnconfirmed
+    setUnconfirmedGasData((prevUnconfirmed) => {
+      if (!prevUnconfirmed || prevUnconfirmed.length === 0) {
+        return [] as Block[];
+      } else {
+      return prevUnconfirmed
         .filter(block => 
           !block.blockNumber || !confirmedBlockNumbers.has(block.blockNumber)
         )
-        .sort((a, b) => a.timestamp - b.timestamp)
-    );
+        .sort((a, b) => a.timestamp - b.timestamp)}
+    });
   }
 
   useEffect(() => {
