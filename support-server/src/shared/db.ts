@@ -270,7 +270,6 @@ export class DB {
     const startBlock =
       blockResult.rows.length > 0 ? Number(blockResult.rows[0].block_number) + 1 : currentBlock;
 
-
     // Initialize TWAP states with the starting block
     await Promise.all([
       this.initializeTWAPState('twelve_min', startBlock),
