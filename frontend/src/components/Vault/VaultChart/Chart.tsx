@@ -91,7 +91,7 @@ const RoundPerformanceChart = () => {
   const roundHeaderFormatter = (
     selectedRound: string | undefined,
     currentRoundId: string | undefined,
-    conn: string
+    conn: string,
   ): string => {
     if (!selectedRound || !currentRoundId) return "";
 
@@ -122,7 +122,7 @@ const RoundPerformanceChart = () => {
             {roundHeaderFormatter(
               selectedRound.toString(),
               vaultState?.currentRoundId.toString(),
-              conn
+              conn,
             )}
           </p>
           <div className="flex items-center ">
@@ -209,7 +209,9 @@ const RoundPerformanceChart = () => {
         >
           {[
             ...Array(
-              vaultState?.currentRoundId ? Number(vaultState.currentRoundId) : 1
+              vaultState?.currentRoundId
+                ? Number(vaultState.currentRoundId)
+                : 1,
             ),
           ]
             .map((_, index) => index)
@@ -256,10 +258,10 @@ const RoundPerformanceChart = () => {
                      line === "CAP_LEVEL"
                        ? "text-success"
                        : line === "BASEFEE"
-                       ? "text-greyscale"
-                       : line === "STRIKE"
-                       ? "text-warning-300"
-                       : "text-error-300"
+                         ? "text-greyscale"
+                         : line === "STRIKE"
+                           ? "text-warning-300"
+                           : "text-error-300"
                    }`}
                 onClick={() => toggleLine(line)}
               >
