@@ -54,7 +54,7 @@ const useWebSocketVault = (conn: string, vaultAddress?: string) => {
   }, []);
 
   useEffect(() => {
-    if (conn === "ws" && isLoaded && vaultAddress) {
+    if (conn === "ws" && isLoaded && vaultAddress && accountAddress) {
       ws.current = new WebSocket(
         `${process.env.NEXT_PUBLIC_WS_URL}/subscribeVault`,
       );
@@ -63,7 +63,7 @@ const useWebSocketVault = (conn: string, vaultAddress?: string) => {
         console.log("WebSocket connection established");
         ws.current?.send(
           JSON.stringify({
-            address: accountAddress,
+            address: removeLeadingZeroes(accountAddress),
             userType: "ob", // Adjust based on your logic
             vaultAddress: removeLeadingZeroes(vaultAddress),
           }),
@@ -99,7 +99,7 @@ const useWebSocketVault = (conn: string, vaultAddress?: string) => {
     return () => {
       ws.current?.close();
     };
-  }, [conn, isLoaded, vaultAddress]);
+  }, [conn, isLoaded, vaultAddress, accountAddress]);
 
   useEffect(() => {
     if (ws.current?.readyState === 1)
