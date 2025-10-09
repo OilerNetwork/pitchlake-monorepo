@@ -10,6 +10,7 @@ import {
 import { History } from "lucide-react";
 import GasPriceChart from "@/components/Vault/VaultChart/ChartInner";
 import ChartInnerNew from "@/components/Vault/VaultChart/ChartInnerNew";
+import ChartInner from "@/components/Vault/VaultChart/ChartInner";
 import Hoverable from "@/components/BaseComponents/Hoverable";
 import useVaultState from "@/hooks/vault/states/useVaultState";
 import { useNewContext } from "@/context/NewProvider";
@@ -275,7 +276,7 @@ const RoundPerformanceChart = () => {
       </div>
 
       {/* Chart */}
-      <ChartInnerNew activeLines={activeLines} />
+      <ChartInner activeLines={activeLines} />
     </div>
   );
 };
