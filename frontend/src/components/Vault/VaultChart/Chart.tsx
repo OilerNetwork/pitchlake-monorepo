@@ -216,7 +216,7 @@ const RoundPerformanceChart = () => {
             .reverse()
             .map((index) => (
               <div
-                key={index}
+                key={index+"abac"}
                 className={`flex flex-row justify-between items-center px-4 pt-3 pb-3 hover:bg-greyscale-800 cursor-pointer font-regular text-[14px] text-[#FFFFFF] ${
                   index + 1 === Number(vaultState?.currentRoundId)
                     ? "bg-greyscale-800"
@@ -244,9 +244,9 @@ const RoundPerformanceChart = () => {
       {/* Line Toggle Buttons */}
       <div className="flex justify-center items-center my-2">
         <div className="flex gap-4">
-          {["TWAP", "BASEFEE", "STRIKE", "CAP_LEVEL"].map((line) => (
+          {["TWAP", "BASEFEE", "STRIKE", "CAP_LEVEL"].map((line,index) => (
             <Hoverable
-              key={line}
+              key={line+index}
               dataId={`chartLineButton_${line}`}
               className="p-2"
             >

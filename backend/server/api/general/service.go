@@ -115,6 +115,7 @@ func (router *GeneralRouter) subscribeGasData(ctx context.Context, w http.Respon
 				}
 				var confirmedBlocks, unconfirmedBlocks []types.BlockResponse
 				for _, block := range blocks {
+					log.Printf("block: is_confirmed: %v", block.IsConfirmed)
 					var twap string
 					switch request.RoundDuration {
 					case 960:
