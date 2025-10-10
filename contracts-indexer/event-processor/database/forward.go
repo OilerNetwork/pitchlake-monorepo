@@ -199,7 +199,10 @@ func (db *DB) AuctionEndedIndex(
 func (db *DB) RoundSettledIndex(prevStateOptionRound models.OptionRound, roundAddress string, blockNumber uint64, settlementPrice, optionsSold, payoutPerOption models.BigInt) error {
 	totalPayout := models.BigInt{Int: new(big.Int).Mul(optionsSold.Int, payoutPerOption.Int)}
 	remainingLiquidity := models.BigInt{Int: new(big.Int).Sub(new(big.Int).Sub(prevStateOptionRound.StartingLiquidity.Int, prevStateOptionRound.UnsoldLiquidity.Int), totalPayout.Int)}
-	remainingLiquidityStashed := models.BigInt{Int: new(big.Int).Div(new(big.Int).Mul(remainingLiquidity.Int, prevStateOptionRound.QueuedLiquidity.Int), prevStateOptionRound.StartingLiquidity.Int)}
+	remainingLiquidityStashed := models.BigInt{Int: big.NewInt(0)}
+	if prevStateOptionRound.StartingLiquidity.Cmp(remainingLiquidity.Int) != 0 && prevStateOptionRound.StartingLiquidity.Cmp(prevStateOptionRound.QueuedLiquidity.Int) != 0 {
+		remainingLiquidityStashed = models.BigInt{Int: new(big.Int).Div(new(big.Int).Mul(remainingLiquidity.Int, prevStateOptionRound.QueuedLiquidity.Int), prevStateOptionRound.StartingLiquidity.Int)}
+	}
 	remainingLiquidityNotStashed := models.BigInt{Int: new(big.Int).Sub(remainingLiquidity.Int, remainingLiquidityStashed.Int)}
 
 	if err := db.UpdateVaultBalancesOptionSettle(
