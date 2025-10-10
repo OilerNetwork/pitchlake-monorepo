@@ -20,7 +20,7 @@ export class StateHandlers {
   }
 
   private getRequestFunction() {
-    const useMockVerifier = process.env.USE_MOCK_VERIFIER;
+    const useMockVerifier = true;
     if (useMockVerifier) {
       return (fossilRequest: any, vaultContract: Contract, logger: any) => 
         sendMockFossilRequest(fossilRequest, vaultContract, logger, this.account);
