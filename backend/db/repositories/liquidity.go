@@ -21,7 +21,7 @@ func NewLiquidityRepository(pool *pgxpool.Pool) *LiquidityRepository {
 func (r *LiquidityRepository) GetLiquidityProviderStateByAddress(ctx context.Context, address, vaultAddress string) (*models.LiquidityProviderState, error) {
 	var liquidityProviderState models.LiquidityProviderState
 
-	query := `SELECT address, vault_address, unlocked_balance, locked_balance, stashed_balance, latest_block FROM public."Liquidity_Providers" WHERE address=$1 AND vault_address=$2`
+	query := `SELECT address, vault_address, unlocked_balance, locked_balance, stashed_balance, latest_block FROM public."liquidity_providers" WHERE address=$1 AND vault_address=$2`
 	err := r.pool.QueryRow(ctx, query, address, vaultAddress).Scan(
 		&liquidityProviderState.Address,
 		&liquidityProviderState.VaultAddress,

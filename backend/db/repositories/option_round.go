@@ -27,7 +27,7 @@ func (r *OptionRepository) GetOptionRoundsByVaultAddress(ctx context.Context, va
 		settlement_price, strike_price, sold_options, clearing_price, state, 
 		premiums, payout_per_option, deployment_date
 	FROM 
-		public."Option_Rounds" 
+		public."option_rounds" 
 	WHERE 
 		vault_address = $1 
 	ORDER BY 

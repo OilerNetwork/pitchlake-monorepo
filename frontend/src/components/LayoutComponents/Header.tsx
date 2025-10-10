@@ -27,10 +27,11 @@ import { formatNumber } from "@/lib/utils";
 import useLPState from "@/hooks/vault/states/useLPState";
 import { useNewContext } from "@/context/NewProvider";
 import { useTimeContext } from "@/context/TimeProvider";
+import Toggle from "../BaseComponents/Toggle";
 
 export default function Header() {
   const dropdownChainRef = useRef<HTMLDivElement>(null);
-  const { conn } = useNewContext();
+  const { conn, setConn } = useNewContext();
   const { timestamp, mockTimeForward } = useTimeContext();
   const lpState = useLPState();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -174,6 +175,14 @@ export default function Header() {
               </button>
             </div>
           )}
+          <div>
+            <Toggle
+              value={conn}
+              onChange={setConn}
+              options={{ on: "ws", off: "rpc" }}
+              label={conn === "ws" ? "WebSocket" : "RPC"}
+            />
+          </div>
           <Hoverable
             dataId="networkSelector"
             className="relative"

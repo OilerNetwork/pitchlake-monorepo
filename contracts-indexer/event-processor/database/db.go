@@ -88,18 +88,14 @@ func (db *DB) GetUnprocessedDriverEvents() ([]*models.DriverEvent, error) {
 		}
 		return nil, fmt.Errorf("failed to query unprocessed driver events: %w", err)
 	}
-	log.Printf("Unprocessed driver events found: %v", rows)
 	defer rows.Close()
 	for rows.Next() {
-		log.Printf("Scanning driver event")
 		var event models.DriverEvent
 		if err := rows.Scan(&event.ID, &event.SequenceIndex, &event.Type, &event.Timestamp, &event.IsProcessed, &event.BlockHash, &event.VaultAddress, &event.StartBlockHash, &event.EndBlockHash); err != nil {
 			log.Printf("Error scanning driver event: %v", err)
 			return nil, fmt.Errorf("failed to scan driver event: %w", err)
 		}
-		log.Printf("Driver event found: %v", event)
 		events = append(events, &event)
-		log.Printf("Unprocessed driver event found: %v", event)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("error iterating driver event rows: %w", err)
@@ -119,8 +115,6 @@ func (db *DB) GetBlockByHash(blockHash string) (*models.StarknetBlock, error) {
 
 func (db *DB) GetEventsForVault(vaultAddress string, startBlockHash string, endBlockHash string) ([]models.Event, error) {
 
-	log.Printf("Start block hash: %v", startBlockHash)
-	log.Printf("End block hash: %v", endBlockHash)
 	startBlock, err := db.GetBlockByHash(startBlockHash)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get start block: %w", err)
@@ -129,9 +123,6 @@ func (db *DB) GetEventsForVault(vaultAddress string, startBlockHash string, endB
 	if err != nil {
 		return nil, fmt.Errorf("failed to get end block: %w", err)
 	}
-	log.Printf("Vault address: %v", vaultAddress)
-	log.Printf("Start block: %v", startBlock)
-	log.Printf("End block: %v", endBlock)
 	query := `
 		SELECT
 			event_nonce,
@@ -234,9 +225,18 @@ func (db *DB) CreateVault(vault *models.VaultState) error {
 			unlocked_balance,
 			locked_balance,
 			stashed_balance,
-			latest_block
+			deployment_date,
+			fossil_client_address,
+			eth_address,
+			option_round_class_hash,
+			alpha,
+			strike_level,
+			latest_block,
+			round_transition_period,
+			auction_duration,
+			round_duration 
 		) VALUES (
-			$1, $2, $3, $4, $5
+			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
 		)`
 
 	if _, err := db.tx.Exec(
@@ -246,7 +246,16 @@ func (db *DB) CreateVault(vault *models.VaultState) error {
 		vault.UnlockedBalance,
 		vault.LockedBalance,
 		vault.StashedBalance,
+		vault.DeploymentDate,
+		vault.FossilClientAddress,
+		vault.EthAddress,
+		vault.OptionRoundClassHash,
+		vault.Alpha,
+		vault.StrikeLevel,
 		vault.LatestBlock,
+		vault.RoundTransitionPeriod,
+		vault.AuctionRunTime,
+		vault.OptionRunTime,
 	); err != nil {
 		return err
 	}
@@ -301,10 +310,6 @@ func (db *DB) UpdateAllLiquidityProvidersBalancesAuctionStart(vaultAddress strin
 
 	query := `UPDATE liquidity_providers SET locked_balance = unlocked_balance, unlocked_balance = 0, latest_block = $1 WHERE vault_address = $2`
 
-	log.Printf("Executing query: %s", query)
-	log.Printf("Parameters: blockNumber=%d, vaultAddress=%s", blockNumber, vaultAddress)
-	log.Printf("Transaction state: %v", db.tx)
-
 	if _, err := db.tx.Exec(
 		context.Background(),
 		query,
@@ -331,10 +336,10 @@ func (db *DB) UpdateAllLiquidityProvidersBalancesAuctionEnd(
 	}
 	query := `UPDATE liquidity_providers
 	SET
-		locked_balance = locked_balance - FLOOR((locked_balance*?)/?),
-		unlocked_balance = unlocked_balance + FLOOR((locked_balance*?))/? + FLOOR((?*locked_balance)/?),
-		latest_block = ?
-	WHERE vault_address = ?;`
+		locked_balance = locked_balance - FLOOR((locked_balance*$1)/$2),
+		unlocked_balance = unlocked_balance + FLOOR((locked_balance*$3)/$4) + FLOOR(($5*locked_balance)/$6),
+		latest_block = $7
+	WHERE vault_address = $8;`
 
 	if _, err := db.tx.Exec(
 		context.Background(),
@@ -381,13 +386,11 @@ func (db *DB) UpdateBiddersAuctionEnd(
 		return err
 	}
 
-	optionsLeft := models.BigInt{Int: new(big.Int).Sub(clearingOptionsSold.Int, big.NewInt(int64(clearingNonce)))}
+	optionsLeft := models.BigInt{Int: clearingOptionsSold.Int}
 	for _, bid := range bidsAbove {
 		if clearingNonce == bid.TreeNonce {
-			log.Printf("optionsLeft %v", optionsLeft)
 			refundableAmount := models.BigInt{Int: new(big.Int).Mul(new(big.Int).Sub(bid.Amount.Int, optionsLeft.Int), clearingPrice.Int)}
-			log.Printf("REFUNDABLEAMOUNT %v", refundableAmount)
-			_, err := db.Conn.Exec(db.ctx, `
+			_, err := db.tx.Exec(db.ctx, `
 			UPDATE option_buyers 
 			SET refundable_amount = refundable_amount + $1, 
 				mintable_options = mintable_options + $2 
@@ -399,8 +402,7 @@ func (db *DB) UpdateBiddersAuctionEnd(
 
 		} else {
 			refundableAmount := models.BigInt{Int: new(big.Int).Mul(new(big.Int).Sub(bid.Price.Int, clearingPrice.Int), bid.Amount.Int)}
-			log.Printf("REFUNDABLEAMOUNT %v", refundableAmount)
-			_, err := db.Conn.Exec(db.ctx, `
+			_, err := db.tx.Exec(db.ctx, `
 				UPDATE option_buyers 
 				SET mintable_options = mintable_options + $1, 
 					refundable_amount = refundable_amount + $2 
@@ -419,8 +421,7 @@ func (db *DB) UpdateBiddersAuctionEnd(
 	}
 	for _, bid := range bidsBelow {
 		refundableAmount := models.BigInt{Int: new(big.Int).Mul(bid.Amount.Int, bid.Price.Int)}
-		log.Printf("REFUNDABLEAMOUNT %v", refundableAmount)
-		_, err := db.Conn.Exec(db.ctx, `
+		_, err := db.tx.Exec(db.ctx, `
 			UPDATE option_buyers 
 			SET refundable_amount = refundable_amount + $1 
 			WHERE address = $2 AND round_address = $3`,
@@ -500,7 +501,6 @@ func (db *DB) UpdateAllLiquidityProvidersBalancesOptionSettle(
 		blockNumber,
 		vaultAddress,
 	)
-	log.Printf("Executed query: %s", query)
 
 	// //	totalPayout := models.BigInt{Int: new(big.Int).Mul(optionsSold.Int, payoutPerOption.Int)}
 	// db.tx.Model(models.LiquidityProviderState{}).Where("vault_address = ? AND locked_balance > 0", vaultAddress).Updates(map[string]interface{}{
@@ -544,7 +544,6 @@ func (db *DB) UpdateAllLiquidityProvidersBalancesOptionSettle(
 		// 		"stashed_balance":  gorm.Expr("stashed_balance + ?", amountToAdd),
 		// 		"unlocked_balance": gorm.Expr("unlocked_balance - ?", amountToAdd),
 		// 	})
-		log.Printf("Executed query: %s", query)
 	}
 
 	/* Use this JOIN query to update this without creating 2 entries on the historic table
@@ -722,7 +721,6 @@ func (db *DB) UpsertQueuedLiquidity(queuedLiquidity *models.QueuedLiquidity) err
 func (db *DB) UpsertLiquidityProviderState(lp *models.LiquidityProviderState, blockNumber uint64) error {
 	// Log the input for debugging
 	// Log the input for debugging
-	log.Printf("Upserting LP: %+v, Block Number: %d", lp, blockNumber)
 
 	// Perform upsert using GORM's Clauses with the transaction object
 	query := `
@@ -934,7 +932,6 @@ func (db *DB) UpdateOptionRoundFields(address string, updates map[string]interfa
 	if _, err := db.tx.Exec(context.Background(), query, values...); err != nil {
 		return fmt.Errorf("failed to update option round fields: %w", err)
 	}
-	log.Printf("Updated option round fields: %v", values)
 	return nil
 }
 
@@ -1069,27 +1066,6 @@ func (db *DB) CreateOptionRound(round *models.OptionRound) error {
 	// }
 	// return nil
 
-	log.Printf(" RoundAddress %v", round.Address)
-	log.Printf(" RoundVaultAddress %v", round.VaultAddress)
-	log.Printf(" RoundRoundID %v", round.RoundID)
-	log.Printf(" RoundCapLevel %v", round.CapLevel)
-	log.Printf(" RoundAuctionStartDate %v", round.AuctionStartDate)
-	log.Printf(" RoundAuctionEndDate %v", round.AuctionEndDate)
-	log.Printf(" RoundOptionSettleDate %v", round.OptionSettleDate)
-	log.Printf(" RoundStartingLiquidity %v", round.StartingLiquidity)
-	log.Printf(" RoundQueuedLiquidity %v", round.QueuedLiquidity)
-	log.Printf(" RoundRemainingLiquidity %v", round.RemainingLiquidity)
-	log.Printf(" RoundAvailableOptions %v", round.AvailableOptions)
-	log.Printf(" RoundClearingPrice %v", round.ClearingPrice)
-	log.Printf(" RoundSettlementPrice %v", round.SettlementPrice)
-	log.Printf(" RoundReservePrice %v", round.ReservePrice)
-	log.Printf(" RoundStrikePrice %v", round.StrikePrice)
-	log.Printf(" RoundOptionsSold %v", round.OptionsSold)
-	log.Printf(" RoundUnsoldLiquidity %v", round.UnsoldLiquidity)
-	log.Printf(" RoundRoundState %v", round.RoundState)
-	log.Printf(" RoundPremiums %v", round.Premiums)
-	log.Printf(" RoundPayoutPerOption %v", round.PayoutPerOption)
-	log.Printf(" RoundDeploymentDate %v", round.DeploymentDate)
 	query := `
 		INSERT INTO option_rounds (
 			address,
@@ -1219,17 +1195,6 @@ func (db *DB) GetBidsAboveClearingForRound(
 	clearingPrice models.BigInt,
 	clearingNonce uint64,
 ) ([]models.Bid, error) {
-	// Original GORM code:
-	// var bids []models.Bid
-	// if err := db.Conn.
-	// 	Where("round_address = ?", roundAddress).
-	// 	Where("price > ? OR (price = ? AND tree_nonce <= ?)", clearingPrice, clearingPrice, clearingNonce).
-	// 	Order("price DESC, tree_nonce ASC").
-	// 	Find(&bids).Error; err != nil {
-	// 	return nil, err
-	// }
-	// log.Printf("BIDS ABOVE %v", bids)
-	// return bids, nil
 
 	query := `
 		SELECT
@@ -1260,6 +1225,7 @@ func (db *DB) GetBidsAboveClearingForRound(
 	var bids []models.Bid
 	for rows.Next() {
 		var bid models.Bid
+
 		if err := rows.Scan(
 			&bid.BuyerAddress,
 			&bid.RoundAddress,
@@ -1277,7 +1243,6 @@ func (db *DB) GetBidsAboveClearingForRound(
 		return nil, fmt.Errorf("error iterating bid rows: %w", err)
 	}
 
-	log.Printf("BIDS ABOVE %v", bids)
 	return bids, nil
 }
 
@@ -1286,15 +1251,6 @@ func (db *DB) GetBidsBelowClearingForRound(
 	clearingPrice models.BigInt,
 	clearingNonce uint64,
 ) ([]models.Bid, error) {
-	// Original GORM code:
-	// var bids []models.Bid
-	// if err := db.Conn.Where("round_address = ?", roundAddress).
-	// 	Where("price < ? OR ( price = ? AND tree_nonce >?) ", clearingPrice, clearingPrice, clearingNonce).
-	// 	Find(&bids).Error; err != nil {
-	// 	return nil, err
-	// }
-	// log.Printf("BIDS ABOVE %v", bids)
-	// return bids, nil
 
 	query := `
 		SELECT
@@ -1341,7 +1297,6 @@ func (db *DB) GetBidsBelowClearingForRound(
 		return nil, fmt.Errorf("error iterating bid rows: %w", err)
 	}
 
-	log.Printf("BIDS BELOW %v", bids)
 	return bids, nil
 }
 

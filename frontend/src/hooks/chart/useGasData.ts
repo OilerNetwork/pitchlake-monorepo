@@ -40,10 +40,6 @@ export const useGasData = () => {
   const { combinedGasData } = useMemo(() => {
     if ((!confirmedGasData && !unconfirmedGasData) || conn === "demo")
       return { combinedGasData: [] };
-
-    console.log("useGasData - confirmedGasData:", confirmedGasData);
-    console.log("useGasData - unconfirmedGasData:", unconfirmedGasData);
-
     // Create a copy of confirmed data
     const confirmedDataCopy = [...(confirmedGasData || [])];
     
@@ -113,8 +109,6 @@ export const useGasData = () => {
       .filter((d) => {
         return d.timestamp <= xMax && d.timestamp >= xMin;
       });
-
-    console.log("useGasData - final combinedGasData:", finalData);
     
     return {
       combinedGasData: finalData,

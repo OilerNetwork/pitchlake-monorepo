@@ -19,7 +19,6 @@ func (db *DB) CatchupDriverEvents() error {
 		}
 		log.Printf("Processing %d driver events", len(events))
 		for _, event := range events {
-			log.Printf("Processing driver event: %v", event)
 			err := db.processDriverEvent(*event)
 			if err != nil {
 				log.Printf("Error processing driver event: %v", err)
@@ -35,10 +34,8 @@ func (db *DB) processDriverEvent(driverEventData models.DriverEvent) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("Processing driver event: %v", driverEventData)
 	switch driverEventData.Type {
 	case "StartBlock":
-		log.Printf("Processing NewBlock driver event")
 		events, err := db.GetEventsByBlockHash(*driverEventData.BlockHash, "ASC")
 		log.Printf("Processing %d events", len(events))
 		if err != nil {

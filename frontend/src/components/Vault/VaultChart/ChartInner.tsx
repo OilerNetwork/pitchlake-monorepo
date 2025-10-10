@@ -42,7 +42,6 @@ const GasPriceChart: React.FC<GasPriceChartProps> = ({ activeLines }) => {
     yTicks,
   } = useChartData(activeLines, vaultState?.address);
 
-  console.log("parsedData",parsedData)
   // Strike and cap for all possibly displayed rounds
 
   //// Hover logic //

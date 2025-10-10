@@ -25,12 +25,6 @@ const useWebsocketChart = ({
   const [confirmedGasData, setConfirmedGasData] = useState<Block[]>([]);
   const [unconfirmedGasData, setUnconfirmedGasData] = useState<Block[]>([]);
 
-  console.log(
-    "TImeRange",
-    lowerTimestampRef.current,
-    upperTimestampRef.current,
-  );
-
   const handleUnconfirmedBlocks = (blockdata: Block[]) => {
     if (blockdata.length === 0) {
       return [] as Block[];
@@ -116,7 +110,6 @@ const useWebsocketChart = ({
     };
 
     ws.current.onmessage = (event) => {
-      console.log("Message from server:", event.data);
       const wsResponse: any = JSON.parse(event.data);
       console.log("Websocket response:", wsResponse);
       if (typeof wsResponse.type === "undefined") {
@@ -165,8 +158,6 @@ const useWebsocketChart = ({
     );
   }, [lowerTimestamp, upperTimestamp, roundDuration, isConnected]);
 
-  console.log("confirmedGasDataws", confirmedGasData);
-  console.log("unconfirmedGasDataws", unconfirmedGasData);
   return {
     confirmedGasData: confirmedGasData,
     unconfirmedGasData: unconfirmedGasData,

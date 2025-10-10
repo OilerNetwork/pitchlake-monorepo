@@ -137,7 +137,7 @@ func (dbc *DB) AuctionStartedIndex(
 	}); err != nil {
 		return err
 	}
-	log.Printf("Updating all liquidity providers balances auction start %v %v", vaultAddress, blockNumber)
+
 	if err := dbc.UpdateAllLiquidityProvidersBalancesAuctionStart(vaultAddress, blockNumber); err != nil {
 		log.Printf("Error updating all liquidity providers balances auction start: %v", err)
 		return err
@@ -154,7 +154,6 @@ func (db *DB) AuctionEndedIndex(
 	roundAddress string,
 	blockNumber, clearingNonce uint64,
 	optionsSold, clearingPrice, premiums, unsoldLiquidity models.BigInt) error {
-	log.Printf("DATA %v %v %v ", unsoldLiquidity, unsoldLiquidity, optionsSold)
 	if err := db.UpdateAllLiquidityProvidersBalancesAuctionEnd(
 		prevStateOptionRound.VaultAddress,
 		prevStateOptionRound.StartingLiquidity,
@@ -226,7 +225,6 @@ func (db *DB) RoundSettledIndex(prevStateOptionRound models.OptionRound, roundAd
 		log.Printf("Error updating all liquidity providers balances option settle: %v", err)
 		return err
 	}
-	log.Printf("PayoutPerOption:%v, SettlementPrice:%v, RemainingLiquidity:%v, OptionsSold:%v", payoutPerOption, settlementPrice, remainingLiquidity, optionsSold)
 	if err := db.UpdateOptionRoundFields(prevStateOptionRound.Address, map[string]interface{}{
 		"settlement_price":    settlementPrice,
 		"payout_per_option":   payoutPerOption,
@@ -270,7 +268,7 @@ func (db *DB) BidUpdatedIndex(roundAddress, bidId string, price models.BigInt, t
 		context.Background(),
 		query,
 		price,
-		treeNonce-1,
+		treeNonce,
 		bidId,
 		roundAddress,
 	); err != nil {

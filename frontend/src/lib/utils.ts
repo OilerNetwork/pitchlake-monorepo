@@ -1,6 +1,6 @@
 import { poseidonHashSingle } from "@scure/starknet";
 import { OptionRoundStateType, FossilParams } from "@/lib/types";
-import { Contract, Provider, ProviderInterface, Result } from "starknet";
+import { Contract, Provider, ProviderInterface, Result, RpcProvider } from "starknet";
 import { FormattedBlockData } from "@/lib/types";
 import { formatUnits } from "ethers";
 import { getDemoRoundId } from "./demo/utils";
@@ -800,13 +800,11 @@ const getCurrentRoundId = async (provider: ProviderInterface, vaultAddress: stri
 export const getHistoricalRoundData = async (
   fromRound: number,
   toRound: number,
-  provider: ProviderInterface,
   vaultAddress: string,
 ) => {
+  const provider = new RpcProvider({ nodeUrl: process.env.NEXT_PUBLIC_RPC_URL_SEPOLIA });
   const roundPromises: Promise<RoundData>[] = [];
   const currentRoundId = await getCurrentRoundId(provider, vaultAddress);
-  
-  console.log("getHistoricalRoundData - currentRoundId:", currentRoundId, "fromRound:", fromRound, "toRound:", toRound);
   
   const stop =
     Number(toRound) > Number(currentRoundId)
@@ -814,15 +812,11 @@ export const getHistoricalRoundData = async (
       : Number(toRound);
   const start = Number(fromRound);
   
-  console.log("Will fetch rounds from", start, "to", stop);
   
   for (let roundId = start; roundId <= stop; roundId++) {
     try {
-      console.log("Fetching round", roundId);
       const roundAddress = await getRoundAddress(roundId, provider, vaultAddress);
-      console.log("Round", roundId, "address:", roundAddress);
       if (!roundAddress) {
-        console.log("No address for round", roundId, "- skipping");
         continue;
       }
       roundPromises.push(
@@ -832,7 +826,6 @@ export const getHistoricalRoundData = async (
         })),
       );
     } catch (error: any) {
-      console.log("Error fetching round", roundId, ":", error.message);
       // If fetching the round address fails, push an error entry
       roundPromises.push(
         Promise.resolve({
