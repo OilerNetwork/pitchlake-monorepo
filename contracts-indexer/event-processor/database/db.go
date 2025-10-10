@@ -280,16 +280,17 @@ func (db *DB) UpdateVaultBalancesAuctionEnd(
 	blockNumber uint64) error {
 	query := `UPDATE vault_states
 		SET
-			unlocked_balance = unlocked_balance + $1,
-			locked_balance = locked_balance - $2,
-			latest_block = $3
-		WHERE address = $4`
+			unlocked_balance = unlocked_balance + $1 + $2,
+			locked_balance = locked_balance - $3,
+			latest_block = $4
+		WHERE address = $5`
 
 	if _, err := db.tx.Exec(
 		context.Background(),
 		query,
 		unsoldLiquidity,
 		premiums,
+		unsoldLiquidity,
 		blockNumber,
 		vaultAddress,
 	); err != nil {
@@ -297,6 +298,7 @@ func (db *DB) UpdateVaultBalancesAuctionEnd(
 	}
 	return nil
 }
+
 func (db *DB) UpdateAllLiquidityProvidersBalancesAuctionStart(vaultAddress string, blockNumber uint64) error {
 
 	query := `UPDATE liquidity_providers SET locked_balance = unlocked_balance, unlocked_balance = 0, latest_block = $1 WHERE vault_address = $2`
@@ -323,7 +325,6 @@ func (db *DB) UpdateAllLiquidityProvidersBalancesAuctionEnd(
 	unsoldLiquidity,
 	premiums models.BigInt,
 	blockNumber uint64) error {
-
 	zero := models.BigInt{
 		Int: big.NewInt(0),
 	}
