@@ -136,7 +136,7 @@ struct WithdrawalQueued {
   // I.e, If this is Alice's first withdrawal queue for the current round, this value is 0
   account_queued_liquidity_before: u256,
   // The amount of ETH (wei) the `bps` represented after the update
-  // I.e, If Alice's locked postion is 10 ETH and she queues 2500 (25%) for withdrawal, this value is 2.5 ETH (in wei)
+  // I.e, If Alice's locked position is 10 ETH and she queues 2500 (25%) for withdrawal, this value is 2.5 ETH (in wei)
   account_queued_liquidity_now: u256,
   // The total amount of ETH (wei) in the vault that was queued for withdrawal after the queue
   vault_queued_liquidity_now: u256,
@@ -526,7 +526,7 @@ pub struct BidUpdated {
 
 ### Refund Losing Bids
 
-Use this function to refund the ETH from losing bids after the auction is over for an `account`. This call will succeed any time after the auction is over, even many moons later if forgotton about. Alice can dispatch Bob's refunds for him. 
+Use this function to refund the ETH from losing bids after the auction is over for an `account`. This call will succeed any time after the auction is over, even many moons later if forgotten about. Alice can dispatch Bob's refunds for him. 
 ```rust 
 fn refund_unused_bids(ref self: TContractState, account: ContractAddress) -> u256;
 ```
