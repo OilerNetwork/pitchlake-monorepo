@@ -5,6 +5,7 @@ import (
 	"junoplugin/models"
 	"junoplugin/network"
 	"junoplugin/plugin/vault"
+	"junoplugin/utils"
 	"log"
 	"sync"
 
@@ -86,9 +87,8 @@ func (bp *Processor) ProcessNewBlock(
 		return err
 	}
 	// Send StartBlock event right before commit
-	bp.sendDriverEvent("StartBlock", block.Hash.String())
 	bp.db.CommitTx()
-
+	bp.sendDriverEvent("StartBlock", block.Hash.String())
 	return nil
 }
 
@@ -114,9 +114,9 @@ func (bp *Processor) RevertBlock(
 	// This was commented out in the original code
 
 	// Send RevertBlock event right before commit
-	bp.sendDriverEvent("RevertBlock", from.Block.Hash.String())
-	bp.db.CommitTx()
 
+	bp.db.CommitTx()
+	bp.sendDriverEvent("RevertBlock", from.Block.Hash.String())
 	return nil
 }
 
@@ -180,7 +180,8 @@ func (bp *Processor) processBlockEvents(block *core.Block) error {
 
 	for _, receipt := range block.Receipts {
 		for _, event := range receipt.Events {
-			fromAddress := event.From.String()
+			fromAddress := utils.FeltToHexString(event.From.Bytes())
+			bp.log.Println("From address", fromAddress)
 			if bp.vaultManager.IsVaultAddress(fromAddress) {
 				err := bp.vaultManager.ProcessVaultEvent(receipt.TransactionHash.String(), fromAddress, event, block.Number, *block.Hash)
 				if err != nil {
@@ -196,6 +197,12 @@ func (bp *Processor) processBlockEvents(block *core.Block) error {
 
 // sendDriverEvent stores a driver event and triggers PostgreSQL NOTIFY
 func (bp *Processor) sendDriverEvent(eventType string, blockHash string) {
+	bp.db.BeginTx()
+	defer func() {
+		if bp.db.IsTxOpen() {
+			bp.db.RollbackTx() // Always rollback if transaction is still open
+		}
+	}()
 	// Store event (triggers NOTIFY automatically via database trigger)
 	err := bp.db.StoreDriverEvent(eventType, blockHash)
 	if err != nil {
@@ -203,4 +210,5 @@ func (bp *Processor) sendDriverEvent(eventType string, blockHash string) {
 	} else {
 		bp.log.Printf("Stored and notified driver event: %s for block %s", eventType, blockHash)
 	}
+	bp.db.CommitTx()
 }

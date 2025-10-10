@@ -63,6 +63,7 @@ func (vm *Manager) LoadVaultFromRegistry(vault *models.VaultRegistry, latestBloc
 
 func (vm *Manager) SyncUnsyncedVaults(latestBlock *models.StarknetBlocks) error {
 	for _, vault := range vm.unsyncedVaults {
+
 		if err := vm.SyncVault(vault, latestBlock); err != nil {
 			return err
 		}
@@ -70,13 +71,17 @@ func (vm *Manager) SyncUnsyncedVaults(latestBlock *models.StarknetBlocks) error 
 	return nil
 }
 func (vm *Manager) SyncVault(vault *models.VaultRegistry, latestBlock *models.StarknetBlocks) error {
-	vm.log.Printf("Syncing vault %s", vault.Address)
-	if err := vm.LoadVaultFromRegistry(vault, latestBlock); err != nil {
-		vm.unsyncedVaults[vault.Address] = vault
+	normalizedVaultAddress, err := utils.NormalizeHexAddress(vault.Address)
+	if err != nil {
+		vm.log.Printf("Error normalizing address %v", err)
 		return err
 	}
-	vm.unsyncedVaults[vault.Address] = nil
-	vm.vaultRegistryMap[vault.Address] = vault
+	if err := vm.LoadVaultFromRegistry(vault, latestBlock); err != nil {
+		vm.unsyncedVaults[normalizedVaultAddress] = vault
+		return err
+	}
+	delete(vm.unsyncedVaults, normalizedVaultAddress)
+	vm.vaultRegistryMap[normalizedVaultAddress] = vault
 	return nil
 }
 
@@ -92,7 +97,12 @@ func (vm *Manager) LoadVaultsFromRegistry(latestBlock *models.StarknetBlocks) er
 		for _, vault := range vaultRegistry {
 			if vault.DeployedBlockNumber > latestBlock.BlockNumber {
 				vm.log.Printf("Vault %s deployed block number is greater than latest block number, skipping", vault.Address)
-				vm.unsyncedVaults[vault.Address] = vault
+				normalizedVaultAddress, err := utils.NormalizeHexAddress(vault.Address)
+				if err != nil {
+					vm.log.Printf("Error normalizing address %v", err)
+					return err
+				}
+				vm.unsyncedVaults[normalizedVaultAddress] = vault
 				continue
 			}
 			if err := vm.SyncVault(vault, latestBlock); err != nil {
@@ -282,7 +292,17 @@ func (vm *Manager) CatchupVault(vault models.VaultRegistry, toBlock *models.Star
 
 // IsVaultAddress checks if an address is a tracked vault
 func (vm *Manager) IsVaultAddress(address string) bool {
-	_, exists := vm.vaultRegistryMap[address]
+	normalizedAddress, err := utils.NormalizeHexAddress(address)
+	if err != nil {
+		vm.log.Printf("Error normalizing address %v", err)
+		return false
+	}
+	vm.log.Println("Checking if address is a vault address", normalizedAddress)
+	for _, vault := range vm.vaultRegistryMap {
+		vm.log.Println("Vault address", vault.Address)
+	}
+
+	_, exists := vm.vaultRegistryMap[normalizedAddress]
 	return exists
 }
 

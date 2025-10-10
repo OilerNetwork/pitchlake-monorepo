@@ -3,3 +3,4 @@ DROP TRIGGER IF EXISTS insert_vault_registry_trigger ON "vault_registry";
 DROP FUNCTION IF EXISTS notify_insert_registry();
 DROP TABLE IF EXISTS "driver_events";
 DROP TABLE IF EXISTS "vault_registry";
+DROP SEQUENCE IF EXISTS driver_events_sequence;

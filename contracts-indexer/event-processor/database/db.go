@@ -11,7 +11,6 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"gorm.io/gorm"
 )
 
 type DB struct {
@@ -195,9 +194,9 @@ func (db *DB) GetEventsByBlockHash(blockHash string, orderBy string) ([]models.E
 			event_data
 		FROM events
 		WHERE block_hash = $1
-		ORDER BY event_nonce $2`
+		ORDER BY event_nonce ` + orderBy
 
-	rows, err := db.Pool.Query(context.Background(), query, blockHash, orderBy)
+	rows, err := db.Pool.Query(context.Background(), query, blockHash)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query events by block number: %w", err)
 	}
@@ -388,10 +387,12 @@ func (db *DB) UpdateBiddersAuctionEnd(
 			log.Printf("optionsLeft %v", optionsLeft)
 			refundableAmount := models.BigInt{Int: new(big.Int).Mul(new(big.Int).Sub(bid.Amount.Int, optionsLeft.Int), clearingPrice.Int)}
 			log.Printf("REFUNDABLEAMOUNT %v", refundableAmount)
-			err := db.UpdateOptionBuyerFields(bid.BuyerAddress, roundAddress, map[string]interface{}{
-				"refundable_amount": gorm.Expr("refundable_amount+?", refundableAmount),
-				"mintable_options":  gorm.Expr("mintable_options+?", optionsLeft),
-			})
+			_, err := db.Conn.Exec(db.ctx, `
+			UPDATE option_buyers 
+			SET refundable_amount = refundable_amount + $1, 
+				mintable_options = mintable_options + $2 
+			WHERE address = $3 AND round_address = $4`,
+				refundableAmount, optionsLeft, bid.BuyerAddress, roundAddress)
 			if err != nil {
 				return err
 			}
@@ -399,10 +400,12 @@ func (db *DB) UpdateBiddersAuctionEnd(
 		} else {
 			refundableAmount := models.BigInt{Int: new(big.Int).Mul(new(big.Int).Sub(bid.Price.Int, clearingPrice.Int), bid.Amount.Int)}
 			log.Printf("REFUNDABLEAMOUNT %v", refundableAmount)
-			err := db.UpdateOptionBuyerFields(bid.BuyerAddress, roundAddress, map[string]interface{}{
-				"mintable_options":  gorm.Expr("mintable_options+?", bid.Amount),
-				"refundable_amount": gorm.Expr("refundable_amount+?", refundableAmount),
-			})
+			_, err := db.Conn.Exec(db.ctx, `
+				UPDATE option_buyers 
+				SET mintable_options = mintable_options + $1, 
+					refundable_amount = refundable_amount + $2 
+				WHERE address = $3 AND round_address = $4`,
+				bid.Amount, refundableAmount, bid.BuyerAddress, roundAddress)
 			if err != nil {
 				return err
 			}
@@ -417,10 +420,11 @@ func (db *DB) UpdateBiddersAuctionEnd(
 	for _, bid := range bidsBelow {
 		refundableAmount := models.BigInt{Int: new(big.Int).Mul(bid.Amount.Int, bid.Price.Int)}
 		log.Printf("REFUNDABLEAMOUNT %v", refundableAmount)
-		err := db.UpdateOptionBuyerFields(bid.BuyerAddress, roundAddress, map[string]interface{}{
-
-			"refundable_amount": gorm.Expr("refundable_amount+?", refundableAmount),
-		})
+		_, err := db.Conn.Exec(db.ctx, `
+			UPDATE option_buyers 
+			SET refundable_amount = refundable_amount + $1 
+			WHERE address = $2 AND round_address = $3`,
+			refundableAmount, bid.BuyerAddress, roundAddress)
 		if err != nil {
 			return err
 		}

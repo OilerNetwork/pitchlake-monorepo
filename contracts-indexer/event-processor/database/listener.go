@@ -7,6 +7,7 @@ import (
 	"event-processor/models"
 	"fmt"
 	"log"
+	"math/big"
 )
 
 func (db *DB) Listener() error {
@@ -91,7 +92,31 @@ func (db *DB) processVaultEvent(
 	var err error
 	junoEvent := adaptors.GetJunoEvent(event)
 	log.Printf("event.EventName %v", event.EventName)
+	fossilClientAddress, ethAddress, optionRoundClassHash, alpha, strikeLevel, roundTransitionDuration, auctionDuration, roundDuration := adaptors.ContractDeployed(junoEvent)
 	switch event.EventName {
+
+	case "ContractDeployed":
+		vault := models.VaultState{
+
+			CurrentRound:          models.BigInt{Int: big.NewInt(1)},
+			UnlockedBalance:       models.BigInt{Int: big.NewInt(0)},
+			LockedBalance:         models.BigInt{Int: big.NewInt(0)},
+			StashedBalance:        models.BigInt{Int: big.NewInt(0)},
+			Address:               event.VaultAddress,
+			LatestBlock:           models.BigInt{Int: big.NewInt(int64(event.BlockNumber))},
+			FossilClientAddress:   fossilClientAddress,
+			EthAddress:            ethAddress,
+			OptionRoundClassHash:  optionRoundClassHash,
+			Alpha:                 alpha,
+			StrikeLevel:           strikeLevel,
+			RoundTransitionPeriod: roundTransitionDuration,
+			AuctionRunTime:        auctionDuration,
+			OptionRunTime:         roundDuration,
+			DeploymentDate:        event.BlockNumber,
+		}
+		if err := db.CreateVault(&vault); err != nil {
+			return err
+		}
 	case "Deposit": //Add withdrawQueue and collect queue case based on event
 		lpAddress,
 			lpUnlocked,
@@ -202,6 +227,8 @@ func (db *DB) processOptionRoundEvent(
 		)
 	case "BidPlaced":
 		bid, buyer := adaptors.BidPlaced(junoEvent)
+		bid.RoundAddress = prevStateOptionRound.Address
+		buyer.RoundAddress = prevStateOptionRound.Address
 		err = db.BidPlacedIndex(bid, buyer)
 	case "BidUpdated":
 		bidId, price, _, treeNonceNew := adaptors.BidUpdated(junoEvent)
