@@ -270,7 +270,7 @@ func (db *DB) BidUpdatedIndex(roundAddress, bidId string, price models.BigInt, t
 		context.Background(),
 		query,
 		price,
-		treeNonce-1,
+		treeNonce,
 		bidId,
 		roundAddress,
 	); err != nil {

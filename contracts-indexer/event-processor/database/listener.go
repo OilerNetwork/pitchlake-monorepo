@@ -7,6 +7,7 @@ import (
 	"event-processor/models"
 	"fmt"
 	"log"
+	"math/big"
 )
 
 func (db *DB) Listener() error {
@@ -91,10 +92,10 @@ func (db *DB) processVaultEvent(
 	var err error
 	junoEvent := adaptors.GetJunoEvent(event)
 	log.Printf("event.EventName %v", event.EventName)
-	fossilClientAddress, ethAddress, optionRoundClassHash, alpha, strikeLevel, roundTransitionDuration, auctionDuration, roundDuration := adaptors.ContractDeployed(junoEvent)
 	switch event.EventName {
 
 	case "ContractDeployed":
+		fossilClientAddress, ethAddress, optionRoundClassHash, alpha, strikeLevel, roundTransitionDuration, auctionDuration, roundDuration := adaptors.ContractDeployed(junoEvent)
 		vault := models.VaultState{
 
 			CurrentRound:          models.BigInt{Int: big.NewInt(1)},

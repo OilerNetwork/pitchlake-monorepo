@@ -20,6 +20,8 @@ func (db *DB) CatchupDriverEvents() error {
 		log.Printf("Processing %d driver events", len(events))
 		for _, event := range events {
 			log.Printf("Processing driver event: %v", event)
+			if event.SequenceIndex > 3 {
+			}
 			err := db.processDriverEvent(*event)
 			if err != nil {
 				log.Printf("Error processing driver event: %v", err)

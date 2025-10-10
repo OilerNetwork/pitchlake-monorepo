@@ -91,15 +91,12 @@ func (db *DB) GetUnprocessedDriverEvents() ([]*models.DriverEvent, error) {
 	log.Printf("Unprocessed driver events found: %v", rows)
 	defer rows.Close()
 	for rows.Next() {
-		log.Printf("Scanning driver event")
 		var event models.DriverEvent
 		if err := rows.Scan(&event.ID, &event.SequenceIndex, &event.Type, &event.Timestamp, &event.IsProcessed, &event.BlockHash, &event.VaultAddress, &event.StartBlockHash, &event.EndBlockHash); err != nil {
 			log.Printf("Error scanning driver event: %v", err)
 			return nil, fmt.Errorf("failed to scan driver event: %w", err)
 		}
-		log.Printf("Driver event found: %v", event)
 		events = append(events, &event)
-		log.Printf("Unprocessed driver event found: %v", event)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("error iterating driver event rows: %w", err)
@@ -234,9 +231,18 @@ func (db *DB) CreateVault(vault *models.VaultState) error {
 			unlocked_balance,
 			locked_balance,
 			stashed_balance,
-			latest_block
+			deployment_date,
+			fossil_client_address,
+			eth_address,
+			option_round_class_hash,
+			alpha,
+			strike_level,
+			latest_block,
+			round_transition_period,
+			auction_duration,
+			round_duration 
 		) VALUES (
-			$1, $2, $3, $4, $5
+			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
 		)`
 
 	if _, err := db.tx.Exec(
@@ -246,7 +252,16 @@ func (db *DB) CreateVault(vault *models.VaultState) error {
 		vault.UnlockedBalance,
 		vault.LockedBalance,
 		vault.StashedBalance,
+		vault.DeploymentDate,
+		vault.FossilClientAddress,
+		vault.EthAddress,
+		vault.OptionRoundClassHash,
+		vault.Alpha,
+		vault.StrikeLevel,
 		vault.LatestBlock,
+		vault.RoundTransitionPeriod,
+		vault.AuctionRunTime,
+		vault.OptionRunTime,
 	); err != nil {
 		return err
 	}
@@ -331,10 +346,10 @@ func (db *DB) UpdateAllLiquidityProvidersBalancesAuctionEnd(
 	}
 	query := `UPDATE liquidity_providers
 	SET
-		locked_balance = locked_balance - FLOOR((locked_balance*?)/?),
-		unlocked_balance = unlocked_balance + FLOOR((locked_balance*?))/? + FLOOR((?*locked_balance)/?),
-		latest_block = ?
-	WHERE vault_address = ?;`
+		locked_balance = locked_balance - FLOOR((locked_balance*$1)/$2),
+		unlocked_balance = unlocked_balance + FLOOR((locked_balance*$3)/$4) + FLOOR(($5*locked_balance)/$6),
+		latest_block = $7
+	WHERE vault_address = $8;`
 
 	if _, err := db.tx.Exec(
 		context.Background(),
@@ -381,13 +396,19 @@ func (db *DB) UpdateBiddersAuctionEnd(
 		return err
 	}
 
-	optionsLeft := models.BigInt{Int: new(big.Int).Sub(clearingOptionsSold.Int, big.NewInt(int64(clearingNonce)))}
+	optionsLeft := models.BigInt{Int: clearingOptionsSold.Int}
 	for _, bid := range bidsAbove {
+		log.Printf("optionsLeft %v", optionsLeft)
+		log.Printf("clearingPrice %v", clearingPrice)
+		log.Printf("bid.Amount %v", bid.Amount)
+		log.Printf("bid.BuyerAddress %v", bid.BuyerAddress)
+		log.Printf("roundAddress %v", roundAddress)
+		log.Printf("clearingNonce %v", clearingNonce)
+		log.Printf("bid.TreeNonce %v", bid.TreeNonce)
 		if clearingNonce == bid.TreeNonce {
-			log.Printf("optionsLeft %v", optionsLeft)
 			refundableAmount := models.BigInt{Int: new(big.Int).Mul(new(big.Int).Sub(bid.Amount.Int, optionsLeft.Int), clearingPrice.Int)}
 			log.Printf("REFUNDABLEAMOUNT %v", refundableAmount)
-			_, err := db.Conn.Exec(db.ctx, `
+			_, err := db.tx.Exec(db.ctx, `
 			UPDATE option_buyers 
 			SET refundable_amount = refundable_amount + $1, 
 				mintable_options = mintable_options + $2 
@@ -400,7 +421,7 @@ func (db *DB) UpdateBiddersAuctionEnd(
 		} else {
 			refundableAmount := models.BigInt{Int: new(big.Int).Mul(new(big.Int).Sub(bid.Price.Int, clearingPrice.Int), bid.Amount.Int)}
 			log.Printf("REFUNDABLEAMOUNT %v", refundableAmount)
-			_, err := db.Conn.Exec(db.ctx, `
+			_, err := db.tx.Exec(db.ctx, `
 				UPDATE option_buyers 
 				SET mintable_options = mintable_options + $1, 
 					refundable_amount = refundable_amount + $2 
@@ -420,7 +441,7 @@ func (db *DB) UpdateBiddersAuctionEnd(
 	for _, bid := range bidsBelow {
 		refundableAmount := models.BigInt{Int: new(big.Int).Mul(bid.Amount.Int, bid.Price.Int)}
 		log.Printf("REFUNDABLEAMOUNT %v", refundableAmount)
-		_, err := db.Conn.Exec(db.ctx, `
+		_, err := db.tx.Exec(db.ctx, `
 			UPDATE option_buyers 
 			SET refundable_amount = refundable_amount + $1 
 			WHERE address = $2 AND round_address = $3`,
@@ -1260,6 +1281,7 @@ func (db *DB) GetBidsAboveClearingForRound(
 	var bids []models.Bid
 	for rows.Next() {
 		var bid models.Bid
+
 		if err := rows.Scan(
 			&bid.BuyerAddress,
 			&bid.RoundAddress,
@@ -1270,6 +1292,7 @@ func (db *DB) GetBidsAboveClearingForRound(
 		); err != nil {
 			return nil, fmt.Errorf("failed to scan bid: %w", err)
 		}
+		log.Printf("BID AMOUNT %v", bid.Amount)
 		bids = append(bids, bid)
 	}
 
