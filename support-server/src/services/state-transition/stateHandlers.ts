@@ -134,7 +134,7 @@ export class StateHandlers {
 
           const requestData =
             await vaultContract.get_request_to_start_first_round();
-          const response = await this.getRequestFunction()(
+          const response = await sendMockFossilRequest(
             formatRawFossilRequest(requestData),
             vaultContract,
             this.logger,
@@ -393,7 +393,7 @@ export class StateHandlers {
             await vaultContract.get_request_to_settle_round();
           const requestData = formatRawFossilRequest(rawRequestData);
 
-          const response = await this.getRequestFunction()(
+          const response = await sendMockFossilRequest(
             requestData,
             vaultContract,
             this.logger,
