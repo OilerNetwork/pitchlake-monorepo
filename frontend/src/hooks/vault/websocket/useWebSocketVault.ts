@@ -7,7 +7,11 @@ import {
   Bid,
 } from "@/lib/types";
 import { useAccount } from "@starknet-react/core";
-import { getPerformanceLP, getPerformanceOB, removeLeadingZeroes } from "@/lib/utils";
+import {
+  getPerformanceLP,
+  getPerformanceOB,
+  removeLeadingZeroes,
+} from "@/lib/utils";
 
 type InitialPayload = {
   payloadType: string;
@@ -43,14 +47,14 @@ const useWebSocketVault = (conn: string, vaultAddress?: string) => {
   >(null);
   const ws = useRef<WebSocket | null>(null);
   const { address } = useAccount();
-  const accountAddress=address?removeLeadingZeroes(address):undefined
+  const accountAddress = address ? removeLeadingZeroes(address) : undefined;
   const [isLoaded, setIsLoaded] = useState(false);
   useEffect(() => {
     setIsLoaded(true);
   }, []);
 
   useEffect(() => {
-    if (conn === "ws" && isLoaded && vaultAddress) {
+    if (conn === "ws" && isLoaded && vaultAddress && accountAddress) {
       ws.current = new WebSocket(
         `${process.env.NEXT_PUBLIC_WS_URL}/subscribeVault`,
       );
@@ -59,11 +63,10 @@ const useWebSocketVault = (conn: string, vaultAddress?: string) => {
         console.log("WebSocket connection established");
         ws.current?.send(
           JSON.stringify({
-            address: accountAddress,
+            address: removeLeadingZeroes(accountAddress),
             userType: "ob", // Adjust based on your logic
             vaultAddress: removeLeadingZeroes(vaultAddress),
-          })
-
+          }),
         );
       };
 
@@ -96,7 +99,7 @@ const useWebSocketVault = (conn: string, vaultAddress?: string) => {
     return () => {
       ws.current?.close();
     };
-  }, [conn, isLoaded, vaultAddress]);
+  }, [conn, isLoaded, vaultAddress, accountAddress]);
 
   useEffect(() => {
     if (ws.current?.readyState === 1)

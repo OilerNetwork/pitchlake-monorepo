@@ -133,7 +133,7 @@ func (db *DB) GetEventsForVault(vaultAddress string, startBlockHash string, endB
 	log.Printf("Start block: %v", startBlock)
 	log.Printf("End block: %v", endBlock)
 	query := `
-		SELECT 
+		SELECT
 			event_nonce,
 			block_hash,
 			transaction_hash,
@@ -183,7 +183,7 @@ func (db *DB) Shutdown() {
 func (db *DB) GetEventsByBlockHash(blockHash string, orderBy string) ([]models.Event, error) {
 
 	query := `
-		SELECT 
+		SELECT
 			event_nonce,
 			block_hash,
 			transaction_hash,
@@ -279,16 +279,17 @@ func (db *DB) UpdateVaultBalancesAuctionEnd(
 	blockNumber uint64) error {
 	query := `UPDATE vault_states
 		SET
-			unlocked_balance = unlocked_balance + $1,
-			locked_balance = locked_balance - $2,
-			latest_block = $3
-		WHERE address = $4`
+			unlocked_balance = unlocked_balance + $1 + $2,
+			locked_balance = locked_balance - $3,
+			latest_block = $4
+		WHERE address = $5`
 
 	if _, err := db.tx.Exec(
 		context.Background(),
 		query,
 		unsoldLiquidity,
 		premiums,
+		unsoldLiquidity,
 		blockNumber,
 		vaultAddress,
 	); err != nil {
@@ -322,7 +323,6 @@ func (db *DB) UpdateAllLiquidityProvidersBalancesAuctionEnd(
 	unsoldLiquidity,
 	premiums models.BigInt,
 	blockNumber uint64) error {
-
 	zero := models.BigInt{
 		Int: big.NewInt(0),
 	}
@@ -438,7 +438,7 @@ func (db *DB) UpdateVaultBalancesOptionSettle(
 	remainingLiquidityNotStashed models.BigInt,
 	blockNumber uint64,
 ) error {
-	query := `UPDATE vault_states 
+	query := `UPDATE vault_states
 	SET
 		stashed_balance = stashed_balance + $1,
 		unlocked_balance = unlocked_balance + $2,
@@ -482,9 +482,9 @@ func (db *DB) UpdateAllLiquidityProvidersBalancesOptionSettle(
 	query := `UPDATE liquidity_providers SET
 	locked_balance = 0,
 	unlocked_balance = unlocked_balance + FLOOR(
-		CASE 
-			WHEN $1::numeric - $2::numeric <> 0 
-			THEN locked_balance * $3 / ($4::numeric - $5::numeric) 
+		CASE
+			WHEN $1::numeric - $2::numeric <> 0
+			THEN locked_balance * $3 / ($4::numeric - $5::numeric)
 			ELSE locked_balance
 		END),
 	latest_block = $6
@@ -655,7 +655,7 @@ func (db *DB) CreateOptionBuyer(buyer *models.OptionBuyer) error {
 			has_refunded
 		) VALUES (
 			$1, $2, $3, $4, $5, $6
-		) ON CONFLICT (address, round_address) 
+		) ON CONFLICT (address, round_address)
 		DO NOTHING;`
 
 	_, err := db.tx.Exec(
@@ -687,7 +687,7 @@ func (db *DB) UpsertQueuedLiquidity(queuedLiquidity *models.QueuedLiquidity) err
 			queued_liquidity
 		) VALUES (
 			$1, $2, $3, $4
-		) ON CONFLICT (address, round_address) 
+		) ON CONFLICT (address, round_address)
 		DO UPDATE SET
 			bps = EXCLUDED.bps,
 			queued_liquidity = EXCLUDED.queued_liquidity;`
@@ -733,7 +733,7 @@ func (db *DB) UpsertLiquidityProviderState(lp *models.LiquidityProviderState, bl
 			latest_block
 		) VALUES (
 			$1, $2, $3, $4
-		) ON CONFLICT (address, vault_address) 
+		) ON CONFLICT (address, vault_address)
 		DO UPDATE SET unlocked_balance = EXCLUDED.unlocked_balance, latest_block = EXCLUDED.latest_block;`
 
 	_, err := db.tx.Exec(
@@ -847,7 +847,7 @@ func (db *DB) GetOptionRoundByAddress(address string) (*models.OptionRound, erro
 	// return &or, nil
 
 	query := `
-		SELECT 
+		SELECT
 			address,
 			vault_address,
 			round_id,
@@ -869,7 +869,7 @@ func (db *DB) GetOptionRoundByAddress(address string) (*models.OptionRound, erro
 			premiums,
 			payout_per_option,
 			deployment_date
-		FROM option_rounds 
+		FROM option_rounds
 		WHERE address = $1
 		LIMIT 1;`
 
@@ -1174,7 +1174,7 @@ func (db *DB) GetBidsForRound(roundAddress string) ([]models.Bid, error) {
 	// return bids, nil
 
 	query := `
-		SELECT 
+		SELECT
 			buyer_address,
 			round_address,
 			bid_id,
@@ -1232,7 +1232,7 @@ func (db *DB) GetBidsAboveClearingForRound(
 	// return bids, nil
 
 	query := `
-		SELECT 
+		SELECT
 			buyer_address,
 			round_address,
 			bid_id,
@@ -1297,7 +1297,7 @@ func (db *DB) GetBidsBelowClearingForRound(
 	// return bids, nil
 
 	query := `
-		SELECT 
+		SELECT
 			buyer_address,
 			round_address,
 			bid_id,
@@ -1349,7 +1349,7 @@ func (db *DB) GetAllQueuedLiquidityForRound(roundAddress string) ([]models.Queue
 
 	var queuedAmounts []models.QueuedLiquidity
 	query := `
-		SELECT 
+		SELECT
 			address,
 			round_address,
 			bps,
@@ -1407,10 +1407,10 @@ func (db *DB) RevertVaultState(address string, blockNumber uint64) error {
 
 	// Check if there is a vault state with the given last_block
 	query := `
-		SELECT 
-			address 
-		FROM vault_states 
-		WHERE address = $1 AND last_block = $2 
+		SELECT
+			address
+		FROM vault_states
+		WHERE address = $1 AND last_block = $2
 		LIMIT 1;`
 
 	var vaultAddress string
@@ -1424,7 +1424,7 @@ func (db *DB) RevertVaultState(address string, blockNumber uint64) error {
 
 	// Delete the historic record
 	deleteQuery := `
-		DELETE FROM vaults 
+		DELETE FROM vaults
 		WHERE address = $1 AND block_number = $2;`
 
 	if _, err := db.tx.Exec(context.Background(), deleteQuery, address, blockNumber); err != nil {
@@ -1433,14 +1433,14 @@ func (db *DB) RevertVaultState(address string, blockNumber uint64) error {
 
 	// Get the most recent vault record
 	selectQuery := `
-		SELECT 
+		SELECT
 			unlocked_balance,
 			locked_balance,
 			stashed_balance,
 			block_number
-		FROM vaults 
-		WHERE address = $1 
-		ORDER BY block_number DESC 
+		FROM vaults
+		WHERE address = $1
+		ORDER BY block_number DESC
 		LIMIT 1;`
 
 	var unlockedBalance, lockedBalance, stashedBalance models.BigInt
@@ -1461,8 +1461,8 @@ func (db *DB) RevertVaultState(address string, blockNumber uint64) error {
 
 	// Update the vault state
 	updateQuery := `
-		UPDATE vault_states 
-		SET 
+		UPDATE vault_states
+		SET
 			unlocked_balance = $1,
 			locked_balance = $2,
 			stashed_balance = $3,
@@ -1523,9 +1523,9 @@ func (db *DB) RevertAllLPState(vaultAddress string, blockNumber uint64) error {
 
 	// Get all LP states for the vault address with the given last_block
 	query := `
-		SELECT 
-			address 
-		FROM liquidity_providers 
+		SELECT
+			address
+		FROM liquidity_providers
 		WHERE vault_address = $1 AND last_block = $2;`
 
 	rows, err := db.tx.Query(context.Background(), query, vaultAddress, blockNumber)
@@ -1551,7 +1551,7 @@ func (db *DB) RevertAllLPState(vaultAddress string, blockNumber uint64) error {
 	for _, address := range lpAddresses {
 		// Delete the historic record
 		deleteQuery := `
-			DELETE FROM liquidity_providers 
+			DELETE FROM liquidity_providers
 			WHERE vault_address = $1 AND address = $2 AND block_number = $3;`
 
 		if _, err := db.tx.Exec(context.Background(), deleteQuery, vaultAddress, address, blockNumber); err != nil {
@@ -1560,14 +1560,14 @@ func (db *DB) RevertAllLPState(vaultAddress string, blockNumber uint64) error {
 
 		// Get the most recent LP record
 		selectQuery := `
-			SELECT 
+			SELECT
 				unlocked_balance,
 				locked_balance,
 				stashed_balance,
 				block_number
-			FROM liquidity_providers 
+			FROM liquidity_providers
 			WHERE vault_address = $1 AND address = $2
-			ORDER BY block_number DESC 
+			ORDER BY block_number DESC
 			LIMIT 1;`
 
 		var unlockedBalance, lockedBalance, stashedBalance models.BigInt
@@ -1588,8 +1588,8 @@ func (db *DB) RevertAllLPState(vaultAddress string, blockNumber uint64) error {
 
 		// Update the LP state
 		updateQuery := `
-			UPDATE liquidity_providers 
-			SET 
+			UPDATE liquidity_providers
+			SET
 				unlocked_balance = $1,
 				locked_balance = $2,
 				stashed_balance = $3,
@@ -1650,10 +1650,10 @@ func (db *DB) RevertLPState(vaultAddress, address string, blockNumber uint64) er
 
 	// Check if there is an LP state with the given last_block
 	query := `
-		SELECT 
-			address 
-		FROM liquidity_providers 
-		WHERE vault_address = $1 AND address = $2 AND last_block = $3 
+		SELECT
+			address
+		FROM liquidity_providers
+		WHERE vault_address = $1 AND address = $2 AND last_block = $3
 		LIMIT 1;`
 
 	var lpAddress string
@@ -1667,7 +1667,7 @@ func (db *DB) RevertLPState(vaultAddress, address string, blockNumber uint64) er
 
 	// Delete the historic record
 	deleteQuery := `
-		DELETE FROM liquidity_providers 
+		DELETE FROM liquidity_providers
 		WHERE vault_address = $1 AND address = $2 AND block_number = $3;`
 
 	if _, err := db.tx.Exec(context.Background(), deleteQuery, vaultAddress, address, blockNumber); err != nil {
@@ -1676,14 +1676,14 @@ func (db *DB) RevertLPState(vaultAddress, address string, blockNumber uint64) er
 
 	// Get the most recent LP record
 	selectQuery := `
-		SELECT 
+		SELECT
 			unlocked_balance,
 			locked_balance,
 			stashed_balance,
 			block_number
-		FROM liquidity_providers 
+		FROM liquidity_providers
 		WHERE vault_address = $1 AND address = $2
-		ORDER BY block_number DESC 
+		ORDER BY block_number DESC
 		LIMIT 1;`
 
 	var unlockedBalance, lockedBalance, stashedBalance models.BigInt
@@ -1704,8 +1704,8 @@ func (db *DB) RevertLPState(vaultAddress, address string, blockNumber uint64) er
 
 	// Update the LP state
 	updateQuery := `
-		UPDATE liquidity_providers 
-		SET 
+		UPDATE liquidity_providers
+		SET
 			unlocked_balance = $1,
 			locked_balance = $2,
 			stashed_balance = $3,

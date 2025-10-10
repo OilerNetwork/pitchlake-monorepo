@@ -681,7 +681,10 @@ pub mod Vault {
         }
 
         fn emit_option_round_event(
-            ref self: ContractState, round_id: u64, event_name: felt252, option_round_event: OptionRoundEvent,
+            ref self: ContractState,
+            round_id: u64,
+            event_name: felt252,
+            option_round_event: OptionRoundEvent,
         ) {
             // @dev Get the round dispatcher to validate the round exists
             let _round = self.get_round_dispatcher(round_id);

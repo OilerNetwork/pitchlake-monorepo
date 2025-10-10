@@ -8,8 +8,7 @@ import {
   CheckIcon,
 } from "@/components/Icons";
 import { History } from "lucide-react";
-import GasPriceChart from "@/components/Vault/VaultChart/ChartInner";
-import ChartInnerNew from "@/components/Vault/VaultChart/ChartInnerNew";
+import ChartInner from "@/components/Vault/VaultChart/ChartInner";
 import Hoverable from "@/components/BaseComponents/Hoverable";
 import useVaultState from "@/hooks/vault/states/useVaultState";
 import { useNewContext } from "@/context/NewProvider";
@@ -90,7 +89,7 @@ const RoundPerformanceChart = () => {
   const roundHeaderFormatter = (
     selectedRound: string | undefined,
     currentRoundId: string | undefined,
-    conn: string
+    conn: string,
   ): string => {
     if (!selectedRound || !currentRoundId) return "";
 
@@ -121,7 +120,7 @@ const RoundPerformanceChart = () => {
             {roundHeaderFormatter(
               selectedRound.toString(),
               vaultState?.currentRoundId.toString(),
-              conn
+              conn,
             )}
           </p>
           <div className="flex items-center ">
@@ -208,7 +207,9 @@ const RoundPerformanceChart = () => {
         >
           {[
             ...Array(
-              vaultState?.currentRoundId ? Number(vaultState.currentRoundId) : 1
+              vaultState?.currentRoundId
+                ? Number(vaultState.currentRoundId)
+                : 1,
             ),
           ]
             .map((_, index) => index)
@@ -255,10 +256,10 @@ const RoundPerformanceChart = () => {
                      line === "CAP_LEVEL"
                        ? "text-success"
                        : line === "BASEFEE"
-                       ? "text-greyscale"
-                       : line === "STRIKE"
-                       ? "text-warning-300"
-                       : "text-error-300"
+                         ? "text-greyscale"
+                         : line === "STRIKE"
+                           ? "text-warning-300"
+                           : "text-error-300"
                    }`}
                 onClick={() => toggleLine(line)}
               >
@@ -275,7 +276,7 @@ const RoundPerformanceChart = () => {
       </div>
 
       {/* Chart */}
-      <ChartInnerNew activeLines={activeLines} />
+      <ChartInner activeLines={activeLines} />
     </div>
   );
 };

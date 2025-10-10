@@ -78,11 +78,9 @@ func WithdrawalQueued(event models.JunoEvent) (string, models.BigInt, uint64, mo
 	lpAddress := FeltToHexString(event.Keys[1].Bytes())
 	bps := FeltToBigInt(event.Data[0].Bytes())
 	roundId := event.Data[1].Uint64()
-	accountQueuedNow := CombineFeltToBigInt(event.Data[3].Bytes(), event.Data[2].Bytes())
-	vaultQueuedNow := CombineFeltToBigInt(event.Data[5].Bytes(), event.Data[4].Bytes())
-
-	//Change this when using new cont
 	accountQueuedBefore := CombineFeltToBigInt(event.Data[3].Bytes(), event.Data[2].Bytes())
+	accountQueuedNow := CombineFeltToBigInt(event.Data[5].Bytes(), event.Data[4].Bytes())
+	vaultQueuedNow := CombineFeltToBigInt(event.Data[7].Bytes(), event.Data[6].Bytes())
 
 	return lpAddress, bps, roundId, accountQueuedBefore, accountQueuedNow, vaultQueuedNow
 }
@@ -150,13 +148,14 @@ func OptionRoundSettled(event models.JunoEvent) (models.BigInt, models.BigInt) {
 }
 
 func BidPlaced(event models.JunoEvent) (models.Bid, models.OptionBuyer) {
+	obAddress := FeltToHexString(event.Data[3].Bytes())
 	bidId := FeltToHexString(event.Data[4].Bytes())
-	bidAmount := CombineFeltToBigInt(event.Data[5].Bytes(), event.Data[4].Bytes())
-	bidPrice := CombineFeltToBigInt(event.Data[7].Bytes(), event.Data[6].Bytes())
-	treeNonce := event.Data[8].Uint64()
+	bidAmount := CombineFeltToBigInt(event.Data[6].Bytes(), event.Data[5].Bytes())
+	bidPrice := CombineFeltToBigInt(event.Data[8].Bytes(), event.Data[7].Bytes())
+	treeNonce := event.Data[9].Uint64()
 
 	bid := models.Bid{
-		BuyerAddress: FeltToHexString(event.Data[3].Bytes()),
+		BuyerAddress: obAddress,
 		BidID:        bidId,
 		RoundAddress: "",
 		Amount:       bidAmount,
@@ -165,7 +164,7 @@ func BidPlaced(event models.JunoEvent) (models.Bid, models.OptionBuyer) {
 	}
 
 	buyer := models.OptionBuyer{
-		Address:      FeltToHexString(event.Data[3].Bytes()),
+		Address:      obAddress,
 		RoundAddress: "",
 	}
 
@@ -173,30 +172,30 @@ func BidPlaced(event models.JunoEvent) (models.Bid, models.OptionBuyer) {
 }
 
 func BidUpdated(event models.JunoEvent) (string, models.BigInt, uint64, uint64) {
-	bidId := event.Data[0].String()
-	price := CombineFeltToBigInt(event.Data[4].Bytes(), event.Data[3].Bytes())
-	treeNonceOld := event.Data[5].Uint64()
-	treeNonceNew := event.Data[6].Uint64()
+	bidId := event.Data[4].String()
+	priceIncrease := CombineFeltToBigInt(event.Data[6].Bytes(), event.Data[5].Bytes())
+	treeNonceOld := event.Data[7].Uint64()
+	treeNonceNew := event.Data[8].Uint64()
 
-	return bidId, price, treeNonceOld, treeNonceNew
+	return bidId, priceIncrease, treeNonceOld, treeNonceNew
 }
 
 func OptionsMinted(event models.JunoEvent) (string, models.BigInt) {
-	buyerAddress := FeltToHexString(event.Keys[3].Bytes())
-	mintedAmount := CombineFeltToBigInt(event.Data[3].Bytes(), event.Data[2].Bytes())
-	return buyerAddress, mintedAmount
+	obAddress := FeltToHexString(event.Data[3].Bytes())
+	mintedAmount := CombineFeltToBigInt(event.Data[5].Bytes(), event.Data[4].Bytes())
+	return obAddress, mintedAmount
 }
 
 func OptionsExercised(event models.JunoEvent) (string, models.BigInt, models.BigInt, models.BigInt) {
-	buyerAddress := FeltToHexString(event.Keys[3].Bytes())
-	totalOptionsExercised := CombineFeltToBigInt(event.Data[3].Bytes(), event.Data[2].Bytes())
-	mintableOptionsExercised := CombineFeltToBigInt(event.Data[5].Bytes(), event.Data[4].Bytes())
-	exercisedAmount := CombineFeltToBigInt(event.Data[7].Bytes(), event.Data[6].Bytes())
-	return buyerAddress, totalOptionsExercised, mintableOptionsExercised, exercisedAmount
+	obAddress := FeltToHexString(event.Data[3].Bytes())
+	totalOptionsExercised := CombineFeltToBigInt(event.Data[5].Bytes(), event.Data[4].Bytes())
+	mintableOptionsExercised := CombineFeltToBigInt(event.Data[7].Bytes(), event.Data[6].Bytes())
+	exercisedAmount := CombineFeltToBigInt(event.Data[9].Bytes(), event.Data[8].Bytes())
+	return obAddress, totalOptionsExercised, mintableOptionsExercised, exercisedAmount
 }
 
 func UnusedBidsRefunded(event models.JunoEvent) (string, models.BigInt) {
-	buyerAddress := FeltToHexString(event.Keys[3].Bytes())
-	refundedAmount := CombineFeltToBigInt(event.Data[3].Bytes(), event.Data[2].Bytes())
+	buyerAddress := FeltToHexString(event.Data[3].Bytes())
+	refundedAmount := CombineFeltToBigInt(event.Data[4].Bytes(), event.Data[3].Bytes())
 	return buyerAddress, refundedAmount
 }

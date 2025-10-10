@@ -100,7 +100,6 @@ func (db *DB) StashWithdrawnIndex(
 }
 
 func (db *DB) RoundDeployedIndex(optionRound models.OptionRound) error {
-
 	if err := db.CreateOptionRound(&optionRound); err != nil {
 		return err
 	}
@@ -262,7 +261,7 @@ func (db *DB) BidUpdatedIndex(roundAddress, bidId string, price models.BigInt, t
 
 	query := `
 		UPDATE bids
-		SET 
+		SET
 			price = price + $1,
 			tree_nonce = $2
 		WHERE bid_id = $3 AND round_address = $4`

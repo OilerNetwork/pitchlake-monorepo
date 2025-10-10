@@ -7,7 +7,6 @@ import (
 	"event-processor/models"
 	"fmt"
 	"log"
-	"math/big"
 )
 
 func (db *DB) Listener() error {
@@ -123,7 +122,6 @@ func (db *DB) processVaultEvent(
 			vaultUnlocked := adaptors.DepositOrWithdraw(junoEvent)
 
 		err = db.DepositIndex(event.VaultAddress, lpAddress, lpUnlocked, vaultUnlocked, event.BlockNumber)
-		//Map the other parameters as well
 	case "Withdrawal":
 		lpAddress,
 			lpUnlocked,
