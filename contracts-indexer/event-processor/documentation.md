@@ -649,80 +649,8 @@ The Event Processor integrates with the Support Server through:
 
 1. **Event Filtering**: More sophisticated event filtering capabilities
 2. **Performance Optimization**: Additional caching and optimization layers
-3. **Monitoring Integration**: Prometheus metrics and Grafana dashboards
-4. **Multi-Network Support**: Support for multiple StarkNet networks
-5. **Event Replay**: Capability to replay events from specific blocks
+3. **Message Queues**: Use message queues for better decoupling
 
-### Architecture Improvements
-
-1. **Microservices**: Split into smaller, focused services
-2. **Message Queues**: Use message queues for better decoupling
-3. **Caching Layer**: Add Redis for frequently accessed data
-4. **API Layer**: REST API for external integrations
-
-## API Reference
-
-### Database Models
-
-#### Event Model
-
-```go
-type Event struct {
-    ID              uint     `json:"id"`
-    TransactionHash string   `json:"transaction_hash"`
-    BlockNumber     uint64   `json:"block_number"`
-    VaultAddress    string   `json:"vault_address"`
-    Timestamp       uint64   `json:"timestamp"`
-    EventName       string   `json:"event_name"`
-    EventKeys       []string `json:"event_keys"`
-    EventData       []string `json:"event_data"`
-    EventNonce      int      `json:"event_nonce"`
-}
-```
-
-#### Driver Event Model
-
-```go
-type DriverEvent struct {
-    ID             uint      `json:"id"`
-    SequenceIndex  int64     `json:"sequence_index"`
-    Type           string    `json:"type"`
-    Timestamp      time.Time `json:"timestamp"`
-    IsProcessed    bool      `json:"is_processed"`
-    BlockHash      *string   `json:"block_hash"`
-    StartBlockHash *string   `json:"start_block_hash"`
-    EndBlockHash   *string   `json:"end_block_hash"`
-    VaultAddress   *string   `json:"vault_address"`
-}
-```
-
-### Database Interface
-
-#### Connection Management
-
-```go
-type DB struct {
-    Pool *pgxpool.Pool
-    tx   pgx.Tx
-    ctx  context.Context
-    url  string
-}
-
-func (db *DB) Init() error
-func (db *DB) BeginTx()
-func (db *DB) CommitTx() error
-func (db *DB) RollbackTx()
-func (db *DB) HealthCheck() error
-```
-
-#### Event Processing
-
-```go
-func (db *DB) CatchupDriverEvents() error
-func (db *DB) Listener() error
-func (db *DB) ProcessEvent(event *Event) error
-func (db *DB) UpdateState(event *Event) error
-```
 
 ## Conclusion
 
