@@ -11,11 +11,9 @@ import { getHistoricalRoundData, HistoricalRoundData } from "@/lib/utils";
 
 const useChartData = (activeLines: any, vaultAddress?: string) => {
   const { conn, selectedRound } = useNewContext();
-  const { provider } = useProvider();
   // Chart context
   const { isExpandedView, xMax, xMin } = useChartContext();
   const { gasData } = useGasData();
-  console.log("gasData", gasData);
   // Help context
 
   // Strike and cap for all possibly displayed rounds
@@ -32,13 +30,14 @@ const useChartData = (activeLines: any, vaultAddress?: string) => {
   const [vaultData, setVaultData] = useState<HistoricalRoundData | null>(null);
 
   useEffect(() => {
-    if (!vaultAddress) return;
-    getHistoricalRoundData(fromRound, toRound, provider, vaultAddress).then(
+    if (!vaultAddress||vaultAddress === "0x1") return;
+    console.log("VAULTADDRESS", vaultAddress);
+    getHistoricalRoundData(fromRound, toRound, vaultAddress).then(
       (data) => {
         setVaultData(data);
       }
     );
-  }, [fromRound, toRound, provider, vaultAddress]);
+  }, [fromRound, toRound, vaultAddress]);
 
   const historicalData = useMemo(() => {
     if (conn === "demo") {
@@ -52,14 +51,12 @@ const useChartData = (activeLines: any, vaultAddress?: string) => {
     maxValue,
   }: { parsedData: FormattedBlockData[]; maxValue: number } = useMemo(() => {
     if (!selectedRound || !historicalData || !gasData) {
-      console.log("historicalData", historicalData);
       return { parsedData: [], maxValue: 0 };
     }
 
     const dataPoints =
       gasData.length > 0 ? gasData : [{ timestamp: xMin }, { timestamp: xMax }];
 
-    console.log("dataPoints", dataPoints);
     let max = 0; // Add max calculation
 
     const refined = dataPoints?.map((item: any) => {
@@ -216,7 +213,6 @@ const useChartData = (activeLines: any, vaultAddress?: string) => {
     return { yMax: _yMax, yTicks: _yTicks };
   }, [parsedData, activeLines]);
 
-  console.log("VERTICAL SEGMENTS", verticalSegments, "ROUND AREAS", roundAreas, "Y MAX", yMax, "Y TICKS", yTicks);
   // Compute X-axis ticks and labels based on view
   const { xTicks, xTickLabels } = useMemo(() => {
     let _xTicks: number[] = [];

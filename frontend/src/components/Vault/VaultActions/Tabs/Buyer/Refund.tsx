@@ -52,7 +52,6 @@ const Refund: React.FC<RefundProps> = ({ showConfirmation }) => {
   }, [account, pendingTx, refundBalanceWei]);
 
   const handleRefundBid = async (): Promise<string> => {
-    console.log("Refunding bids for:", address);
     return (
       (await optionRoundActions?.refundUnusedBids({
         optionBuyer: address || "0x0",

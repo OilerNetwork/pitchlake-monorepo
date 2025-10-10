@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math/big"
 	"strings"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type BigInt struct {
@@ -27,9 +29,22 @@ func (b *BigInt) Scan(value interface{}) error {
 	case string:
 		return b.scanString(v)
 	case int64:
-		b.Int.SetInt64(v)
+		b.SetInt64(v)
 	case nil:
-		b.Int.SetInt64(0)
+		b.SetInt64(0)
+	// Add pgx-specific types
+	case pgtype.Numeric:
+		if v.Valid {
+			b.Int.SetString(v.Int.String(), 10)
+		} else {
+			b.SetInt64(0)
+		}
+	case pgtype.Int8:
+		if v.Valid {
+			b.SetInt64(v.Int64)
+		} else {
+			b.SetInt64(0)
+		}
 	default:
 		return fmt.Errorf("unsupported Scan, storing driver.Value type %T into type BigInt", value)
 	}
@@ -39,7 +54,17 @@ func (b *BigInt) Scan(value interface{}) error {
 
 func (b *BigInt) scanString(s string) error {
 	s = strings.TrimSpace(s)
-	return b.validateUint256()
+	if s == "" {
+		b.SetInt64(0)
+		return nil
+	}
+
+	// This is the missing piece - actually parse the string
+	if _, ok := b.SetString(s, 10); !ok {
+		return fmt.Errorf("invalid big.Int string: %s", s)
+	}
+
+	return b.validateUint256() // This will ensure it's within uint256 bounds
 }
 
 func (b *BigInt) validateUint256() error {
@@ -58,6 +83,20 @@ func (b BigInt) Value() (driver.Value, error) {
 		return "0", nil
 	}
 	return b.Int.String(), nil // Return as decimal string
+}
+
+// PgxValue implements pgx-specific value interface
+func (b BigInt) PgxValue() (pgtype.Numeric, error) {
+	if b.Int == nil {
+		return pgtype.Numeric{Valid: false}, nil
+	}
+
+	// Convert to pgtype.Numeric
+	return pgtype.Numeric{
+		Int:   b.Int,
+		Exp:   0,
+		Valid: true,
+	}, nil
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface

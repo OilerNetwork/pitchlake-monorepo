@@ -30,7 +30,7 @@ func (r *VaultRepository) GetVaultStateByID(ctx context.Context, id string) (*mo
 	defer cancel()
 
 	var vaultState models.VaultState
-	query := `SELECT current_round, current_round_address, unlocked_balance, locked_balance, stashed_balance, address, latest_block, deployment_date, fossil_client_address, eth_address, option_round_class_hash, alpha, strike_level, auction_duration, round_duration, round_transition_period FROM public."VaultStates" WHERE address=$1`
+	query := `SELECT current_round, current_round_address, unlocked_balance, locked_balance, stashed_balance, address, latest_block, deployment_date, fossil_client_address, eth_address, option_round_class_hash, alpha, strike_level, auction_duration, round_duration, round_transition_period FROM public."vault_states" WHERE address=$1`
 
 	err := r.pool.QueryRow(ctx, query, id).Scan(
 		&vaultState.CurrentRound,
@@ -62,7 +62,7 @@ func (r *VaultRepository) GetVaultStateByID(ctx context.Context, id string) (*mo
 
 // GetAllVaultStates retrieves all VaultState records from the database
 func (r *VaultRepository) GetAllVaultStates(ctx context.Context) ([]models.VaultState, error) {
-	query := `SELECT current_round, current_round_address, unlocked_balance, locked_balance, stashed_balance, address, last_block FROM public."VaultStates"`
+	query := `SELECT current_round, current_round_address, unlocked_balance, locked_balance, stashed_balance, address, last_block FROM public."vault_states"`
 	rows, err := r.pool.Query(ctx, query)
 	if err != nil {
 		return nil, err
@@ -98,7 +98,7 @@ func (r *VaultRepository) GetAllVaultStates(ctx context.Context) ([]models.Vault
 func (r *VaultRepository) GetVaultAddresses(ctx context.Context) ([]string, error) {
 	var vaultAddresses []string
 
-	query := `SELECT address FROM "VaultStates"`
+	query := `SELECT address FROM "vault_states"`
 
 	rows, err := r.pool.Query(ctx, query)
 	if err != nil {

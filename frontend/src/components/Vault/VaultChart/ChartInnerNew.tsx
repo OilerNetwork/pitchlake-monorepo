@@ -33,7 +33,6 @@ const ChartInnerNew = ({ activeLines, vaultAddress }: ChartInnerNewProps) => {
   const { vaultState } = useVaultState();
   const { parsedData } = useChartData(activeLines || {}, vaultState?.address);
   
-  console.log("Step 2 - parsedData:", parsedData);
   
   // Fallback to test data if no real data
   const testData = {

@@ -196,6 +196,7 @@ const useWebSocketVault = (conn: string, vaultAddress?: string) => {
         performanceOB: getPerformanceOB(state.premiums, state.totalPayout),
       } as OptionRoundStateType;
     });
+    console.log("Round States:", roundStates);
     setWsOptionRoundStates(roundStates ?? []);
     setWsLiquidityProviderState(
       wsResponse.liquidityProviderState?.address
