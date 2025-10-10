@@ -31,7 +31,6 @@ const useChartData = (activeLines: any, vaultAddress?: string) => {
 
   useEffect(() => {
     if (!vaultAddress||vaultAddress === "0x1") return;
-    console.log("VAULTADDRESS", vaultAddress);
     getHistoricalRoundData(fromRound, toRound, vaultAddress).then(
       (data) => {
         setVaultData(data);

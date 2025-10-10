@@ -22,9 +22,6 @@ export const ChartProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const { xMin, xMax } = useMemo(() => {
     if (!selectedRoundState) return { xMin: 0, xMax: 0 };
-
-    console.log("OptionSettleDate", selectedRoundState.optionSettleDate);
-    console.log("DeploymentDate", selectedRoundState.deploymentDate);
     const xMax = Number(selectedRoundState.optionSettleDate);
 
     if (!isExpandedView) {
