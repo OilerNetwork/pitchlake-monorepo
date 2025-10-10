@@ -479,6 +479,12 @@ func (db *DB) UpdateAllLiquidityProvidersBalancesOptionSettle(
 	blockNumber uint64,
 ) error {
 
+	// get lp queued bps (historic for current round)
+
+	// lp stashed += (queued_bps * locked balance) / 10_000
+	// lp unstashed = locked balance - lp stashed
+	// lp unlocked += lp unstashed
+
 	query := `UPDATE liquidity_providers SET
 	locked_balance = 0,
 	unlocked_balance = unlocked_balance + FLOOR(
