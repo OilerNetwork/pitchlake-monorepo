@@ -250,7 +250,7 @@ func (db *DB) BidPlacedIndex(bid models.Bid, buyer models.OptionBuyer) error {
 	return nil
 }
 
-func (db *DB) BidUpdatedIndex(roundAddress, bidId string, price models.BigInt, treeNonce uint64) error {
+func (db *DB) BidUpdatedIndex(roundAddress, bidId string, priceIncrease models.BigInt, treeNonce uint64) error {
 	// Original GORM code:
 	// if err := db.tx.Model(models.Bid{}).Where("bid_id = ? AND round_address = ?", bidId, roundAddress).Updates(map[string]interface{}{
 	// 	"price":      gorm.Expr("price + ?", price),
@@ -270,7 +270,7 @@ func (db *DB) BidUpdatedIndex(roundAddress, bidId string, price models.BigInt, t
 	if _, err := db.tx.Exec(
 		context.Background(),
 		query,
-		price,
+		priceIncrease,
 		treeNonce-1,
 		bidId,
 		roundAddress,

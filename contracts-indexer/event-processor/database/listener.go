@@ -230,8 +230,8 @@ func (db *DB) processOptionRoundEvent(
 		buyer.RoundAddress = prevStateOptionRound.Address
 		err = db.BidPlacedIndex(bid, buyer)
 	case "BidUpdated":
-		bidId, price, _, treeNonceNew := adaptors.BidUpdated(junoEvent)
-		err = db.BidUpdatedIndex(prevStateOptionRound.Address, bidId, price, treeNonceNew)
+		bidId, priceIncrease, _, treeNonceNew := adaptors.BidUpdated(junoEvent)
+		err = db.BidUpdatedIndex(prevStateOptionRound.Address, bidId, priceIncrease, treeNonceNew)
 	case "OptionsMinted":
 		buyerAddress, _ := adaptors.OptionsMinted(junoEvent)
 		err = db.UpdateOptionBuyerFields(
