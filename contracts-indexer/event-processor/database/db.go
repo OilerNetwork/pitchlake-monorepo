@@ -88,7 +88,6 @@ func (db *DB) GetUnprocessedDriverEvents() ([]*models.DriverEvent, error) {
 		}
 		return nil, fmt.Errorf("failed to query unprocessed driver events: %w", err)
 	}
-	log.Printf("Unprocessed driver events found: %v", rows)
 	defer rows.Close()
 	for rows.Next() {
 		var event models.DriverEvent
@@ -116,8 +115,6 @@ func (db *DB) GetBlockByHash(blockHash string) (*models.StarknetBlock, error) {
 
 func (db *DB) GetEventsForVault(vaultAddress string, startBlockHash string, endBlockHash string) ([]models.Event, error) {
 
-	log.Printf("Start block hash: %v", startBlockHash)
-	log.Printf("End block hash: %v", endBlockHash)
 	startBlock, err := db.GetBlockByHash(startBlockHash)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get start block: %w", err)
@@ -126,9 +123,6 @@ func (db *DB) GetEventsForVault(vaultAddress string, startBlockHash string, endB
 	if err != nil {
 		return nil, fmt.Errorf("failed to get end block: %w", err)
 	}
-	log.Printf("Vault address: %v", vaultAddress)
-	log.Printf("Start block: %v", startBlock)
-	log.Printf("End block: %v", endBlock)
 	query := `
 		SELECT
 			event_nonce,
@@ -316,10 +310,6 @@ func (db *DB) UpdateAllLiquidityProvidersBalancesAuctionStart(vaultAddress strin
 
 	query := `UPDATE liquidity_providers SET locked_balance = unlocked_balance, unlocked_balance = 0, latest_block = $1 WHERE vault_address = $2`
 
-	log.Printf("Executing query: %s", query)
-	log.Printf("Parameters: blockNumber=%d, vaultAddress=%s", blockNumber, vaultAddress)
-	log.Printf("Transaction state: %v", db.tx)
-
 	if _, err := db.tx.Exec(
 		context.Background(),
 		query,
@@ -398,16 +388,8 @@ func (db *DB) UpdateBiddersAuctionEnd(
 
 	optionsLeft := models.BigInt{Int: clearingOptionsSold.Int}
 	for _, bid := range bidsAbove {
-		log.Printf("optionsLeft %v", optionsLeft)
-		log.Printf("clearingPrice %v", clearingPrice)
-		log.Printf("bid.Amount %v", bid.Amount)
-		log.Printf("bid.BuyerAddress %v", bid.BuyerAddress)
-		log.Printf("roundAddress %v", roundAddress)
-		log.Printf("clearingNonce %v", clearingNonce)
-		log.Printf("bid.TreeNonce %v", bid.TreeNonce)
 		if clearingNonce == bid.TreeNonce {
 			refundableAmount := models.BigInt{Int: new(big.Int).Mul(new(big.Int).Sub(bid.Amount.Int, optionsLeft.Int), clearingPrice.Int)}
-			log.Printf("REFUNDABLEAMOUNT %v", refundableAmount)
 			_, err := db.tx.Exec(db.ctx, `
 			UPDATE option_buyers 
 			SET refundable_amount = refundable_amount + $1, 
@@ -420,7 +402,6 @@ func (db *DB) UpdateBiddersAuctionEnd(
 
 		} else {
 			refundableAmount := models.BigInt{Int: new(big.Int).Mul(new(big.Int).Sub(bid.Price.Int, clearingPrice.Int), bid.Amount.Int)}
-			log.Printf("REFUNDABLEAMOUNT %v", refundableAmount)
 			_, err := db.tx.Exec(db.ctx, `
 				UPDATE option_buyers 
 				SET mintable_options = mintable_options + $1, 
@@ -440,7 +421,6 @@ func (db *DB) UpdateBiddersAuctionEnd(
 	}
 	for _, bid := range bidsBelow {
 		refundableAmount := models.BigInt{Int: new(big.Int).Mul(bid.Amount.Int, bid.Price.Int)}
-		log.Printf("REFUNDABLEAMOUNT %v", refundableAmount)
 		_, err := db.tx.Exec(db.ctx, `
 			UPDATE option_buyers 
 			SET refundable_amount = refundable_amount + $1 
@@ -521,7 +501,6 @@ func (db *DB) UpdateAllLiquidityProvidersBalancesOptionSettle(
 		blockNumber,
 		vaultAddress,
 	)
-	log.Printf("Executed query: %s", query)
 
 	// //	totalPayout := models.BigInt{Int: new(big.Int).Mul(optionsSold.Int, payoutPerOption.Int)}
 	// db.tx.Model(models.LiquidityProviderState{}).Where("vault_address = ? AND locked_balance > 0", vaultAddress).Updates(map[string]interface{}{
@@ -565,7 +544,6 @@ func (db *DB) UpdateAllLiquidityProvidersBalancesOptionSettle(
 		// 		"stashed_balance":  gorm.Expr("stashed_balance + ?", amountToAdd),
 		// 		"unlocked_balance": gorm.Expr("unlocked_balance - ?", amountToAdd),
 		// 	})
-		log.Printf("Executed query: %s", query)
 	}
 
 	/* Use this JOIN query to update this without creating 2 entries on the historic table
@@ -743,7 +721,6 @@ func (db *DB) UpsertQueuedLiquidity(queuedLiquidity *models.QueuedLiquidity) err
 func (db *DB) UpsertLiquidityProviderState(lp *models.LiquidityProviderState, blockNumber uint64) error {
 	// Log the input for debugging
 	// Log the input for debugging
-	log.Printf("Upserting LP: %+v, Block Number: %d", lp, blockNumber)
 
 	// Perform upsert using GORM's Clauses with the transaction object
 	query := `
@@ -955,7 +932,6 @@ func (db *DB) UpdateOptionRoundFields(address string, updates map[string]interfa
 	if _, err := db.tx.Exec(context.Background(), query, values...); err != nil {
 		return fmt.Errorf("failed to update option round fields: %w", err)
 	}
-	log.Printf("Updated option round fields: %v", values)
 	return nil
 }
 
@@ -1090,27 +1066,6 @@ func (db *DB) CreateOptionRound(round *models.OptionRound) error {
 	// }
 	// return nil
 
-	log.Printf(" RoundAddress %v", round.Address)
-	log.Printf(" RoundVaultAddress %v", round.VaultAddress)
-	log.Printf(" RoundRoundID %v", round.RoundID)
-	log.Printf(" RoundCapLevel %v", round.CapLevel)
-	log.Printf(" RoundAuctionStartDate %v", round.AuctionStartDate)
-	log.Printf(" RoundAuctionEndDate %v", round.AuctionEndDate)
-	log.Printf(" RoundOptionSettleDate %v", round.OptionSettleDate)
-	log.Printf(" RoundStartingLiquidity %v", round.StartingLiquidity)
-	log.Printf(" RoundQueuedLiquidity %v", round.QueuedLiquidity)
-	log.Printf(" RoundRemainingLiquidity %v", round.RemainingLiquidity)
-	log.Printf(" RoundAvailableOptions %v", round.AvailableOptions)
-	log.Printf(" RoundClearingPrice %v", round.ClearingPrice)
-	log.Printf(" RoundSettlementPrice %v", round.SettlementPrice)
-	log.Printf(" RoundReservePrice %v", round.ReservePrice)
-	log.Printf(" RoundStrikePrice %v", round.StrikePrice)
-	log.Printf(" RoundOptionsSold %v", round.OptionsSold)
-	log.Printf(" RoundUnsoldLiquidity %v", round.UnsoldLiquidity)
-	log.Printf(" RoundRoundState %v", round.RoundState)
-	log.Printf(" RoundPremiums %v", round.Premiums)
-	log.Printf(" RoundPayoutPerOption %v", round.PayoutPerOption)
-	log.Printf(" RoundDeploymentDate %v", round.DeploymentDate)
 	query := `
 		INSERT INTO option_rounds (
 			address,
@@ -1240,17 +1195,6 @@ func (db *DB) GetBidsAboveClearingForRound(
 	clearingPrice models.BigInt,
 	clearingNonce uint64,
 ) ([]models.Bid, error) {
-	// Original GORM code:
-	// var bids []models.Bid
-	// if err := db.Conn.
-	// 	Where("round_address = ?", roundAddress).
-	// 	Where("price > ? OR (price = ? AND tree_nonce <= ?)", clearingPrice, clearingPrice, clearingNonce).
-	// 	Order("price DESC, tree_nonce ASC").
-	// 	Find(&bids).Error; err != nil {
-	// 	return nil, err
-	// }
-	// log.Printf("BIDS ABOVE %v", bids)
-	// return bids, nil
 
 	query := `
 		SELECT
@@ -1292,7 +1236,6 @@ func (db *DB) GetBidsAboveClearingForRound(
 		); err != nil {
 			return nil, fmt.Errorf("failed to scan bid: %w", err)
 		}
-		log.Printf("BID AMOUNT %v", bid.Amount)
 		bids = append(bids, bid)
 	}
 
@@ -1300,7 +1243,6 @@ func (db *DB) GetBidsAboveClearingForRound(
 		return nil, fmt.Errorf("error iterating bid rows: %w", err)
 	}
 
-	log.Printf("BIDS ABOVE %v", bids)
 	return bids, nil
 }
 
@@ -1309,15 +1251,6 @@ func (db *DB) GetBidsBelowClearingForRound(
 	clearingPrice models.BigInt,
 	clearingNonce uint64,
 ) ([]models.Bid, error) {
-	// Original GORM code:
-	// var bids []models.Bid
-	// if err := db.Conn.Where("round_address = ?", roundAddress).
-	// 	Where("price < ? OR ( price = ? AND tree_nonce >?) ", clearingPrice, clearingPrice, clearingNonce).
-	// 	Find(&bids).Error; err != nil {
-	// 	return nil, err
-	// }
-	// log.Printf("BIDS ABOVE %v", bids)
-	// return bids, nil
 
 	query := `
 		SELECT
@@ -1364,7 +1297,6 @@ func (db *DB) GetBidsBelowClearingForRound(
 		return nil, fmt.Errorf("error iterating bid rows: %w", err)
 	}
 
-	log.Printf("BIDS BELOW %v", bids)
 	return bids, nil
 }
 

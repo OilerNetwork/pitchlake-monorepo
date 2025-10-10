@@ -94,9 +94,6 @@ func StashWithdrawn(event models.JunoEvent) (string, models.BigInt, models.BigIn
 
 func RoundDeployed(event models.JunoEvent) models.OptionRound {
 
-	log.Printf("event from %v", event.From.String())
-	log.Printf("event data %v", event.Data)
-	log.Printf("event keys %v", event.Keys)
 	vaultAddress :=
 		FeltToHexString(event.From.Bytes())
 	roundId := FeltToBigInt(event.Data[0].Bytes())
@@ -127,8 +124,6 @@ func AuctionStarted(event models.JunoEvent) (models.BigInt, models.BigInt) {
 
 	startingLiquidity := CombineFeltToBigInt(event.Data[4].Bytes(), event.Data[3].Bytes())
 	availableOptions := CombineFeltToBigInt(event.Data[6].Bytes(), event.Data[5].Bytes())
-	log.Printf("Starting Liquidity: %v", startingLiquidity)
-	log.Printf("Available Options: %v", availableOptions)
 	return availableOptions, startingLiquidity
 }
 

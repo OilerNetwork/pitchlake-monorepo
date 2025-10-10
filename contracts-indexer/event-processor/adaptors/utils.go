@@ -11,7 +11,6 @@ import (
 )
 
 func DecodeEventNameRound(eventKey string) (string, error) {
-	log.Printf("Decoding event name %s", eventKey)
 
 	// Remove "0x" prefix if present
 	hexString := eventKey
@@ -29,7 +28,6 @@ func DecodeEventNameRound(eventKey string) (string, error) {
 	// Convert bytes to ASCII string
 	asciiString := string(bytes)
 
-	log.Printf("Converted hex %s to ASCII: %s", eventKey, asciiString)
 	return asciiString, nil
 }
 func CombineFeltToBigInt(highFelt, lowFelt [32]byte) models.BigInt {

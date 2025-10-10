@@ -91,7 +91,6 @@ func (db *DB) processVaultEvent(
 
 	var err error
 	junoEvent := adaptors.GetJunoEvent(event)
-	log.Printf("event.EventName %v", event.EventName)
 	switch event.EventName {
 
 	case "ContractDeployed":
@@ -159,7 +158,6 @@ func (db *DB) processVaultEvent(
 	case "OptionRoundDeployed":
 
 		optionRound := adaptors.RoundDeployed(junoEvent)
-		log.Printf("Processing OptionRoundDeployed event, block hash %v", event.BlockHash)
 		block, err := db.GetBlockByHash(event.BlockHash)
 		if err != nil {
 			return err
@@ -171,7 +169,6 @@ func (db *DB) processVaultEvent(
 		}
 
 	case "OptionRoundEmitted":
-		log.Printf("Processing OptionRoundEmitted event")
 		err = db.processOptionRoundEvent(event)
 	}
 	if err != nil {
@@ -187,8 +184,6 @@ func (db *DB) processOptionRoundEvent(
 	junoEvent := adaptors.GetJunoEvent(event)
 	optionRoundEventName := adaptors.OptionRoundEmittedEventName(junoEvent)
 	roundId := junoEvent.Data[0].Uint64()
-	log.Printf("Round ID %v", roundId)
-	log.Printf("Processing OptionRoundEmitted event %v", optionRoundEventName)
 	prevStateOptionRound, err := db.GetRoundById(roundId, event.VaultAddress)
 	if err != nil {
 		log.Printf("Error getting round by id %v", err)
