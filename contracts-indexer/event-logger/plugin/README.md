@@ -14,8 +14,6 @@ The plugin is now organized into the following packages:
 - **`vault/`** - Vault management
   - `vault_manager.go` - Handles vault initialization, catchup, and event processing
 
-- **`event/`** - Event processing
-  - `event_processor.go` - Processes events from blocks
 
 - **`block/`** - Block processing
   - `block_processor.go` - Handles block processing and catchup logic

@@ -7,7 +7,7 @@ A high-performance StarkNet event indexing and logging system built as a Juno pl
 ### Prerequisites
 
 - Docker and Docker Compose
-- Go 1.25.0+
+- Go 1.25.0
 - Access to fossil-monorepo network
 
 ### Development Setup
@@ -26,7 +26,7 @@ A high-performance StarkNet event indexing and logging system built as a Juno pl
 
 3. **Start the service:**
    ```bash
-   make docker-up
+   make start-docker
    ```
 
 ### Environment Variables
@@ -39,12 +39,9 @@ PITCHLAKE_DB_URL=postgres://pitchlake_user:pitchlake_password@pitchlake-db:5432/
 
 # Network Configuration
 RPC_URL=https://starknet-sepolia.infura.io/v3/YOUR_PROJECT_ID
-L1_URL=https://sepolia.infura.io/v3/YOUR_PROJECT_ID
 
 # Contract Configuration
-VAULT_HASH=0x1234567890abcdef...
 UDC_ADDRESS=0x1234567890abcdef...
-DEPLOYER=0x1234567890abcdef...
 
 # Optional Configuration
 CURSOR=12345  # Starting block number
@@ -56,12 +53,10 @@ CURSOR=12345  # Starting block number
 ```bash
 make dev                    # Set up development environment
 make build                  # Build the plugin
-make docker-build          # Build Docker image
-make docker-up             # Start services
-make docker-up-detached    # Start services in background
-make docker-down           # Stop services
-make docker-logs           # View logs
-make docker-restart        # Restart services
+make start-docker          # Start services
+make stop-docker           # Stop services
+make clean-docker          # Clean up Docker resources
+make restart-docker-network # Restart services
 ```
 
 ### Database Commands
@@ -69,6 +64,7 @@ make docker-restart        # Restart services
 make migrate-up            # Run database migrations
 make migrate-down          # Roll back migrations
 make migrate-status        # Check migration status
+make migrate-force-drop    # Drop migration table (fixes dirty states)
 make check-db              # Check database connection
 ```
 
@@ -78,6 +74,7 @@ make add-vault VAULT_ADDRESS=0x... DEPLOYED_BLOCK_HASH=0x... DEPLOYED_BLOCK_NUMB
 make list-vaults           # List all registered vaults
 make list-events           # List all events
 make list-blocks           # List all blocks
+make list-driver-events    # List all driver events
 ```
 
 ### Infrastructure Commands
@@ -96,7 +93,7 @@ make help-infra            # Show infrastructure help
    - Check network connectivity: `make check-fossil-network`
 
 2. **Plugin Build Failed**
-   - Ensure Go 1.25.0+ is installed
+   - Ensure Go 1.25.0 is installed
    - Run `go mod tidy` to resolve dependencies
 
 3. **Migration Errors**
@@ -107,7 +104,7 @@ make help-infra            # Show infrastructure help
 
 ```bash
 # View real-time logs
-make docker-logs
+docker compose logs juno_plugin
 
 # Check specific service logs
 docker compose logs juno_plugin

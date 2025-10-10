@@ -71,7 +71,8 @@ CREATE TABLE "starknet_blocks" (
 CREATE TABLE "vault_registry" (
     "id" SERIAL PRIMARY KEY,
     "vault_address" VARCHAR(66) NOT NULL,
-    "deployed_at" VARCHAR(66) NOT NULL,
+    "deployed_block_hash" VARCHAR(66) NOT NULL,
+    "deployed_block_number" BIGINT NOT NULL,
     "last_block_indexed" VARCHAR(66),
     "last_block_processed" VARCHAR(66)
 );
@@ -96,79 +97,127 @@ CREATE TABLE "driver_events" (
 
 The system maintains state for various DeFi components:
 
-#### Vaults Table
+#### Vault States Table
 ```sql
-CREATE TABLE "vaults" (
-    "id" SERIAL PRIMARY KEY,
-    "address" VARCHAR(66) NOT NULL UNIQUE,
-    "unlocked_balance" NUMERIC(78,0) DEFAULT 0,
-    "locked_balance" NUMERIC(78,0) DEFAULT 0,
-    "stashed_balance" NUMERIC(78,0) DEFAULT 0,
+CREATE TABLE "vault_states" (
+    "address" VARCHAR(66) NOT NULL PRIMARY KEY,
+    "unlocked_balance" NUMERIC(78,0),
+    "locked_balance" NUMERIC(78,0),
+    "current_round" NUMERIC(78,0),
+    "current_round_address" VARCHAR(66),
+    "stashed_balance" NUMERIC(78,0),
     "latest_block" NUMERIC(78,0),
-    "created_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    "fossil_client_address" VARCHAR(66),
+    "eth_address" VARCHAR(66),
+    "option_round_class_hash" VARCHAR(66),
+    "alpha" NUMERIC(78,0),
+    "strike_level" NUMERIC(78,0),
+    "round_transition_period" NUMERIC(78,0),
+    "auction_duration" NUMERIC(78,0),
+    "round_duration" NUMERIC(78,0),
+    "deployment_date" NUMERIC(78,0)
 );
 ```
 
 #### Liquidity Providers Table
 ```sql
 CREATE TABLE "liquidity_providers" (
-    "id" SERIAL PRIMARY KEY,
-    "vault_address" VARCHAR(66) NOT NULL,
     "address" VARCHAR(66) NOT NULL,
-    "unlocked_balance" NUMERIC(78,0) DEFAULT 0,
-    "locked_balance" NUMERIC(78,0) DEFAULT 0,
-    "stashed_balance" NUMERIC(78,0) DEFAULT 0,
+    "vault_address" VARCHAR(66) NOT NULL,
+    "stashed_balance" NUMERIC(78,0),
+    "locked_balance" NUMERIC(78,0),
+    "unlocked_balance" NUMERIC(78,0),
     "latest_block" NUMERIC(78,0),
-    "created_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    UNIQUE(vault_address, address)
+    PRIMARY KEY (address, vault_address)
 );
 ```
 
 #### Option Rounds Table
 ```sql
 CREATE TABLE "option_rounds" (
-    "id" SERIAL PRIMARY KEY,
-    "vault_address" VARCHAR(66) NOT NULL,
-    "address" VARCHAR(66) NOT NULL UNIQUE,
-    "round_id" NUMERIC(78,0) NOT NULL,
-    "cap_level" NUMERIC(78,0) DEFAULT 0,
-    "auction_start_date" BIGINT,
-    "auction_end_date" BIGINT,
-    "option_settle_date" BIGINT,
-    "starting_liquidity" NUMERIC(78,0) DEFAULT 0,
-    "queued_liquidity" NUMERIC(78,0) DEFAULT 0,
-    "remaining_liquidity" NUMERIC(78,0) DEFAULT 0,
+    "address" VARCHAR(66) NOT NULL PRIMARY KEY,
     "available_options" NUMERIC(78,0) DEFAULT 0,
-    "clearing_price" NUMERIC(78,0) DEFAULT 0,
-    "settlement_price" NUMERIC(78,0) DEFAULT 0,
-    "reserve_price" NUMERIC(78,0) DEFAULT 0,
-    "strike_price" NUMERIC(78,0) DEFAULT 0,
-    "options_sold" NUMERIC(78,0) DEFAULT 0,
-    "unsold_liquidity" NUMERIC(78,0) DEFAULT 0,
-    "round_state" VARCHAR(50),
-    "premiums" NUMERIC(78,0) DEFAULT 0,
-    "payout_per_option" NUMERIC(78,0) DEFAULT 0,
-    "deployment_date" BIGINT,
-    "created_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    "clearing_price" NUMERIC(78,0),
+    "settlement_price" NUMERIC(78,0),
+    "reserve_price" NUMERIC(78,0),
+    "strike_price" NUMERIC(78,0),
+    "sold_options" NUMERIC(78,0),
+    "deployment_date" NUMERIC(78,0),
+    "state" VARCHAR(10),
+    "premiums" NUMERIC(78,0),
+    "vault_address" VARCHAR(66),
+    "round_id" NUMERIC(78,0),
+    "cap_level" NUMERIC(78,0),
+    "unsold_liquidity" NUMERIC(78,0),
+    "starting_liquidity" NUMERIC(78,0),
+    "queued_liquidity" NUMERIC(78,0),
+    "remaining_liquidity" NUMERIC(78,0),
+    "payout_per_option" NUMERIC(78,0),
+    "start_date" NUMERIC(78,0),
+    "end_date" NUMERIC(78,0),
+    "settlement_date" NUMERIC(78,0)
 );
 ```
 
 #### Option Buyers Table
 ```sql
 CREATE TABLE "option_buyers" (
-    "id" SERIAL PRIMARY KEY,
     "address" VARCHAR(66) NOT NULL,
     "round_address" VARCHAR(66) NOT NULL,
-    "mintable_options" NUMERIC(78,0) DEFAULT 0,
-    "has_minted" BOOLEAN DEFAULT FALSE,
-    "has_refunded" BOOLEAN DEFAULT FALSE,
-    "refundable_options" NUMERIC(78,0) DEFAULT 0,
-    "created_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    UNIQUE(address, round_address)
+    "has_minted" BOOLEAN NOT NULL DEFAULT FALSE,
+    "has_refunded" BOOLEAN NOT NULL DEFAULT FALSE,
+    "mintable_options" NUMERIC(78,0),
+    "refundable_amount" NUMERIC(78,0),
+    PRIMARY KEY (address, round_address)
+);
+```
+
+#### Bids Table
+```sql
+CREATE TABLE "bids" (
+    "buyer_address" VARCHAR(66),
+    "round_address" VARCHAR(66),
+    "bid_id" VARCHAR(66),
+    "tree_nonce" NUMERIC,
+    "amount" NUMERIC,
+    "price" NUMERIC,
+    PRIMARY KEY (round_address, bid_id)
+);
+```
+
+#### Queued Liquidity Table
+```sql
+CREATE TABLE "queued_liquidity" (
+    "address" VARCHAR(66) NOT NULL,
+    "queued_liquidity" NUMERIC(78,0) NOT NULL,
+    "bps" NUMERIC(78,0) NOT NULL,
+    "round_address" VARCHAR(66),
+    PRIMARY KEY (address, round_address),
+    FOREIGN KEY (round_address) REFERENCES "option_rounds" (address)
+);
+```
+
+#### Historic Tables
+```sql
+-- Liquidity Providers Historic
+CREATE TABLE "liquidity_providers_historic" (
+    "address" VARCHAR(66) NOT NULL,
+    "vault_address" VARCHAR(66) NOT NULL,
+    "stashed_balance" NUMERIC(78,0),
+    "locked_balance" NUMERIC(78,0),
+    "unlocked_balance" NUMERIC(78,0),
+    "block_number" NUMERIC(78,0),
+    PRIMARY KEY (address, vault_address, block_number)
+);
+
+-- Vault Historic
+CREATE TABLE "vault_historic" (
+    "address" VARCHAR(66) NOT NULL,
+    "unlocked_balance" NUMERIC(78,0),
+    "locked_balance" NUMERIC(78,0),
+    "stashed_balance" NUMERIC(78,0),
+    "block_number" NUMERIC(78,0),
+    PRIMARY KEY (address, block_number)
 );
 ```
 
@@ -180,10 +229,9 @@ The Event Processor uses PostgreSQL's LISTEN/NOTIFY system for real-time event p
 
 #### Notification Channels
 
-1. **`starknet_blocks_insert`**: New block processed
-2. **`starknet_blocks_revert`**: Block reverted
-3. **`vault_insert`**: New vault registered
-4. **`driver_events`**: Unified event notifications
+The Event Processor listens to a single unified notification channel:
+
+1. **`driver_events`**: Unified event notifications containing all event types
 
 #### Event Processing Steps
 
