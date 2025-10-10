@@ -37,7 +37,7 @@ func (db *DB) processDriverEvent(driverEventData models.DriverEvent) error {
 	}
 	log.Printf("Processing driver event: %v", driverEventData)
 	switch driverEventData.Type {
-	case "NewBlock":
+	case "StartBlock":
 		log.Printf("Processing NewBlock driver event")
 		events, err := db.GetEventsByBlockHash(*driverEventData.BlockHash, "ASC")
 		log.Printf("Processing %d events", len(events))
