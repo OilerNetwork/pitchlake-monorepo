@@ -52,7 +52,6 @@ func (vm *Manager) LoadVaultFromRegistry(vault *models.VaultRegistry, latestBloc
 		vm.log.Printf("failed to get last indexed block for vault %s: %v", vault.Address, err)
 		return err
 	}
-	vm.log.Printf("Last indexed block for vault %s: %v %v", vault.Address, lastBlockIndexed.BlockNumber, latestBlock.BlockNumber)
 	if lastBlockIndexed.BlockNumber < latestBlock.BlockNumber-1 {
 		if err := vm.CatchupVault(*vault, latestBlock); err != nil {
 			return err
@@ -96,7 +95,6 @@ func (vm *Manager) LoadVaultsFromRegistry(latestBlock *models.StarknetBlocks) er
 	if len(vaultRegistry) > 0 {
 		for _, vault := range vaultRegistry {
 			if vault.DeployedBlockNumber > latestBlock.BlockNumber {
-				vm.log.Printf("Vault %s deployed block number is greater than latest block number, skipping", vault.Address)
 				normalizedVaultAddress, err := utils.NormalizeHexAddress(vault.Address)
 				if err != nil {
 					vm.log.Printf("Error normalizing address %v", err)
@@ -110,8 +108,6 @@ func (vm *Manager) LoadVaultsFromRegistry(latestBlock *models.StarknetBlocks) er
 			}
 		}
 	}
-	vm.log.Printf("Vault addresses: %v", vm.vaultRegistryMap)
-	vm.log.Printf("Last block: %v", latestBlock)
 
 	return nil
 }
@@ -130,14 +126,12 @@ func (vm *Manager) InitializeVault(vault *models.VaultRegistry) error {
 	deployBlock := rpc.BlockID{
 		Hash: hash,
 	}
-	vm.log.Printf("Deploy block: %v", deployBlock)
 
 	events, err := vm.network.GetEvents(deployBlock, deployBlock, nil)
 	if err != nil {
 		vm.log.Println("Error getting events", err)
 		return err
 	}
-	log.Printf("events list %v", len(events.Events))
 
 	vm.db.BeginTx()
 	defer func() {
@@ -166,7 +160,6 @@ func (vm *Manager) InitializeVault(vault *models.VaultRegistry) error {
 		}
 
 		starknetBlock := models.RPCBlockToStarknetBlock(networkBlock)
-		log.Printf("STARKNET BLOCK %v", starknetBlock)
 
 		err = vm.db.InsertBlock(starknetBlock)
 		if err != nil {
@@ -190,8 +183,6 @@ func (vm *Manager) CatchupVault(vault models.VaultRegistry, toBlock *models.Star
 	if err != nil {
 		return err
 	}
-
-	vm.log.Printf("Next block: %v", nextBlock)
 
 	if nextBlock != nil {
 		fromBlock = &rpc.BlockID{Number: &nextBlock.BlockNumber}
@@ -219,7 +210,6 @@ func (vm *Manager) CatchupVault(vault models.VaultRegistry, toBlock *models.Star
 			vm.log.Printf("No blocks returned for block number: %d", nextBlockNumber)
 			return fmt.Errorf("no block found at number %d", nextBlockNumber)
 		}
-		log.Printf("nextBlocks %v", nextBlocks)
 		nextBlock = nextBlocks[0]
 		vm.db.InsertBlock(nextBlock)
 		fromBlock = &rpc.BlockID{Number: &nextBlock.BlockNumber}
@@ -320,16 +310,10 @@ func (vm *Manager) GetVaultAddresses() map[string]struct{} {
 // processDeploymentBlockEvents processes events from the deployment block
 func (vm *Manager) processDeploymentBlockEvents(events *rpc.EventChunk, vault *models.VaultRegistry) error {
 	eventNameHash := utils.Keccak256("ContractDeployed")
-	for index, event := range events.Events {
-		vm.log.Printf("index: %v", index)
-		vm.log.Printf("Event from address: %v", event.FromAddress.String())
-		vm.log.Printf("UDC address: %v", vm.udcAddress)
+	for _, event := range events.Events {
 
 		if eventNameHash == event.Keys[0].String() && event.FromAddress.String() == vm.udcAddress {
-			vm.log.Printf("Match")
 			address := utils.FeltToHexString(event.Data[0].Bytes())
-			vm.log.Printf("Address: %v", address)
-			vm.log.Printf("Vault address: %v", vault.Address)
 
 			normalizedVaultAddress, err := utils.NormalizeHexAddress(vault.Address)
 			if err != nil {

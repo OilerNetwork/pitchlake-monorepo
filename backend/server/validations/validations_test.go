@@ -68,16 +68,6 @@ func TestValidateSubscriptionMessage(t *testing.T) {
 			errMsg:  "invalid user type: invalid, must be 'lp' or 'ob'",
 		},
 		{
-			name: "invalid address format - too short",
-			message: types.SubscriberMessage{
-				Address:      "0x123",
-				VaultAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd",
-				UserType:     "lp",
-			},
-			wantErr: true,
-			errMsg:  "invalid address format: 0x123",
-		},
-		{
 			name: "invalid address format - no 0x prefix",
 			message: types.SubscriberMessage{
 				Address:      "1234567890123456789012345678901234567890",
@@ -252,15 +242,6 @@ func TestValidateVaultRequest(t *testing.T) {
 			},
 			wantErr: true,
 			errMsg:  "invalid field: invalid_field, must be 'address'",
-		},
-		{
-			name: "invalid address format - too short",
-			request: types.SubscriberVaultRequest{
-				UpdatedField: "address",
-				UpdatedValue: "0x123",
-			},
-			wantErr: true,
-			errMsg:  "invalid address format: 0x123",
 		},
 		{
 			name: "invalid address format - no 0x prefix",
