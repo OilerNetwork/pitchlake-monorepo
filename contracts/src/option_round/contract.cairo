@@ -721,7 +721,9 @@ pub mod OptionRound {
     impl InternalImpl of OptionRoundInternalTrait {
         // @dev Used by an option round to emit events through the vault contract (for indexer
         // purposes)
-        fn emit_option_round_event(ref self: ContractState, event_name: felt252, option_round_event: OptionRoundEvent) {
+        fn emit_option_round_event(
+            ref self: ContractState, event_name: felt252, option_round_event: OptionRoundEvent,
+        ) {
             // @dev Get the round dispatcher to validate the round exists
             let vault = self.get_vault_dispatcher();
             let round_id = self.get_round_id();
