@@ -7,6 +7,7 @@ import (
 	"event-processor/models"
 	"fmt"
 	"log"
+	"math/big"
 )
 
 func (db *DB) Listener() error {
