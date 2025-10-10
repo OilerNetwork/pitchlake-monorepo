@@ -92,13 +92,12 @@ func (db *DB) processVaultEvent(
 	junoEvent := adaptors.GetJunoEvent(event)
 	log.Printf("event.EventName %v", event.EventName)
 	switch event.EventName {
-	case "Deposit": //Add withdrawQueue and collect queue case based on event
+	case "Deposit":
 		lpAddress,
 			lpUnlocked,
 			vaultUnlocked := adaptors.DepositOrWithdraw(junoEvent)
 
 		err = db.DepositIndex(event.VaultAddress, lpAddress, lpUnlocked, vaultUnlocked, event.BlockNumber)
-		//Map the other parameters as well
 	case "Withdrawal":
 		lpAddress,
 			lpUnlocked,
