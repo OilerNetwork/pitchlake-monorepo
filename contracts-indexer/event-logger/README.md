@@ -12,19 +12,13 @@ A high-performance StarkNet event indexing and logging system built as a Juno pl
 
 ### Development Setup
 
-1. **Start the fossil-monorepo infrastructure:**
-   ```bash
-   cd ../../fossil-monorepo
-   make dev-up
-   ```
-
-2. **Set up the event-logger:**
+1. **Set up the event-logger:**
    ```bash
    cd contracts-indexer/event-logger
    make dev
    ```
 
-3. **Start the service:**
+2. **Start the service:**
    ```bash
    make start-docker
    ```
@@ -111,14 +105,4 @@ docker compose logs juno_plugin
 
 # Debug mode (if needed)
 VM_DEBUG=true make build
-```
-
-## 📚 Documentation
-
-For detailed technical documentation, see:
-
-- **[documentation.md](./documentation.md)** - Comprehensive technical documentation
-- **[Architecture](./documentation.md#system-architecture)** - System architecture and components
-- **[Database Schema](./documentation.md#database-schema)** - Complete database structure
-- **[Plugin Implementation](./documentation.md#plugin-implementation)** - Juno plugin details
-- **[Event Processing](./documentation.md#event-processing-flow)** - Event processing flow
+``
