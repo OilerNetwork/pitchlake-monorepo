@@ -81,7 +81,8 @@ export class StateHandlers {
           0,
         );
 
-        if (jobRequest) {
+
+        if (jobRequest && process.env.USE_MOCK_VERIFIER !== "true") {
           // Refresh job status from Fossil
           const refreshedJobRequest = await this.refreshJobStatus(jobRequest);
 
