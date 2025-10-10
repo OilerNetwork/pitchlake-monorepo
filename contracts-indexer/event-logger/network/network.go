@@ -56,7 +56,6 @@ func (n *Network) GetEvents(fromBlock rpc.BlockID, toBlock rpc.BlockID, address 
 	if address != nil {
 		addressBytes, err = utils.HexStringToFelt(*address)
 		addressFelt := *felt.NewFromBytes[felt.Felt](addressBytes)
-		fmt.Printf("Address felt: %v", addressFelt)
 		filter.Address = &addressFelt
 	}
 	if err != nil {
@@ -64,7 +63,6 @@ func (n *Network) GetEvents(fromBlock rpc.BlockID, toBlock rpc.BlockID, address 
 		return nil, err
 	}
 
-	log.Printf("Filter: %v", filter)
 	input := rpc.EventsInput{
 		EventFilter: filter,
 		ResultPageRequest: rpc.ResultPageRequest{
@@ -105,8 +103,6 @@ func (n *Network) GetBlocks(fromBlock uint64, toBlock uint64) ([]*models.Starkne
 			ParentHash:  blockHeader.ParentHash.String(),
 			Timestamp:   blockHeader.Timestamp,
 		}
-		log.Printf("STARKNET BLOCK %v", starknetBlock)
-
 		blocks = append(blocks, starknetBlock)
 		log.Printf("Processed block %v", i)
 	}

@@ -25,6 +25,12 @@ func ValidateSubscriptionMessage(sm types.SubscriberMessage) error {
 	}
 
 	// Validate Starknet address format (basic check - should start with 0x and be 65 chars)
+	if !strings.HasPrefix(sm.Address, "0x") {
+		return fmt.Errorf("invalid address format: %s", sm.Address)
+	}
+	if !strings.HasPrefix(sm.VaultAddress, "0x") {
+		return fmt.Errorf("invalid vault address format: %s", sm.VaultAddress)
+	}
 
 	return nil
 }
