@@ -9,6 +9,7 @@ import (
 	"pitchlake-backend/server/types"
 
 	"github.com/coder/websocket"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func (router *HomeRouter) subscribeHomeHandler(w http.ResponseWriter, r *http.Request) {
@@ -27,12 +28,13 @@ func (router *HomeRouter) subscribeHomeHandler(w http.ResponseWriter, r *http.Re
 	}
 }
 
-func NewHomeRouter(serveMux *http.ServeMux, logger *log.Logger) *HomeRouter {
+func NewHomeRouter(serveMux *http.ServeMux, logger *log.Logger, pool *pgxpool.Pool) *HomeRouter {
 	router := &HomeRouter{
 		Subscribers: SubscribersWithLock{
 			List: make(map[*types.SubscriberHome]struct{}),
 		},
-		log: logger,
+		log:  logger,
+		pool: pool,
 	}
 	serveMux.HandleFunc("/subscribeHome", router.subscribeHomeHandler)
 	return router

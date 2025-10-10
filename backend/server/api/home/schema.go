@@ -16,7 +16,7 @@ type HomeRouter struct {
 	subscriberMessageBuffer int
 	Subscribers             SubscribersWithLock
 	log                     *log.Logger
-	pool                    pgxpool.Pool
+	pool                    *pgxpool.Pool
 }
 
 type subscriberHome struct {

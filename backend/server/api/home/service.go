@@ -60,7 +60,7 @@ func (router *HomeRouter) SubscribeHome(ctx context.Context, w http.ResponseWrit
 	mu.Unlock()
 	defer c.CloseNow()
 
-	vaultRepo := repositories.NewVaultRepository(&router.pool)
+	vaultRepo := repositories.NewVaultRepository(router.pool)
 	vaultAddresses, err := vaultRepo.GetVaultAddresses(ctx)
 	if err != nil {
 		return err
