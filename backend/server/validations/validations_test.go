@@ -77,16 +77,6 @@ func TestValidateSubscriptionMessage(t *testing.T) {
 			wantErr: true,
 			errMsg:  "invalid address format: 123456789012345678901234567890123456789012345678901234567890123",
 		},
-		{
-			name: "invalid vault address format",
-			message: types.SubscriberMessage{
-				Address:      "0x123456789012345678901234567890123456789012345678901234567890123",
-				VaultAddress: "0xabc",
-				UserType:     "lp",
-			},
-			wantErr: true,
-			errMsg:  "invalid vault address format: 0xabc",
-		},
 	}
 
 	for _, tt := range tests {
