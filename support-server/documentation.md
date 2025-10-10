@@ -204,7 +204,7 @@ CREATE TABLE driver_events (
 | `VAULT_ADDRESSES` | Yes | Comma-separated vault addresses | - |
 | `FOSSIL_API_KEY` | Yes | Fossil API key | - |
 | `FOSSIL_API_URL` | Yes | Fossil API URL | - |
-| `USE_MOCK_VERIFIER` | No | Use mock verifier instead of Fossil API (uses automator's account) | `false` |
+| `USE_MOCK_VERIFIER` | No | **Not implemented** - mock verifier is hardcoded to `true` | `false` |
 | `CRON_SCHEDULE` | No | TWAP update schedule | `*/5 * * * * *` |
 | `CRON_SCHEDULE_STATE` | No | State transition schedule | `*/30 * * * * *` |
 | `LOG_LEVEL` | No | Logging level | `info` |
@@ -240,7 +240,7 @@ CREATE TABLE driver_events (
 - **Code Location**: `runner.ts` - used in block processing loop
 
 #### `USE_MOCK_VERIFIER`
-- **Purpose**: Enables mock verifier mode for testing and development
+- **Purpose**: Environment variable for mock verifier mode (currently not implemented)
 - **Behavior**: 
   - When set to `true`, uses mock verifier instead of Fossil API for job requests
   - Uses the automator's own account address as the verifier
@@ -605,25 +605,6 @@ Key metrics to monitor:
 - Request/response validation
 - Error message sanitization
 
-## Deployment
-
-### Docker Deployment
-
-The service includes Docker configuration for easy deployment:
-
-```dockerfile
-FROM node:18-alpine
-
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
-
-COPY . .
-RUN npm run build
-
-EXPOSE 3000
-CMD ["npm", "start"]
-```
 
 ### Environment Configuration
 
@@ -672,7 +653,7 @@ make migrate-all
 make check-migrations
 
 # Rollback migrations (if needed)
-make migrate-down
+make migrate-pitchlake-down
 ```
 
 ## Troubleshooting Guide
