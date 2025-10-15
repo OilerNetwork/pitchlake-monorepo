@@ -23,10 +23,13 @@ A high-performance WebSocket server built in Go for real-time blockchain data st
 ### Environment Setup
 1. **Set up environment variables**
    ```bash
-   export PITCHLAKE_DB_URL="postgres://username:password@localhost:5433/pitchlake?sslmode=disable"
+   PITCHLAKE_DB_URL= # Pitchlake Database
+   FRONTEND_URL= # Frontend URL
+   DEV_MODE= # Sends mock fossil data directly to contract if set as true
+   STARKNET_ACCOUNT_ADDRESS= # Mock account from vault contract
+   STARKNET_PRIVATE_KEY= # Mock account from vault contract
+   STARKNET_PUBLIC_KEY= # Mock account from contract
    ```
-   
-   Note: `FRONTEND_URL` is referenced in the code but currently commented out.
 
 2. **Install dependencies**
    ```bash
