@@ -191,13 +191,6 @@ Subscribers receive only relevant data based on:
 
 ## Configuration
 
-### Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `PITCHLAKE_DB_URL` | PostgreSQL connection string | Required |
-| `FRONTEND_URL` | Frontend URL for CORS | Optional (commented out in code) |
-
 ### Server Configuration
 
 ```go
