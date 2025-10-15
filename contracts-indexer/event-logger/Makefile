@@ -4,10 +4,12 @@ build:
 	go build -tags 'purego no_coverage' -buildmode=plugin -o myplugin.so plugin/myplugin.go
 
 # Docker commands
-start-docker:
+
+build-docker:
 	@echo "Building event logger..."
-	docker compose build
-	@echo ""
+	docker-compose build
+
+start-docker:
 	@echo "Starting event logger..."
 	docker compose up -d
 
@@ -19,23 +21,21 @@ clean-docker:
 	docker compose down -v --remove-orphans
 	docker system prune -f
 
-restart-docker-network:
-	docker compose down --remove-orphans
-	docker compose up -d
+reset-docker-network:
+	@echo "Resetting docker network..."
+	docker network rm pitchlake-network
+	docker-compose down -v --remove-orphans
 
 # Development setup
 dev:
 	@echo "🔧 Building Docker image..."
-	@make docker-build
+	@make build-docker
 	@echo ""
 	@echo "🚀 Development environment ready!"
 	@echo "📊 Database: pitchlake-db (connected via pitchlake-network)"
 	@echo "🐳 Docker image: Built successfully"
-	@echo "📋 Next steps:"
-	@echo "   • Run 'make docker-up' to start the application"
-	@echo "   • Or run 'make docker-up-detached' to run in background"
-	@echo "   • Use 'make docker-logs' to view application logs"
-	@echo "   • Use 'make migrate-status' to check database tables"
+	@echo "Start the event logger with: make start-docker"
+	@make start-docker
 
 # Network commands - using fossil-monorepo network
 check-fossil-network:
