@@ -12,19 +12,22 @@ A high-performance StarkNet event indexing and logging system built as a Juno pl
 
 ### Development Setup
 
-1. **Start the fossil-monorepo infrastructure:**
-   ```bash
-   cd ../../fossil-monorepo
-   make dev-up
-   ```
 
-2. **Set up the event-logger:**
+1. **Set up the event-logger:**
    ```bash
    cd contracts-indexer/event-logger
    make dev
    ```
-
-3. **Start the service:**
+2. **Add juno snapshot**
+   ```bash
+   # Create local snapshot directory
+   mkdir -p ~/snapshots-test/
+   
+   # The docker-compose.yml already maps this directory to /snapshots in the container you may update it to a different path 
+   # Volume mapping: $HOME/snapshots-test/ -> /snapshots
+   # Visit github.com/NethermindEth/juno to download snapshots and more info w.r.t Juno.
+   ```
+4. **Start the service:**
    ```bash
    make docker-up
    ```
