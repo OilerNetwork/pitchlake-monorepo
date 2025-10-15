@@ -114,7 +114,10 @@ The project uses a comprehensive Makefile system for managing the entire develop
 |---------|-------------|
 | `make clean` | Clean up all infrastructure (removes volumes and networks) |
 
-The system includes blockchain indexing services for real-time event processing:
+
+##Indexer
+The system also includes blockchain indexing services for real-time event processing. This can be used to run the frontend in websocket mode where all the chain data and updates are served via the backend over websockets:
+
 
 - **Event Logger**: Captures StarkNet events via Juno plugin
 - **Event Processor**: Processes events and maintains application state
