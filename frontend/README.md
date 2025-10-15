@@ -43,8 +43,6 @@ A modern Next.js frontend application for the Pitchlake DeFi options trading pla
 
    # Optional Environment Variables
    NEXT_PUBLIC_RPC_URL_JUNO_DEVNET=http://localhost:6060
-   FOSSIL_API_KEY=your_fossil_api_key
-   FOSSIL_DB_URL=postgres://user:pass@localhost:5432/db
    DEMO_ACCOUNT_ADDRESS=0x1234567890abcdef...
    DEMO_PRIVATE_KEY=0x1234567890abcdef...
    ```
