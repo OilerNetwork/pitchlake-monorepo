@@ -1,7 +1,7 @@
 
 # Build commands
 build:
-	go build -tags 'purego no_coverage' -buildmode=plugin -o myplugin.so plugin/myplugin.go
+	go build -tags 'no_coverage' -buildmode=plugin -o myplugin.so plugin/myplugin.go
 
 # Docker commands
 
