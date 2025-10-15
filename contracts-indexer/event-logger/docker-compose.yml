@@ -3,6 +3,7 @@ services:
   # Local database service (only used if pitchlake-db is not available)
 
   juno_plugin:
+    platform: linux/amd64
     volumes:
       - type: bind
         source: $HOME/snapshots-test/
