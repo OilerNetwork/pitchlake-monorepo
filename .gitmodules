@@ -5,4 +5,4 @@
 [submodule "fossil-monorepo"]
 	path = fossil-monorepo
 	url = git@github.com:NethermindEth/fossil-monorepo.git
-	branch = job-request-update-matt-fixes
+	branch = handover-updates
