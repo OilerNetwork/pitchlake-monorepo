@@ -106,7 +106,7 @@ start-all: ## Start all services (Fossil first, then Pitchlake services)
 	@echo "📋 Step 5: Starting Pitchlake databases..."
 	@docker-compose up -d pitchlake-db fossil-db
 	@echo "📋 Step 6: Running Pitchlake migrations..."
-	@$(MAKE) migrate PITCHLAKE_DB_URL=postgres://pitchlake_user:pitchlake_password@pitchlake-db:5432/pitchlake?sslmode=disable
+	@$(MAKE) migrate PITCHLAKE_DB_URL=postgres://pitchlake_user:pitchlake_password@localhost:5437/pitchlake?sslmode=disable
 	@echo "📋 Step 7: Starting remaining Pitchlake services..."
 	@docker-compose up -d
 	@echo "⏳ Waiting for services to be healthy..."
