@@ -2,6 +2,6 @@
 .DS_Store?
 
 .env
-.env*
+.env.local
+.env.docker
 !.env.example
-!.env*.example

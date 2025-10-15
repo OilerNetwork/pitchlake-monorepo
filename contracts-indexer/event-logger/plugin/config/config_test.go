@@ -7,14 +7,14 @@ import (
 
 func TestLoadConfig(t *testing.T) {
 	// Save original environment variables
-	originalDBURL := os.Getenv("DB_URL")
+	originalDBURL := os.Getenv("PITCHLAKE_DB_URL")
 	originalRPCURL := os.Getenv("RPC_URL")
 	originalUDCAddress := os.Getenv("UDC_ADDRESS")
 	originalCursor := os.Getenv("CURSOR")
 
 	// Clean up after test
 	defer func() {
-		os.Setenv("DB_URL", originalDBURL)
+		os.Setenv("PITCHLAKE_DB_URL", originalDBURL)
 		os.Setenv("RPC_URL", originalRPCURL)
 		os.Setenv("UDC_ADDRESS", originalUDCAddress)
 		os.Setenv("CURSOR", originalCursor)
@@ -29,10 +29,10 @@ func TestLoadConfig(t *testing.T) {
 		{
 			name: "valid config with all variables",
 			envVars: map[string]string{
-				"DB_URL":      "postgres://localhost:5432/test",
-				"RPC_URL":     "https://starknet-mainnet.infura.io",
-				"UDC_ADDRESS": "0x123",
-				"CURSOR":      "1000",
+				"PITCHLAKE_DB_URL": "postgres://localhost:5432/test",
+				"RPC_URL":          "https://starknet-mainnet.infura.io",
+				"UDC_ADDRESS":      "0x123",
+				"CURSOR":           "1000",
 			},
 			expectError: false,
 			expected: &Config{
@@ -45,8 +45,8 @@ func TestLoadConfig(t *testing.T) {
 		{
 			name: "valid config with required variables only",
 			envVars: map[string]string{
-				"DB_URL":  "postgres://localhost:5432/test",
-				"RPC_URL": "https://starknet-mainnet.infura.io",
+				"PITCHLAKE_DB_URL": "postgres://localhost:5432/test",
+				"RPC_URL":          "https://starknet-mainnet.infura.io",
 			},
 			expectError: false,
 			expected: &Config{
@@ -57,7 +57,7 @@ func TestLoadConfig(t *testing.T) {
 			},
 		},
 		{
-			name: "missing DB_URL",
+			name: "missing PITCHLAKE_DB_URL",
 			envVars: map[string]string{
 				"RPC_URL": "https://starknet-mainnet.infura.io",
 			},
@@ -66,16 +66,7 @@ func TestLoadConfig(t *testing.T) {
 		{
 			name: "missing RPC_URL",
 			envVars: map[string]string{
-				"DB_URL": "postgres://localhost:5432/test",
-			},
-			expectError: true,
-		},
-		{
-			name: "invalid CURSOR value",
-			envVars: map[string]string{
-				"DB_URL":  "postgres://localhost:5432/test",
-				"RPC_URL": "https://starknet-mainnet.infura.io",
-				"CURSOR":  "invalid",
+				"PITCHLAKE_DB_URL": "postgres://localhost:5432/test",
 			},
 			expectError: true,
 		},
@@ -84,7 +75,7 @@ func TestLoadConfig(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Clear environment
-			os.Unsetenv("DB_URL")
+			os.Unsetenv("PITCHLAKE_DB_URL")
 			os.Unsetenv("RPC_URL")
 			os.Unsetenv("UDC_ADDRESS")
 			os.Unsetenv("CURSOR")

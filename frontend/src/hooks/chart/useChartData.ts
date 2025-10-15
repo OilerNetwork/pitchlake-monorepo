@@ -1,17 +1,19 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getDemoRoundId } from "@/lib/demo/utils";
 import { useChartContext } from "@/context/ChartProvider";
-import { useHistoricalRoundParams } from "./useHistoricalRoundParams";
 import { useNewContext } from "@/context/NewProvider";
 import demoRoundData from "@/lib/demo/demo-round-data.json";
 import { FormattedBlockData } from "@/lib/types";
 import { formatUnits } from "ethers";
+import useGasData from "./useGasData";
+import { useProvider } from "@starknet-react/core";
+import { getHistoricalRoundData, HistoricalRoundData } from "@/lib/utils";
 
 const useChartData = (activeLines: any, vaultAddress?: string) => {
   const { conn, selectedRound } = useNewContext();
   // Chart context
   const { isExpandedView, xMax, xMin } = useChartContext();
-  const { gasData } = {gasData: []};
+  const { gasData } = useGasData();
   // Help context
 
   // Strike and cap for all possibly displayed rounds
@@ -25,25 +27,31 @@ const useChartData = (activeLines: any, vaultAddress?: string) => {
     return { fromRound, toRound };
   }, [selectedRound, isExpandedView]);
 
-  const { vaultData: _historicalData } = useHistoricalRoundParams({
-    vaultAddress: vaultAddress,
-    fromRound,
-    toRound,
-  });
+  const [vaultData, setVaultData] = useState<HistoricalRoundData | null>(null);
+
+  useEffect(() => {
+    if (!vaultAddress||vaultAddress === "0x1") return;
+    getHistoricalRoundData(fromRound, toRound, vaultAddress).then(
+      (data) => {
+        setVaultData(data);
+      }
+    );
+  }, [fromRound, toRound, vaultAddress]);
 
   const historicalData = useMemo(() => {
     if (conn === "demo") {
       return { rounds: demoRoundData };
-    } else return _historicalData;
-  }, [_historicalData]);
+    } else return vaultData;
+  }, [vaultData]);
 
   // Add strike and cap to gas data
   const {
     parsedData,
     maxValue,
   }: { parsedData: FormattedBlockData[]; maxValue: number } = useMemo(() => {
-    if (!selectedRound || !historicalData || !gasData)
+    if (!selectedRound || !historicalData || !gasData) {
       return { parsedData: [], maxValue: 0 };
+    }
 
     const dataPoints =
       gasData.length > 0 ? gasData : [{ timestamp: xMin }, { timestamp: xMax }];
@@ -60,9 +68,9 @@ const useChartData = (activeLines: any, vaultAddress?: string) => {
         return item?.timestamp >= lowerBound && item?.timestamp <= upperBound;
       });
 
-      if (roundThisItemIsIn) {
+      if (roundThisItemIsIn?.strikePrice) {
         const strike = Number(
-          formatUnits(roundThisItemIsIn.strikePrice, "gwei"),
+          formatUnits(roundThisItemIsIn.strikePrice, "gwei")
         );
         const cap = strike * (1 + Number(roundThisItemIsIn.capLevel) / 10000);
 
@@ -76,6 +84,8 @@ const useChartData = (activeLines: any, vaultAddress?: string) => {
         newItem.STRIKE = undefined;
         newItem.CAP_LEVEL = undefined;
       }
+
+      // Data already has the correct field names from useGasData
 
       // Calculate max for all other values
       if (newItem.TWAP !== null && newItem.TWAP > max) max = newItem.TWAP;
@@ -115,12 +125,12 @@ const useChartData = (activeLines: any, vaultAddress?: string) => {
     const segments: any = [];
     const areas: any = [];
     const sortedData: any = [...parsedData].sort(
-      (a, b) => a.timestamp - b.timestamp,
+      (a, b) => a.timestamp - b.timestamp
     );
 
     // Filter rounds based on fromRoundId and toRoundId
     const filteredRounds = historicalData.rounds.filter(
-      (round: any) => round.roundId >= fromRound && round.roundId <= toRound,
+      (round: any) => round.roundId >= fromRound && round.roundId <= toRound
     );
 
     filteredRounds.forEach((round: any) => {
@@ -128,7 +138,7 @@ const useChartData = (activeLines: any, vaultAddress?: string) => {
 
       const capLevel = Number(round.capLevel);
       const strikePriceGwei = parseFloat(
-        formatUnits(round.strikePrice, "gwei"),
+        formatUnits(round.strikePrice, "gwei")
       );
       const deploymentDate = Number(round.deploymentDate);
       const optionSettleDate = Number(round.optionSettleDate);
@@ -218,7 +228,7 @@ const useChartData = (activeLines: any, vaultAddress?: string) => {
     const defaultTickFormat = { label: null };
 
     const filteredRounds = historicalData.rounds.filter(
-      (round: any) => round.roundId >= fromRound && round.roundId <= toRound,
+      (round: any) => round.roundId >= fromRound && round.roundId <= toRound
     );
 
     // Generate midpoints for round IDs

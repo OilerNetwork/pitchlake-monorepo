@@ -133,7 +133,7 @@ fn test_refundable_bids_includes_partial_and_fully_refunded_bids() {
     let bid_prices = create_array_linear(bid_price, 4).span();
     accelerate_to_running_custom(ref vault, bidders, bid_amounts, bid_prices);
 
-    // Check that the refundable amount is the unsued bids from bid 3 and all of bid 4
+    // Check that the refundable amount is the unused bids from bid 3 and all of bid 4
     let bid_3_amount_used = total_options_available - (2 * bid_amount);
     let bid_3_amount_unused = bid_amount - bid_3_amount_used;
     let bid_3_refundable_amount = bid_3_amount_unused * bid_price;

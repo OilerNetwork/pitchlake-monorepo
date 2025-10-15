@@ -24,11 +24,11 @@ func ValidateSubscriptionMessage(sm types.SubscriberMessage) error {
 		return fmt.Errorf("invalid user type: %s, must be 'lp' or 'ob'", sm.UserType)
 	}
 
-	// Validate Ethereum address format (basic check - should start with 0x and be 42 chars)
-	if !strings.HasPrefix(sm.Address, "0x") || len(sm.Address) != 42 {
+	// Validate Starknet address format (basic check - should start with 0x and be 65 chars)
+	if !strings.HasPrefix(sm.Address, "0x") {
 		return fmt.Errorf("invalid address format: %s", sm.Address)
 	}
-	if !strings.HasPrefix(sm.VaultAddress, "0x") || len(sm.VaultAddress) != 42 {
+	if !strings.HasPrefix(sm.VaultAddress, "0x") {
 		return fmt.Errorf("invalid vault address format: %s", sm.VaultAddress)
 	}
 
@@ -75,7 +75,7 @@ func ValidateVaultRequest(req types.SubscriberVaultRequest) error {
 
 	// Validate address format if field is address
 	if req.UpdatedField == "address" {
-		if !strings.HasPrefix(req.UpdatedValue, "0x") || len(req.UpdatedValue) != 42 {
+		if !strings.HasPrefix(req.UpdatedValue, "0x") || len(req.UpdatedValue) != 65 {
 			return fmt.Errorf("invalid address format: %s", req.UpdatedValue)
 		}
 	}

@@ -16,17 +16,20 @@ A high-performance WebSocket server built in Go for real-time blockchain data st
 ## ⚡ Quick Start
 
 ### Prerequisites
-- Go 1.23+
+- Go 1.25+
 - PostgreSQL database
 - Docker (optional)
 
 ### Environment Setup
 1. **Set up environment variables**
    ```bash
-   export PITCHLAKE_DB_URL="postgres://username:password@localhost:5432/pitchlake?sslmode=disable"
+   PITCHLAKE_DB_URL= # Pitchlake Database
+   FRONTEND_URL= # Frontend URL
+   DEV_MODE= # Sends mock fossil data directly to contract if set as true
+   STARKNET_ACCOUNT_ADDRESS= # Mock account from vault contract
+   STARKNET_PRIVATE_KEY= # Mock account from vault contract
+   STARKNET_PUBLIC_KEY= # Mock account from contract
    ```
-   
-   Note: `FRONTEND_URL` is referenced in the code but currently commented out.
 
 2. **Install dependencies**
    ```bash
@@ -82,11 +85,12 @@ server/
 │   ├── general/          # Gas price and general data endpoints
 │   ├── home/             # Home dashboard data endpoints  
 │   ├── vault/            # Vault state and user data endpoints
+│   ├── integrations/     # External service integrations (Fossil API)
 │   └── utils/            # Shared utilities
 ├── types/                # Type definitions and interfaces
-├── db/                   # Database layer and repositories
-├── models/               # Data models and structures
-└── validations.go        # Request validation logic
+├── validations/          # Request validation logic
+├── listener.go           # Database event listener
+└── server.go             # Main server setup
 ```
 
 ## 📡 API Endpoints
@@ -96,6 +100,7 @@ server/
 - **`/subscribeGas`** - WebSocket endpoint for gas price data
 - **`/subscribeHome`** - WebSocket endpoint for home dashboard data
 - **`/subscribeVault`** - WebSocket endpoint for vault state updates
+- **`/sendJobRequest`** - HTTP endpoint for sending job requests to Fossil API
 
 ## 🔌 WebSocket Subscriptions
 
@@ -129,7 +134,7 @@ Subscribe to vault-specific updates:
 ## 🛠️ Development
 
 ### Prerequisites
-- Go 1.22.5+
+- Go 1.25+
 - PostgreSQL database
 - Docker (optional, for containerized development)
 
@@ -138,7 +143,7 @@ Subscribe to vault-specific updates:
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd pitchlake-websocket
+   cd pitchlake-backend
    ```
 
 2. **Install dependencies**
@@ -149,7 +154,7 @@ Subscribe to vault-specific updates:
 3. **Set up environment variables**
    ```bash
    # Set the database URL
-   export PITCHLAKE_DB_URL="postgres://username:password@localhost:5432/pitchlake?sslmode=disable"
+   export PITCHLAKE_DB_URL="postgres://username:password@localhost:5433/pitchlake?sslmode=disable"
    ```
 
 4. **Run the server**
@@ -221,15 +226,14 @@ go test -cover ./server/validations/...
 
 ### Test Structure
 ```
-Unit Tests (Fast):
-├── server/api/general/     # Handler tests (6 test cases)
-├── server/api/home/        # Handler tests (6 test cases)  
-├── server/api/vault/       # Handler tests (6 test cases)
-└── server/validations/     # Validation tests (22 test cases)
-Total: 40 unit tests
+Unit Tests:
+├── server/api/general/     # Handler and service tests
+├── server/api/home/        # Handler and service tests
+├── server/api/vault/       # Handler, service, and job request tests
+└── server/validations/     # Validation tests
 
-Integration Tests (Slower):
-└── server/integration_test.go  # WebSocket tests (4 test cases)
+Integration Tests:
+└── server/integration_test.go  # WebSocket validation tests
 ```
 
 ## 📊 Data Models
@@ -239,6 +243,8 @@ Integration Tests (Slower):
 - **`SubscriberVault`** - Vault subscription data  
 - **`SubscriberHome`** - Home dashboard subscription data
 - **`BlockResponse`** - Blockchain block data with TWAP values
+- **`SubscriberMessage`** - General subscription message format
+- **`BidData`** - Bid operation data
 
 ### Database Models
 - **`Block`** - Blockchain block information
@@ -246,6 +252,11 @@ Integration Tests (Slower):
 - **`LiquidityProviderState`** - Liquidity provider status
 - **`OptionBuyer`** - Option buyer information
 - **`OptionRound`** - Option round details
+- **`Bid`** - Bid information
+- **`QueuedLiquidity`** - Queued liquidity data
+- **`TwapState`** - TWAP calculation state
+- **`JobRequest`** - Fossil API job request data
+- **`FossilRequest`** - Fossil API request format
 
 ## 🔒 Concurrency & Thread Safety
 

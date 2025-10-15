@@ -4,7 +4,7 @@ import { useSendTransaction } from "@starknet-react/core";
 import { isValidHex64 } from "@/lib/utils";
 import { useTransactionContext } from "@/context/TransactionProvider";
 import { useErc20Contract } from "@/hooks/contracts/useErc20Contract";
-import { useVaultContract } from "@/hooks/contracts/useVaultContract";
+import { useOptionRoundContract } from "../contracts/useOptionRoundContract";
 
 interface EditBidMulticallProps {
   accountAddress: string | undefined;
@@ -35,8 +35,8 @@ export default function useEditBidMulticall({
   const { erc20Contract: ethContract } = useErc20Contract({
     tokenAddress: ethAddress,
   });
-  const { vaultContract } = useVaultContract({
-    vaultAddress: vaultAddress,
+  const { optionRoundContract } = useOptionRoundContract({
+    contractAddress: roundAddress,
   });
 
   const calls: Call[] = useMemo(() => {
@@ -44,7 +44,7 @@ export default function useEditBidMulticall({
     if (!accountAddress || !isValidHex64(accountAddress)) return [];
 
     // Are vars ok
-    if (!vaultAddress || !roundAddress || !vaultContract || !ethContract)
+    if (!vaultAddress || !roundAddress || !optionRoundContract || !ethContract)
       return [];
 
     // Prepare calls
@@ -54,7 +54,7 @@ export default function useEditBidMulticall({
       roundAddress,
       totalNewCostWei as bigint,
     );
-    const editBidCall = vaultContract.populateTransaction.update_bid(
+    const editBidCall = optionRoundContract.populateTransaction.update_bid(
       bidId,
       priceIncreaseWei as bigint,
     );

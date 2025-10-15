@@ -40,50 +40,52 @@ export const useGasData = () => {
   const { combinedGasData } = useMemo(() => {
     if ((!confirmedGasData && !unconfirmedGasData) || conn === "demo")
       return { combinedGasData: [] };
-
-    // Remove all unconfirmed blocks if timestamp < last fossil block
-
-    // Set bounds if there is no fossil data
-    if (confirmedGasData?.length === 0) {
-      confirmedGasData.push({ timestamp: xMin }, { timestamp: xMax });
+    // Create a copy of confirmed data
+    const confirmedDataCopy = [...(confirmedGasData || [])];
+    
+    // Only add bounds if there is no fossil data
+    if (confirmedDataCopy.length === 0) {
+      confirmedDataCopy.push({ timestamp: xMin }, { timestamp: xMax });
     }
 
-    // If there is fossil data, remove all unconfirmed blocks if timestamp < last fossil block
+    // Create a map to deduplicate blocks by blockNumber or timestamp
+    const blocksMap = new Map<string, FormattedBlockData>();
+    
+    // Add confirmed blocks first (they take priority)
+    confirmedDataCopy?.forEach((d, index) => {
+      const key = d.blockNumber ? `block_${d.blockNumber}` : `timestamp_${d.timestamp}`;
+      blocksMap.set(key, {
+        basefee: d.baseFee ? d.baseFee : undefined,
+        blockNumber: d.blockNumber,
+        timestamp: d.timestamp,
+        twap: d.twap ? d.twap : undefined,
+        unconfirmedBasefee: index === confirmedDataCopy.length - 1 ? d.baseFee ? d.baseFee : undefined : undefined,
+        unconfirmedTwap: index === confirmedDataCopy.length - 1 ? d.twap ? d.twap : undefined : undefined,
+        confirmedBasefee: d.baseFee ? d.baseFee : undefined,
+        confirmedTwap: d.twap ? d.twap : undefined,
+        isUnconfirmed: false,
+      } as FormattedBlockData);
+    });
 
-    const allGasData: FormattedBlockData[] = [
-      ...(confirmedGasData
-        ? confirmedGasData.map(
-            (d,index) =>
-              ({
-                basefee: d.baseFee ? d.baseFee/10**9 : undefined,
-                blockNumber: d.blockNumber,
-                timestamp: d.timestamp,
-                twap: d.twap ? d.twap/10**9 : undefined,
-                unconfirmedBasefee: index===confirmedGasData.length-1?d.baseFee ? d.baseFee/10**9 : undefined:undefined,
-                unconfirmedTwap: index===confirmedGasData.length-1?d.twap ? d.twap/10**9 : undefined:undefined,
-                confirmedBasefee: d.baseFee ? d.baseFee/10**9 : undefined,
-                confirmedTwap: d.twap ? d.twap/10**9 : undefined,
-                isUnconfirmed: false,
-              } as FormattedBlockData)
-          )
-        : []),
-      ...(unconfirmedGasData
-        ? unconfirmedGasData.map(
-            (d, index) =>
-             {  return ({
-                basefee: d.baseFee ? d.baseFee/10**9 : undefined,
-                blockNumber: d.blockNumber,
-                timestamp: d.timestamp,
-                twap: d.twap ? d.twap/10**9 : undefined,
-                unconfirmedBasefee: d.baseFee ? d.baseFee/10**9 : undefined,
-                unconfirmedTwap: d.twap ? d.twap/10**9 : undefined,
-                confirmedBasefee: undefined,
-                confirmedTwap: undefined,
-                isUnconfirmed: true,
-              } as FormattedBlockData)}
-          )
-        : []),
-    ];
+    // Add unconfirmed blocks only if they don't already exist as confirmed
+    unconfirmedGasData?.forEach((d) => {
+      const key = d.blockNumber ? `block_${d.blockNumber}` : `timestamp_${d.timestamp}`;
+      if (!blocksMap.has(key)) {
+        blocksMap.set(key, {
+          basefee: d.baseFee ? d.baseFee : undefined,
+          blockNumber: d.blockNumber,
+          timestamp: d.timestamp,
+          twap: d.twap ? d.twap : undefined,
+          unconfirmedBasefee: d.baseFee ? d.baseFee : undefined,
+          unconfirmedTwap: d.twap ? d.twap : undefined,
+          confirmedBasefee: undefined,
+          confirmedTwap: undefined,
+          isUnconfirmed: true,
+        } as FormattedBlockData);
+      }
+    });
+
+    const allGasData: FormattedBlockData[] = Array.from(blocksMap.values());
 
     if (allGasData[allGasData.length - 1]?.timestamp < xMax)
       allGasData.push({
@@ -102,12 +104,14 @@ export const useGasData = () => {
         basefee: undefined,
       });
 
+    const finalData = allGasData
+      .sort((a, b) => a.timestamp - b.timestamp)
+      .filter((d) => {
+        return d.timestamp <= xMax && d.timestamp >= xMin;
+      });
+    
     return {
-      combinedGasData: allGasData
-        .sort((a, b) => a.timestamp - b.timestamp)
-        .filter((d) => {
-          return d.timestamp <= xMax && d.timestamp >= xMin;
-        }),
+      combinedGasData: finalData,
     };
   }, [confirmedGasData, unconfirmedGasData]);
 

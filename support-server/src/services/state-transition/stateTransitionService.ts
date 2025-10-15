@@ -201,6 +201,7 @@ export class StateTransitionService {
 
       // Handle each state with proper error handling
       // Each state handler will manage its own job requests
+      console.log("MOCK MODE")
       switch (stateEnum) {
         case OptionRoundState.Open:
           await this.stateHandlers.handleOpenState(

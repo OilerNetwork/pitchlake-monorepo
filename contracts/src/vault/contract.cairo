@@ -155,6 +155,7 @@ pub mod Vault {
     #[derive(Drop, starknet::Event, Serde, PartialEq)]
     pub struct OptionRoundEmitted {
         pub round_id: u64,
+        pub event_name: felt252,
         pub event: OptionRoundEvent,
     }
 
@@ -515,7 +516,7 @@ pub mod Vault {
         }
 
         fn queue_withdrawal(ref self: ContractState, bps: u128) {
-            // @dev If the current round is Open, there is no locked liqudity to queue, exit early
+            // @dev If the current round is Open, there is no locked liquidity to queue, exit early
             let current_round_id = self.current_round_id.read();
             let current_round = self.get_round_dispatcher(current_round_id);
             let state = current_round.get_state();
@@ -680,7 +681,10 @@ pub mod Vault {
         }
 
         fn emit_option_round_event(
-            ref self: ContractState, round_id: u64, option_round_event: OptionRoundEvent,
+            ref self: ContractState,
+            round_id: u64,
+            event_name: felt252,
+            option_round_event: OptionRoundEvent,
         ) {
             // @dev Get the round dispatcher to validate the round exists
             let _round = self.get_round_dispatcher(round_id);
@@ -690,7 +694,7 @@ pub mod Vault {
             self
                 .emit(
                     Event::OptionRoundEmitted(
-                        OptionRoundEmitted { round_id, event: option_round_event },
+                        OptionRoundEmitted { round_id, event_name, event: option_round_event },
                     ),
                 );
         }
@@ -1167,25 +1171,24 @@ pub mod Vault {
 
             // @dev If the current round is Running, there could be premiums/unsold liquidity to
             // to move to the upcoming round
-            if self
+            // @dev If the premiums/unsold liquidity were not moved as a deposit into the
+            // next round, move them
+            if (self
                 .get_round_dispatcher(current_round_id)
-                .get_state() == OptionRoundState::Running {
-                // @dev If the premiums/unsold liquidity were not moved as a deposit into the
-                // next round, move them
-                if !self.is_premium_moved.entry(account).entry(current_round_id).read() {
-                    self.is_premium_moved.entry(account).entry(current_round_id).write(true);
-                    // @dev Update the account's upcoming round deposit if it has changed
-                    if upcoming_round_deposit != self
+                .get_state() == OptionRoundState::Running)
+                && (!self.is_premium_moved.entry(account).entry(current_round_id).read()) {
+                self.is_premium_moved.entry(account).entry(current_round_id).write(true);
+                // @dev Update the account's upcoming round deposit if it has changed
+                if upcoming_round_deposit != self
+                    .positions
+                    .entry(account)
+                    .entry(current_round_id + 1)
+                    .read() {
+                    self
                         .positions
                         .entry(account)
                         .entry(current_round_id + 1)
-                        .read() {
-                        self
-                            .positions
-                            .entry(account)
-                            .entry(current_round_id + 1)
-                            .write(upcoming_round_deposit);
-                    }
+                        .write(upcoming_round_deposit);
                 }
             }
         }

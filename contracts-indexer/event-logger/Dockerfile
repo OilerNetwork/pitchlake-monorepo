@@ -1,21 +1,27 @@
+#syntax=docker/dockerfile:1.4
 # Stage 1: Build golang dependencies and binaries
+
 FROM golang:1.25-bookworm AS build
 
 ARG RUST_VERSION=1.86.0
-
+ENV GOARCH=amd64
+ENV GOOS=linux
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl gcc make git build-essential \
     libjemalloc-dev libbz2-dev pkg-config \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+    
 # Install Rust
 RUN curl https://sh.rustup.rs -sSf | bash -s -- -y --default-toolchain ${RUST_VERSION} --profile minimal
-ENV PATH="/root/.cargo/bin:${PATH}"
+ARG VM_DEBUG=false
 
 WORKDIR /plugin
 
-COPY juno/ ./juno/
+RUN git clone https://github.com/NethermindEth/juno.git juno && \
+    cd juno && \
+    git checkout v0.15.7
 
 #RUN git submodule update --init --remote --recursive
 RUN bash -c 'cd juno && source ~/.cargo/env && VM_DEBUG=${VM_DEBUG} make juno'
@@ -33,7 +39,6 @@ COPY go.mod ./
 COPY go.sum ./
 COPY go.work ./
 COPY Makefile ./
-COPY starknet.go/ ./starknet.go/
 
 RUN go mod tidy
 RUN make build

@@ -10,7 +10,7 @@ import (
 func TestNewGeneralRouter(t *testing.T) {
 	serveMux := http.NewServeMux()
 	logger := log.Default()
-	router := NewGeneralRouter(serveMux, logger)
+	router := NewGeneralRouter(serveMux, logger, nil)
 
 	if router == nil {
 		t.Error("Expected router to be created")

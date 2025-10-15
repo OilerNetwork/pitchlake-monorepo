@@ -17,47 +17,29 @@ check-db:
 	@echo "Checking database connection..."
 	@if ! docker ps --format "table {{.Names}}" | grep -q "pitchlake-db"; then \
 		echo "Error: pitchlake-db is not running. Please start the database first."; \
-		echo "Run: cd ../../fossil-monorepo && make dev-up"; \
 		exit 1; \
 	fi; \
 	echo "✓ pitchlake-db is running"
 
-# Run all database migrations using the migration script
-migrate-up: check-db
-	@echo "Running all database migrations..."
-	@chmod +x scripts/migrate-up.sh
-	@./scripts/migrate-up.sh
+# Migration commands using Go migration tool
+migrate-up:
+	@echo "Running database migrations..."
+	@cd migrate && go run main.go up
 
-# Roll back all database migrations using the migration script
-migrate-down: check-db
-	@echo "⚠️  WARNING: This will roll back all migrations and drop tables!"
-	@read -p "Are you sure you want to continue? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
-	@echo "Rolling back all migrations..."
-	@chmod +x scripts/migrate-down.sh
-	@./scripts/migrate-down.sh
+migrate-down:
+	@echo "Rolling back database migrations..."
+	@cd migrate && go run main.go down
 
-# Check migration status
-migrate-status: check-db
+migrate-status:
 	@echo "Checking migration status..."
-	@echo "Tables in pitchlake database:"
-	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "\dt" 2>/dev/null || echo "Could not connect to database"
-	@echo ""
-	@echo "Checking for specific tables:"
-	@if docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "\dt" 2>/dev/null | grep -q "VaultStates"; then \
-		echo "  ✓ VaultStates table exists"; \
-	else \
-		echo "  ✗ VaultStates table missing"; \
-	fi; \
-	if docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "\dt" 2>/dev/null | grep -q "Option_Rounds"; then \
-		echo "  ✓ Option_Rounds table exists"; \
-	else \
-		echo "  ✗ Option_Rounds table missing"; \
-	fi; \
-	if docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "\dt" 2>/dev/null | grep -q "Liquidity_Providers"; then \
-		echo "  ✓ Liquidity_Providers table exists"; \
-	else \
-		echo "  ✗ Liquidity_Providers table missing"; \
-	fi
+	@cd migrate && go run main.go status
+
+migrate-force-drop:
+	@echo "⚠️  WARNING: This will drop the migration table and reset all migration state!"
+	@echo "This should only be used to fix dirty migration states."
+	@read -p "Are you sure you want to continue? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
+	@echo "Dropping migration table..."
+	@cd migrate && go run main.go force-drop
 
 # Mark all driver events as unprocessed
 reset-driver-events: check-db
@@ -74,28 +56,27 @@ reset-driver-events: check-db
 		exit 1; \
 	fi
 
-# Build the application
-build:
+
+docker-build:
 	@echo "Building event-processor..."
-	@go build -o event-processor main.go
+	@docker compose build
 	@echo "✓ Build completed!"
 
-# Run the application
-run: check-db
-	@echo "Starting event-processor..."
-	@go run main.go
+docker-run:
+	@echo "Running event-processor..."
+	@docker compose up -d
+	@echo "✓ Run completed!"
 
-# Clean build artifacts
-clean:
-	@echo "Cleaning build artifacts..."
-	@rm -f event-processor
-	@echo "✓ Clean completed!"
-
-# Development setup
-dev: migrate-up build
-	@echo "🔧 Development environment ready!"
-	@echo "📊 Database: Migrations applied"
-	@echo "🏗️  Application: Built successfully"
-	@echo "📋 Next steps:"
-	@echo "   • Run 'make run' to start the application"
-	@echo "   • Use 'make migrate-status' to check database status"
+dev:
+	@echo "🔍Checking database status..."
+	@make check-db
+	@echo "🔍Migrating database..."
+	@make migrate-up PITCHLAKE_DB_URL=postgres://pitchlake_user:pitchlake_password@localhost:5437/pitchlake?sslmode=disable
+	@echo "🔧 Building Docker image..."
+	@make docker-build
+	@echo ""
+	@echo "🚀 Development environment ready!"
+	@echo "📊 Database: pitchlake-db (connected via pitchlake-network)"
+	@echo "🐳 Docker image: Built successfully"
+	@echo "Start the event processor with: make docker-run"
+	@make docker-run

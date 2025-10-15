@@ -57,10 +57,10 @@ func (db *DB) InsertBlock(block *models.StarknetBlocks) error {
 	timestamp,
 	status)
 	VALUES ($1, $2, $3, $4, 'MINED')
+	ON CONFLICT (block_number) DO NOTHING
 	`
-	res, err := db.tx.Exec(context.Background(), query, number, hash, parentHash, timestamp)
+	_, err := db.tx.Exec(context.Background(), query, number, hash, parentHash, timestamp)
 
-	log.Printf("STORAGE RESULT %v %v", res, err)
 	return err
 }
 
@@ -98,7 +98,6 @@ func (db *DB) GetVaultRegistryByAddress(address string) (models.VaultRegistry, e
 func (db *DB) GetNextBlock(hash string) (*models.StarknetBlocks, error) {
 	var block models.StarknetBlocks
 
-	log.Printf("Getting next block: %v", hash)
 	query := `
 	SELECT block_number, block_hash, parent_hash, timestamp, status FROM starknet_blocks
 	WHERE parent_hash = $1`
@@ -169,9 +168,9 @@ func (db *DB) GetLastBlock() (*models.StarknetBlocks, error) {
 func (db *DB) StoreEvent(txHash, vaultAddress string, blockNumber uint64, blockHash string, eventName string, eventKeys []string, eventData []string) error {
 
 	if db.tx == nil {
-		return errors.New("No transaction found")
+		return errors.New("no transaction found")
 	}
-	log.Printf("Storing event %s %s %d %s %v %v", txHash, vaultAddress, blockNumber, eventName, eventKeys, eventData)
+	log.Printf("Storing event %s", eventName)
 	query := `
 	INSERT INTO events
 	(transaction_hash, vault_address, block_number, block_hash, event_name, event_keys, event_data, event_nonce)
@@ -180,10 +179,6 @@ func (db *DB) StoreEvent(txHash, vaultAddress string, blockNumber uint64, blockH
 		 FROM events
 		 WHERE vault_address = $2::varchar))`
 	_, err := db.tx.Exec(context.Background(), query, txHash, vaultAddress, blockNumber, blockHash, eventName, eventKeys, eventData)
-	if err != nil {
-		log.Printf("WTHELLY")
-		log.Printf("%v", err)
-	}
 	return err
 }
 

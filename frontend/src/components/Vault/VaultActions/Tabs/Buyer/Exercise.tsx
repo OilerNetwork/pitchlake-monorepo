@@ -9,7 +9,7 @@ import useErc20Balance from "@/hooks/erc20/useErc20Balance";
 import useVaultState from "@/hooks/vault/states/useVaultState";
 import useRoundState from "@/hooks/vault/states/useRoundState";
 import useOBState from "@/hooks/vault/states/useOBState";
-import useVaultActions from "@/hooks/vault/actions/useVaultActions";
+import useOptionRoundActions from "@/hooks/optionRound/actions/useOptionRoundActions";
 import { useNewContext } from "@/context/NewProvider";
 
 interface ExerciseProps {
@@ -26,7 +26,9 @@ const Exercise: React.FC<ExerciseProps> = ({ showConfirmation }) => {
   const { selectedRoundAddress } = useVaultState();
   const selectedRoundState = useRoundState(selectedRoundAddress);
   const selectedRoundBuyerState = useOBState(selectedRoundAddress);
-  const vaultActions = useVaultActions();
+  const optionRoundActions = useOptionRoundActions({
+    optionRoundAddress: selectedRoundAddress,
+  });
   const { pendingTx, setStatusModalProps, updateStatusModalProps } =
     useTransactionContext();
   const { balance } = useErc20Balance(
@@ -77,11 +79,7 @@ const Exercise: React.FC<ExerciseProps> = ({ showConfirmation }) => {
   };
 
   const handleExerciseOptions = async (): Promise<string> => {
-    return (
-      (await vaultActions?.exerciseOptions({
-        roundAddress: selectedRoundAddress || "0x0",
-      })) || ""
-    );
+    return (await optionRoundActions?.exerciseOptions()) || "";
   };
 
   const handleSubmit = () => {

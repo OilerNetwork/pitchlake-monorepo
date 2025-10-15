@@ -12,37 +12,28 @@ export const HomeView = () => {
   const { chain } = useNetwork();
   const [vaults, setVaults] = useState<string[] | undefined>(undefined);
   const [mode, setMode] = useState<string>("");
-  
 
   useEffect(() => {
-    if(process.env.NEXT_PUBLIC_ENVIRONMENT){  
-    const environment = process.env.NEXT_PUBLIC_ENVIRONMENT;
-    setMode(environment);
+    if (process.env.NEXT_PUBLIC_ENVIRONMENT) {
+      const environment = process.env.NEXT_PUBLIC_ENVIRONMENT;
+      setMode(environment);
     }
   }, []);
   // Handle vault addresses after hydration to prevent mismatch
   useEffect(() => {
-    
     if (mode === "demo") {
-      setVaults(["0x0677ead18a571524525eb1d5fbb18431efe869f07d700f03aa66ad0abb5de01d"]);
-    } else if (mode === "ws") {
-      const wsVaultList = [
-        "0x2e0f81a9f5179c2be73cabeb92e8a6e526add4bab32e4855aa5522690c78217",
-        "0x7edaf2d262f347619f24eaa11cdc7ae125e373843d5248368887fea4aa8ee7d",
-        "0x19809922504ef98d98a406d12b2a67205a10294d3bf38f047e40239ce04c949",
-      ].filter((addr) => wsVaults?.includes(addr));
-      setVaults(wsVaultList);
+      setVaults([
+        "0x0677ead18a571524525eb1d5fbb18431efe869f07d700f03aa66ad0abb5de01d",
+      ]);
+    } else if (mode === "ws"&&wsVaults.length > 0) {
+
+      setVaults(wsVaults);
     } else {
-      console.log("process.env", process.env.NEXT_PUBLIC_ENVIRONMENT, process.env.NEXT_PUBLIC_RPC_URL_DEVNET);
-      console.log("process.env.NEXT_PUBLIC_VAULT_ADDRESSES", process.env.NEXT_PUBLIC_VAULT_ADDRESSES);
       setVaults(process.env.NEXT_PUBLIC_VAULT_ADDRESSES?.split(","));
     }
-  }, [mode]);
+  }, [mode, wsVaults]);
 
-  useEffect(() => {
-    console.log("vaults123", vaults);
-  }, [wsVaults]);
-
+  console.log("vaults", vaults);
   const { isMobile } = useIsMobile();
 
   if (isMobile) return <MobileScreen />;

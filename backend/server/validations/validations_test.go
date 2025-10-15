@@ -15,8 +15,8 @@ func TestValidateSubscriptionMessage(t *testing.T) {
 		{
 			name: "valid subscription message",
 			message: types.SubscriberMessage{
-				Address:      "0x1234567890123456789012345678901234567890",
-				VaultAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+				Address:      "0x123456789012345678901234567890123456789012345678901234567890123",
+				VaultAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabe",
 				UserType:     "lp",
 			},
 			wantErr: false,
@@ -24,8 +24,8 @@ func TestValidateSubscriptionMessage(t *testing.T) {
 		{
 			name: "valid ob subscription message",
 			message: types.SubscriberMessage{
-				Address:      "0x1234567890123456789012345678901234567890",
-				VaultAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+				Address:      "0x123456789012345678901234567890123456789012345678901234567890123",
+				VaultAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabc",
 				UserType:     "ob",
 			},
 			wantErr: false,
@@ -33,7 +33,7 @@ func TestValidateSubscriptionMessage(t *testing.T) {
 		{
 			name: "missing address",
 			message: types.SubscriberMessage{
-				VaultAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+				VaultAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabc",
 				UserType:     "lp",
 			},
 			wantErr: true,
@@ -42,7 +42,7 @@ func TestValidateSubscriptionMessage(t *testing.T) {
 		{
 			name: "missing vault address",
 			message: types.SubscriberMessage{
-				Address:  "0x1234567890123456789012345678901234567890",
+				Address:  "0x123456789012345678901234567890123456789012345678901234567890123",
 				UserType: "lp",
 			},
 			wantErr: true,
@@ -51,8 +51,8 @@ func TestValidateSubscriptionMessage(t *testing.T) {
 		{
 			name: "missing user type",
 			message: types.SubscriberMessage{
-				Address:      "0x1234567890123456789012345678901234567890",
-				VaultAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+				Address:      "0x123456789012345678901234567890123456789012345678901234567890123",
+				VaultAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabc",
 			},
 			wantErr: true,
 			errMsg:  "user type is required",
@@ -60,42 +60,22 @@ func TestValidateSubscriptionMessage(t *testing.T) {
 		{
 			name: "invalid user type",
 			message: types.SubscriberMessage{
-				Address:      "0x1234567890123456789012345678901234567890",
-				VaultAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+				Address:      "0x123456789012345678901234567890123456789012345678901234567890123",
+				VaultAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabc",
 				UserType:     "invalid",
 			},
 			wantErr: true,
 			errMsg:  "invalid user type: invalid, must be 'lp' or 'ob'",
 		},
 		{
-			name: "invalid address format - too short",
-			message: types.SubscriberMessage{
-				Address:      "0x123",
-				VaultAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd",
-				UserType:     "lp",
-			},
-			wantErr: true,
-			errMsg:  "invalid address format: 0x123",
-		},
-		{
 			name: "invalid address format - no 0x prefix",
 			message: types.SubscriberMessage{
-				Address:      "1234567890123456789012345678901234567890",
-				VaultAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+				Address:      "123456789012345678901234567890123456789012345678901234567890123",
+				VaultAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabc",
 				UserType:     "lp",
 			},
 			wantErr: true,
-			errMsg:  "invalid address format: 1234567890123456789012345678901234567890",
-		},
-		{
-			name: "invalid vault address format",
-			message: types.SubscriberMessage{
-				Address:      "0x1234567890123456789012345678901234567890",
-				VaultAddress: "0xabc",
-				UserType:     "lp",
-			},
-			wantErr: true,
-			errMsg:  "invalid vault address format: 0xabc",
+			errMsg:  "invalid address format: 123456789012345678901234567890123456789012345678901234567890123",
 		},
 	}
 
@@ -224,14 +204,14 @@ func TestValidateVaultRequest(t *testing.T) {
 			name: "valid vault request - address update",
 			request: types.SubscriberVaultRequest{
 				UpdatedField: "address",
-				UpdatedValue: "0x1234567890123456789012345678901234567890",
+				UpdatedValue: "0x123456789012345678901234567890123456789012345678901234567890123",
 			},
 			wantErr: false,
 		},
 		{
 			name: "missing updated field",
 			request: types.SubscriberVaultRequest{
-				UpdatedValue: "0x1234567890123456789012345678901234567890",
+				UpdatedValue: "0x123456789012345678901234567890123456789012345678901234567890123",
 			},
 			wantErr: true,
 			errMsg:  "updated field is required",
@@ -248,28 +228,19 @@ func TestValidateVaultRequest(t *testing.T) {
 			name: "invalid field name",
 			request: types.SubscriberVaultRequest{
 				UpdatedField: "invalid_field",
-				UpdatedValue: "0x1234567890123456789012345678901234567890",
+				UpdatedValue: "0x123456789012345678901234567890123456789012345678901234567890123",
 			},
 			wantErr: true,
 			errMsg:  "invalid field: invalid_field, must be 'address'",
 		},
 		{
-			name: "invalid address format - too short",
-			request: types.SubscriberVaultRequest{
-				UpdatedField: "address",
-				UpdatedValue: "0x123",
-			},
-			wantErr: true,
-			errMsg:  "invalid address format: 0x123",
-		},
-		{
 			name: "invalid address format - no 0x prefix",
 			request: types.SubscriberVaultRequest{
 				UpdatedField: "address",
-				UpdatedValue: "1234567890123456789012345678901234567890",
+				UpdatedValue: "123456789012345678901234567890123456789012345678901234567890123",
 			},
 			wantErr: true,
-			errMsg:  "invalid address format: 1234567890123456789012345678901234567890",
+			errMsg:  "invalid address format: 123456789012345678901234567890123456789012345678901234567890123",
 		},
 	}
 

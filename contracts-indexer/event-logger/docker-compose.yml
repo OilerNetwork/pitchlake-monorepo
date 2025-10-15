@@ -3,6 +3,7 @@ services:
   # Local database service (only used if pitchlake-db is not available)
 
   juno_plugin:
+    platform: linux/amd64
     volumes:
       - type: bind
         source: $HOME/snapshots-test/
@@ -10,12 +11,12 @@ services:
 
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.local
     environment:
       UDC_ADDRESS: ${UDC_ADDRESS}
       RPC_URL: ${RPC_URL}
       L1_URL: ${L1_URL}
-      DB_URL: ${DB_URL:-postgres://pitchlake_user:pitchlake_password@pitchlake-db:5432/pitchlake?sslmode=disable}
+      PITCHLAKE_DB_URL: postgres://pitchlake_user:pitchlake_password@pitchlake-db:5432/pitchlake?sslmode=disable
     networks:
       - pitchlake-network
     ports:

@@ -47,7 +47,7 @@ const GasPriceChart: React.FC<GasPriceChartProps> = ({ activeLines }) => {
   //// Hover logic //
   //const isInChartRef = useRef(false);
   //const hoverTimer = useRef<NodeJS.Timeout | null>(null);
-  //const clearHoverTimer = () => {
+  //const clearHoverTimer = () => 
   //  if (hoverTimer.current) {
   //    clearTimeout(hoverTimer.current);
   //    hoverTimer.current = null;
@@ -141,7 +141,7 @@ const GasPriceChart: React.FC<GasPriceChartProps> = ({ activeLines }) => {
   }, []);
 
   // Handle Loading State
-  if (!parsedData || parsedData.length === 0) {
+  if (!parsedData) {
     return (
       <div className="gas-price-chart-loading w-[100%] h-[665px] bg-black-alt rounded-[12px] flex flex-col items-center justify-center">
         Loading...

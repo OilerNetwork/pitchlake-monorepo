@@ -85,8 +85,15 @@ npm test                 # Run tests
 make start-dbs           # Start databases
 make stop-dbs            # Stop databases
 make migrate-all         # Run all migrations
+make migrate-pitchlake   # Run pitchlake database migrations
+make migrate-pitchlake-down # Roll back pitchlake database migrations
+make migrate-pitchlake-status # Check pitchlake migration status
+make migrate-pitchlake-force-drop # Drop migration table (fixes dirty states)
+make migrate-fossil      # Run fossil database migrations
 make check-dbs           # Check database status
 make check-migrations    # Check migration status
+make clean-dbs           # Stop and remove databases (data will be lost)
+make clean-job-requests  # Clear all job requests from the database
 ```
 
 ### Docker Commands
@@ -94,6 +101,7 @@ make check-migrations    # Check migration status
 make docker-up           # Start all services
 make clean-project       # Clean project resources
 make create-network      # Create Docker network
+make clean-network       # Remove pitchlake-network
 ```
 
 ## 🔧 Quick Configuration
@@ -113,7 +121,7 @@ Copy `env.example` to `.env` and configure these essential variables:
 | `VAULT_ADDRESSES` | Comma-separated vault addresses | Yes |
 | `FOSSIL_API_KEY` | Fossil API key | Yes |
 | `FOSSIL_API_URL` | Fossil API URL | Yes |
-| `USE_MOCK_VERIFIER` | Use mock verifier instead of Fossil API (uses automator's account) | No |
+| `USE_MOCK_VERIFIER` | **Not implemented** - mock verifier is hardcoded to `true` | No |
 | `IS_DEVNET` | Enable devnet mode (block mining) | No |
 | `INITIAL_BLOCK_NUMBER` | Starting block for TWAP processing | No |
 | `BLOCK_BATCH_SIZE` | Number of blocks to process in each batch | No |

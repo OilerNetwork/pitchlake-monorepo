@@ -26,40 +26,34 @@ const useVaultStateRPC = ({
     ...contractData,
     functionName: "get_alpha",
     args: [],
-    watch: true,
   });
   const { data: strikeLevel } = useReadContract({
     ...contractData,
 
     functionName: "get_strike_level",
     args: [],
-    watch: true,
   });
   const { data: ethAddress } = useReadContract({
     ...contractData,
 
     functionName: "get_eth_address",
     args: [],
-    watch: true,
   });
   const { data: provingDelay } = useReadContract({
     ...contractData,
 
     functionName: "get_proving_delay",
     args: [],
-    watch: true,
   });
   const { data: jobRequestInitRound1 } = useReadContract({
     ...contractData,
     functionName: "get_request_to_start_first_round",
     args: [],
-    watch: true,
   });
   const { data: jobRequestSettleRound } = useReadContract({
     ...contractData,
     functionName: "get_request_to_settle_round",
     args: [],
-    watch: true,
   });
 
   const { data: currentRoundId } = useReadContract({
@@ -107,8 +101,6 @@ const useVaultStateRPC = ({
 
     functionName: "get_round_address",
     args: [1],
-    watch: false,
-    blockIdentifier: BlockTag.PENDING,
   });
 
   const { data: deploymentDate } = useReadContract({
@@ -118,7 +110,6 @@ const useVaultStateRPC = ({
     abi: optionRoundABI,
     functionName: "get_deployment_date",
     args: [],
-    watch: true,
   });
   const { data: selectedRoundAddress } = useReadContract({
     ...contractData,

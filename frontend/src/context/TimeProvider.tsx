@@ -25,6 +25,7 @@ const TimeContextProvider = ({ children }: { children: ReactNode }) => {
   const [mockTimestamp, setMockTimestamp] = useState(0);
 
   const { data: block } = useBlock({
+    refetchInterval:5000
   });
 
   const timestamp = useMemo(() => {

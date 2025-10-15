@@ -14,8 +14,6 @@ The plugin is now organized into the following packages:
 - **`vault/`** - Vault management
   - `vault_manager.go` - Handles vault initialization, catchup, and event processing
 
-- **`event/`** - Event processing
-  - `event_processor.go` - Processes events from blocks
 
 - **`block/`** - Block processing
   - `block_processor.go` - Handles block processing and catchup logic
@@ -45,7 +43,7 @@ The plugin follows the same interface as before, but internally uses the new mod
 
 ## Environment Variables
 
-- `DB_URL` - Database connection URL (required)
+- `PITCHLAKE_DB_URL` - Database connection URL (required)
 - `RPC_URL` - StarkNet RPC URL (required)
 - `UDC_ADDRESS` - Universal Deployer Contract address (optional)
 - `CURSOR` - Starting block number for indexing (optional)

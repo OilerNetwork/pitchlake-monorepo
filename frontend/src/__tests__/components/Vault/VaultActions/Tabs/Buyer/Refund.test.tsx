@@ -6,6 +6,7 @@ import { useTransactionContext } from "@/context/TransactionProvider";
 import useVaultState from "@/hooks/vault/states/useVaultState";
 import useOBState from "@/hooks/vault/states/useOBState";
 import useVaultActions from "@/hooks/vault/actions/useVaultActions";
+import useOptionRoundActions from "@/hooks/optionRound/actions/useOptionRoundActions";
 import { useNewContext } from "@/context/NewProvider";
 import { useHelpContext } from "@/context/HelpProvider";
 
@@ -133,7 +134,7 @@ jest.mock("@/hooks/vault/states/useOBState", () => ({
   default: jest.fn(),
 }));
 
-jest.mock("@/hooks/vault/actions/useVaultActions", () => ({
+jest.mock("@/hooks/optionRound/actions/useOptionRoundActions", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
@@ -151,7 +152,7 @@ const setupTest = (overrides = {}) => {
   (useOBState as jest.Mock).mockReturnValue(
     mockConfig.hooks.optionBuyerState.withBalance,
   );
-  (useVaultActions as jest.Mock).mockReturnValue({
+  (useOptionRoundActions as jest.Mock).mockReturnValue({
     refundUnusedBids: mockRefundUnusedBids,
   });
   (useTransactionContext as jest.Mock).mockReturnValue(
@@ -176,6 +177,7 @@ const setupTest = (overrides = {}) => {
       useVaultState,
       useOBState,
       useVaultActions,
+      useOptionRoundActions,
       useTransactionContext,
       useHelpContext,
       useNewContext,
@@ -276,7 +278,8 @@ describe("Refund Component", () => {
     });
 
     it("calls refundUnusedBids when confirmation is confirmed", async () => {
-      const { render, mockShowConfirmation, mockRefundUnusedBids } = setupTest();
+      const { render, mockShowConfirmation, mockRefundUnusedBids } =
+        setupTest();
       mockRefundUnusedBids.mockResolvedValue("0x123");
       render();
 
@@ -285,7 +288,6 @@ describe("Refund Component", () => {
       await onConfirm();
 
       expect(mockRefundUnusedBids).toHaveBeenCalledWith({
-        roundAddress: mockConfig.addresses.selectedRound,
         optionBuyer: mockConfig.addresses.user,
       });
     });
@@ -307,10 +309,12 @@ describe("Refund Component", () => {
       const onConfirm = mockShowConfirmation.mock.calls[0][2];
       await onConfirm();
 
-      expect(mockSetStatusModalProps).toHaveBeenCalledWith(expect.objectContaining({
-        version: "success",
-        txnHeader: "Refund Successful",
-      }));
+      expect(mockSetStatusModalProps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          version: "success",
+          txnHeader: "Refund Successful",
+        }),
+      );
       expect(mockUpdateStatusModalProps).toHaveBeenCalledWith({
         txnHash: "0x123",
       });
@@ -333,10 +337,12 @@ describe("Refund Component", () => {
       const onConfirm = mockShowConfirmation.mock.calls[0][2];
       await onConfirm();
 
-      expect(mockSetStatusModalProps).toHaveBeenCalledWith(expect.objectContaining({
-        version: "failure",
-        txnHeader: "Refund Successful",
-      }));
+      expect(mockSetStatusModalProps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          version: "failure",
+          txnHeader: "Refund Successful",
+        }),
+      );
     });
   });
 });

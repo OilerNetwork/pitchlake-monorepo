@@ -22,7 +22,7 @@ func NewOptionBuyerRepository(pool *pgxpool.Pool) *OptionBuyerRepository {
 func (r *OptionBuyerRepository) GetOptionBuyerByAddress(ctx context.Context, address string) ([]*models.OptionBuyer, error) {
 	var optionBuyers []*models.OptionBuyer
 	query := `SELECT address, round_address, mintable_options, refundable_amount, has_minted, has_refunded 
-	          FROM public."Option_Buyers" WHERE address=$1`
+	          FROM public."option_buyers" WHERE address=$1`
 
 	rows, err := r.pool.Query(ctx, query, address)
 	if err != nil {

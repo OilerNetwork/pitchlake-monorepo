@@ -6,11 +6,11 @@ import vaultSierra from "../../../target/dev/pitch_lake_Vault.contract_class.jso
 import { constructorArgs } from "../constants";
 
 async function deployEthContract(
-  enviornment: string,
+  environment: string,
   account: Account,
   classHash: string,
 ) {
-  let constructorArgsEth = [...Object.values(constructorArgs[enviornment].eth)];
+  let constructorArgsEth = [...Object.values(constructorArgs[environment].eth)];
   const deployResult = await account.deploy({
     classHash,
     constructorCalldata: constructorArgsEth,
@@ -22,7 +22,7 @@ async function deployEthContract(
 }
 
 async function deployVaultContract(
-  enviornment: string,
+  environment: string,
   account: Account,
   contractAddresses: {
     ethContract: string;
@@ -32,7 +32,7 @@ async function deployVaultContract(
 ) {
   const contractCallData = new CallData(vaultSierra.abi);
 
-  let constants = constructorArgs[enviornment].vault;
+  let constants = constructorArgs[environment].vault;
   const constructorCalldata = contractCallData.compile("constructor", {
     round_transition_period: constants.roundTransitionPeriod,
     auction_run_time: constants.auctionRunTime,
@@ -53,7 +53,7 @@ async function deployVaultContract(
 }
 
 async function deployFactRegistry(
-  enviornment: string,
+  environment: string,
   account: Account,
   factRegistryClassHash: string,
 ) {
@@ -69,7 +69,7 @@ async function deployFactRegistry(
 }
 
 async function deployContracts(
-  enviornment: string,
+  environment: string,
   account: Account,
   hashes: {
     ethHash: string;
@@ -79,7 +79,7 @@ async function deployContracts(
   },
 ) {
   let ethAddress = await deployEthContract(
-    enviornment,
+    environment,
     account,
     hashes.ethHash,
   );
@@ -88,7 +88,7 @@ async function deployContracts(
   }
 
   let factRegistryAddress = await deployFactRegistry(
-    enviornment,
+    environment,
     account,
     hashes.factRegistryHash,
   );
@@ -97,7 +97,7 @@ async function deployContracts(
   }
 
   let vaultAddress = await deployVaultContract(
-    enviornment,
+    environment,
     account,
     {
       factRegistryContract: factRegistryAddress,

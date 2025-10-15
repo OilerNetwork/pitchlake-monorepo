@@ -77,7 +77,7 @@ func (dbs *dbServer) listener(ctx context.Context, sv map[string][]*types.Subscr
 
 	for {
 		// Wait for a notification
-		notification, err := dbs.db.Conn.WaitForNotification(context.Background())
+		notification, err := dbs.db.Conn.WaitForNotification(dbs.ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -98,7 +98,6 @@ func (dbs *dbServer) listener(ctx context.Context, sv map[string][]*types.Subscr
 				log.Printf("Error parsing confirmed_insert payload: %v", err)
 				return
 			}
-			log.Printf("Blocks: %v", blocks)
 
 			var twelveMinResponse, threeHourResponse, thirtyDayResponse []types.BlockResponse
 

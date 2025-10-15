@@ -86,7 +86,7 @@ CREATE TABLE "vault_registry" (
     "id" SERIAL PRIMARY KEY,
     "vault_address" VARCHAR(66) NOT NULL,
     "deployed_block_hash" VARCHAR(66) NOT NULL,
-    "deployed_block_number" VARCHAR(66) NOT NULL,
+    "deployed_block_number" BIGINT NOT NULL,
     "last_block_indexed" VARCHAR(66),
     "last_block_processed" VARCHAR(66)
 );
@@ -232,7 +232,7 @@ type JunoPlugin interface {
 
 | Variable | Required | Description | Default |
 |----------|----------|-------------|---------|
-| `DB_URL` | Yes | PostgreSQL connection string | - |
+| `PITCHLAKE_DB_URL` | Yes | PostgreSQL connection string | - |
 | `RPC_URL` | Yes | StarkNet RPC endpoint | - |
 | `L1_URL` | Yes | Ethereum L1 RPC endpoint | - |
 | `VAULT_HASH` | No | Vault contract class hash | - |

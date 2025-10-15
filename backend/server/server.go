@@ -44,9 +44,9 @@ func NewDBServer(ctx context.Context) *dbServer {
 		os.Getenv("FOSSIL_API_URL"),
 	)
 
-	homeRouter := home.NewHomeRouter(&dbs.serveMux, &dbs.log)
+	homeRouter := home.NewHomeRouter(&dbs.serveMux, &dbs.log, dbs.db.Pool)
 	vaultRouter := vault.NewVaultRouter(&dbs.serveMux, &dbs.log, fossilAPI, dbs.db.Pool)
-	generalRouter := general.NewGeneralRouter(&dbs.serveMux, &dbs.log)
+	generalRouter := general.NewGeneralRouter(&dbs.serveMux, &dbs.log, dbs.db.Pool)
 	go dbs.listener(ctx, vaultRouter.Subscribers.List, homeRouter.Subscribers.List, generalRouter.Subscribers.List)
 	return dbs
 }
@@ -56,12 +56,12 @@ func (dbs *dbServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-	
+
 	// Handle preflight OPTIONS requests
 	if r.Method == "OPTIONS" {
 		w.WriteHeader(http.StatusOK)
 		return
 	}
-	
+
 	dbs.serveMux.ServeHTTP(w, r)
 }

@@ -94,7 +94,7 @@ func (router *GeneralRouter) subscribeGasData(ctx context.Context, w http.Respon
 					log.Printf("Invalid gas request: %v", err)
 					// Send error response to client
 					errorResponse := map[string]string{
-						"error": "Invalid request",
+						"error":   "Invalid request",
 						"details": err.Error(),
 					}
 					errorJson, _ := json.Marshal(errorResponse)
@@ -106,7 +106,7 @@ func (router *GeneralRouter) subscribeGasData(ctx context.Context, w http.Respon
 				s.StartTimestamp = request.StartTimestamp
 				s.EndTimestamp = request.EndTimestamp
 				s.RoundDuration = request.RoundDuration
-				blockRepo := repositories.NewBlockRepository(&router.pool)
+				blockRepo := repositories.NewBlockRepository(router.pool)
 				blocks, err := blockRepo.GetBlocks(ctx, request.StartTimestamp, request.EndTimestamp, request.RoundDuration)
 				if err != nil {
 					log.Printf("Error fetching blocks: %v", err)
@@ -115,6 +115,7 @@ func (router *GeneralRouter) subscribeGasData(ctx context.Context, w http.Respon
 				}
 				var confirmedBlocks, unconfirmedBlocks []types.BlockResponse
 				for _, block := range blocks {
+					log.Printf("block: is_confirmed: %v", block.IsConfirmed)
 					var twap string
 					switch request.RoundDuration {
 					case 960:

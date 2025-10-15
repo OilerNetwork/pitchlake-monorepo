@@ -114,6 +114,36 @@ The project uses a comprehensive Makefile system for managing the entire develop
 |---------|-------------|
 | `make clean` | Clean up all infrastructure (removes volumes and networks) |
 
+
+## 🔍 Indexer
+The system also includes blockchain indexing services for real-time event processing. This can be used to run the frontend in websocket mode where all the chain data and updates are served via the backend over websockets:
+
+
+- **Event Logger**: Captures StarkNet events via Juno plugin
+- **Event Processor**: Processes events and maintains application state
+
+### ⚠️ Production Only
+
+**Indexer services do not work with the local development stack** - requires a StarkNet network that can be run on a Juno instance.
+
+### Quick Start (Production)
+
+```bash
+# Event Logger
+cd contracts-indexer/event-logger
+make dev
+
+# 
+# Event Processor  
+cd contracts-indexer/event-processor
+make migrate-up && make run
+```
+
+For detailed setup, see:
+- **Event Logger**: `contracts-indexer/event-logger/README.md`
+- **Event Processor**: `contracts-indexer/event-processor/README.md`
+
+
 ## 🔄 Development Workflow
 
 ### Typical Development Session
@@ -171,6 +201,22 @@ make dev-up  # Start Fossil services
 make dev-down # Stop Fossil services
 ```
 
+#### Event-Logger Development
+``` bash
+cd contracts-indexer/event-logger
+make dev # Start event-logger on docker
+# OR
+make build # Start locally
+```
+#### Event-Processor Development
+```bash
+cd contracts-indexer/event-processor
+make dev # Start event-processor on docker
+# OR
+go run . # Run event-processor locally
+```
+
+
 ## 🌐 Environment Configuration
 
 The system uses multiple environment files for different deployment scenarios:
@@ -223,65 +269,6 @@ The system automatically deploys and manages multiple vault contracts:
 
 Contract addresses are automatically synced between Fossil and Pitchlake services.
 
-## 🐛 Troubleshooting
-
-### Common Issues
-
-#### Services Won't Start
-```bash
-make check-prerequisites  # Verify Docker is running
-make clean               # Clean up and try again
-make start-all           # Full restart
-```
-
-#### Contract Address Issues
-```bash
-make sync-addresses      # Re-sync addresses from Fossil
-make restart-pitchlake   # Restart with updated addresses
-```
-
-#### Database Connection Issues
-```bash
-make reset-dbs          # Reset databases (⚠️ Deletes data!)
-make migrate            # Re-run migrations
-```
-
-#### Port Conflicts
-Check if ports are already in use:
-```bash
-lsof -i :3000  # Check port 3000
-lsof -i :3001  # Check port 3001
-lsof -i :3002  # Check port 3002
-lsof -i :3003  # Check port 3003
-lsof -i :5050  # Check port 5050
-lsof -i :8080  # Check port 8080
-```
-
-### Service Health Checks
-
-```bash
-make status  # Comprehensive health check
-```
-
-This will show:
-- ✅ Running services with URLs
-- ❌ Failed services
-- 🌐 Network status
-- 🔗 Service connectivity
-
-### Logs and Debugging
-
-```bash
-make logs  # View all service logs
-```
-
-For specific service logs:
-```bash
-docker logs frontend -f
-docker logs backend -f
-docker logs support-server -f
-```
-
 ## 📚 Additional Resources
 
 ### Component-Specific Documentation
@@ -291,6 +278,8 @@ docker logs support-server -f
 - **Frontend**: See `frontend/README.md`
 - **Backend**: See `backend/README.md`
 - **Support Server**: See `support-server/README.md`
+- **Indexer:Logger**: See `contracts-indexer/event-logger/README.md`
+- **Indexer:Processor**: See `contracts-indexer/event-processor/README.md`
 
 ### Development Tools
 

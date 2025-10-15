@@ -15,46 +15,52 @@ const useOptionBuyerStateRPC = (address?: string) => {
 
   const { data: biddingNonce } = useReadContract({
     ...contractData,
-    
+
     watch: true,
     args: [account?.address as string],
+    blockIdentifier: BlockTag.PENDING,
     functionName: "get_account_bid_nonce",
   });
   const { data: bids } = useReadContract({
     ...contractData,
-    
+
     watch: true,
     args: [account?.address as string],
+    blockIdentifier: BlockTag.PENDING,
     functionName: "get_account_bids",
   });
   const { data: refundableBids } = useReadContract({
     ...contractData,
-    
+
     watch: true,
     args: [account?.address as string],
     functionName: "get_account_refundable_balance",
+    blockIdentifier: BlockTag.PENDING,
   });
   const { data: mintableOptions } = useReadContract({
     ...contractData,
-    
+
     watch: true,
     args: [account?.address as string],
     functionName: "get_account_mintable_options",
+    blockIdentifier: BlockTag.PENDING,
   });
 
   const { data: totalOptions } = useReadContract({
     ...contractData,
-    
+
     watch: true,
     args: [account?.address as string],
     functionName: "get_account_total_options",
+    blockIdentifier: BlockTag.PENDING,
   });
   const { data: payoutBalance } = useReadContract({
     ...contractData,
-    
+
     watch: true,
     args: [account?.address as string],
     functionName: "get_account_payout_balance",
+    blockIdentifier: BlockTag.PENDING,
   });
 
   return {

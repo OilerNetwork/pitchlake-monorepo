@@ -5,7 +5,7 @@ A high-performance event processing system for Starknet blockchain events, built
 ## ⚡ Quick Start
 
 ### Prerequisites
-- Go 1.25.0+
+- Go 1.25.0
 - PostgreSQL 12+ with notification support
 - Access to fossil-monorepo network
 
@@ -53,6 +53,32 @@ go build -o event-processor .
 |----------|-------------|----------|
 | `PITCHLAKE_DB_URL` | PostgreSQL connection string | Yes |
 
+## 📋 Available Commands
+
+### Development Commands
+```bash
+make help                # Show all available commands
+make build               # Build the application
+make run                 # Run the application
+make clean               # Clean build artifacts
+```
+
+### Database Commands
+```bash
+make check-db            # Check if database is accessible
+make migrate-up          # Run all database migrations
+make migrate-down        # Roll back all database migrations
+make migrate-status      # Check migration status
+make migrate-force-drop  # Drop migration table (fixes dirty states)
+make reset-driver-events # Mark all driver events as unprocessed
+```
+
+### Docker Commands
+```bash
+make docker-build        # Build Docker image
+make docker-run          # Run with Docker Compose
+```
+
 ## 🛠️ Development
 
 ### Building the Application
@@ -63,6 +89,10 @@ go build -o event-processor .
 
 # Run with environment file
 go run main.go
+
+# Using Makefile
+make build
+make run
 ```
 
 ## 📚 Documentation

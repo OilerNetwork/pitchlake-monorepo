@@ -1,7 +1,7 @@
 # Define the bids
 # id is used to order the bids
 # amount is the total money being bid (price_per_unit * num_unit)
-# pice is the price of one call option
+# piece is the price of one call option
 bids = [
     {"id": 1, "amount": 50, "price": 20},
     {"id": 2, "amount": 142, "price": 11},

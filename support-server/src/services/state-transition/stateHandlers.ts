@@ -20,8 +20,12 @@ export class StateHandlers {
   }
 
   private getRequestFunction() {
-    const useMockVerifier = process.env.USE_MOCK_VERIFIER === "true";
-    return useMockVerifier ? sendMockFossilRequest : sendFossilRequest;
+    const useMockVerifier = true;
+    if (useMockVerifier) {
+      return (fossilRequest: any, vaultContract: Contract, logger: any) => 
+        sendMockFossilRequest(fossilRequest, vaultContract, logger, this.account);
+    }
+    return sendFossilRequest;
   }
 
   private async refreshJobStatus(jobRequest: JobRequest): Promise<JobRequest> {
@@ -77,7 +81,8 @@ export class StateHandlers {
           0,
         );
 
-        if (jobRequest) {
+
+        if (jobRequest && process.env.USE_MOCK_VERIFIER !== "true") {
           // Refresh job status from Fossil
           const refreshedJobRequest = await this.refreshJobStatus(jobRequest);
 
@@ -130,7 +135,7 @@ export class StateHandlers {
 
           const requestData =
             await vaultContract.get_request_to_start_first_round();
-          const response = await this.getRequestFunction()(
+          const response = await sendMockFossilRequest(
             formatRawFossilRequest(requestData),
             vaultContract,
             this.logger,
@@ -342,7 +347,7 @@ export class StateHandlers {
         roundId,
       );
 
-      if (jobRequest) {
+      if (jobRequest && process.env.USE_MOCK_VERIFIER !== "true") {
         // Refresh job status from Fossil
         const refreshedJobRequest = await this.refreshJobStatus(jobRequest);
 
@@ -389,7 +394,7 @@ export class StateHandlers {
             await vaultContract.get_request_to_settle_round();
           const requestData = formatRawFossilRequest(rawRequestData);
 
-          const response = await this.getRequestFunction()(
+          const response = await sendMockFossilRequest(
             requestData,
             vaultContract,
             this.logger,

@@ -27,10 +27,11 @@ import { formatNumber } from "@/lib/utils";
 import useLPState from "@/hooks/vault/states/useLPState";
 import { useNewContext } from "@/context/NewProvider";
 import { useTimeContext } from "@/context/TimeProvider";
+import Toggle from "../BaseComponents/Toggle";
 
 export default function Header() {
   const dropdownChainRef = useRef<HTMLDivElement>(null);
-  const { conn } = useNewContext();
+  const { conn, setConn } = useNewContext();
   const { timestamp, mockTimeForward } = useTimeContext();
   const lpState = useLPState();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -109,7 +110,6 @@ export default function Header() {
 
   const handleSwitchChain = async (chainId: string) => {
     let chain: string | undefined = undefined;
-    console.log("chainId", chainId);
     switch (chainId) {
       case "sepolia":
         chain = constants.StarknetChainId.SN_SEPOLIA;
@@ -128,7 +128,6 @@ export default function Header() {
         break;
     }
     switchChain({chainId: chain});
-    console.log(" switched chain", chain);
     setIsDropdownChainOpen(false);
     if (!chain) {
       return Error("Chain not found");
@@ -176,6 +175,14 @@ export default function Header() {
               </button>
             </div>
           )}
+          <div>
+            <Toggle
+              value={conn}
+              onChange={setConn}
+              options={{ on: "ws", off: "rpc" }}
+              label={conn === "ws" ? "WebSocket" : "RPC"}
+            />
+          </div>
           <Hoverable
             dataId="networkSelector"
             className="relative"

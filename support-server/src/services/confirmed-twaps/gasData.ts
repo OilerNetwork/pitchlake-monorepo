@@ -1,4 +1,3 @@
-import { Client,Pool } from "pg";
 import { demoBlocks } from "../../shared/demoData";
 import {
   FormattedBlockData,
@@ -261,7 +260,7 @@ export class GasDataService {
           await this.databaseService.notify(blocksToProcess, startTimestamp, endTimestamp);
           
 
-          console.log(`Successfully processed batch of ${blocksToProcess.length} blocks (${startTimestamp} to ${endTimestamp})`);
+          console.log(`Successfully processed batch of ${blocksToProcess.length} blocks (${blocksToProcess[0].blockNumber} to ${blocksToProcess[blocksToProcess.length - 1].blockNumber})`);
         }
       } catch (error) {
         console.error(`Error processing batch:`, error);

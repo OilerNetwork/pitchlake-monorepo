@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, fireEvent, within } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import RoundPerformanceChart from "@/components/Vault/VaultChart/Chart";
 import { useNewContext } from "@/context/NewProvider";
 import { useHistoricalRoundParams } from "@/hooks/chart/useHistoricalRoundParams";

@@ -63,6 +63,13 @@ describe("useMockVault", () => {
       setRounds: jest.fn(),
       buyerStates: mockBuyerStates,
       setBuyerStates: jest.fn(),
+      roundActions: {
+        placeBid: jest.fn(),
+        updateBid: jest.fn(),
+        mintOptions: jest.fn(),
+        refundUnusedBids: jest.fn(),
+        exerciseOptions: jest.fn(),
+      },
     });
   });
 
@@ -112,11 +119,7 @@ describe("useMockVault", () => {
     expect(result.current.vaultActions).toHaveProperty("startAuction");
     expect(result.current.vaultActions).toHaveProperty("endAuction");
     expect(result.current.vaultActions).toHaveProperty("settleOptionRound");
-    expect(result.current.vaultActions).toHaveProperty("placeBid");
-    expect(result.current.vaultActions).toHaveProperty("refundUnusedBids");
-    expect(result.current.vaultActions).toHaveProperty("updateBid");
-    expect(result.current.vaultActions).toHaveProperty("mintOptions");
-    expect(result.current.vaultActions).toHaveProperty("exerciseOptions");
+    expect(result.current.vaultActions).toHaveProperty("demoFossilCallback");
   });
 
   it("handles auction state transitions", async () => {
@@ -126,7 +129,13 @@ describe("useMockVault", () => {
       setRounds: mockSetRounds,
       buyerStates: mockBuyerStates,
       setBuyerStates: jest.fn(),
-      //roundActions: {},
+      roundActions: {
+        placeBid: jest.fn(),
+        updateBid: jest.fn(),
+        mintOptions: jest.fn(),
+        refundUnusedBids: jest.fn(),
+        exerciseOptions: jest.fn(),
+      },
     });
 
     const { result } = renderHook(() =>
@@ -154,7 +163,13 @@ describe("useMockVault", () => {
       setRounds: mockSetRounds,
       buyerStates: mockBuyerStates,
       setBuyerStates: mockSetBuyerStates,
-      //roundActions: {},
+      roundActions: {
+        placeBid: jest.fn(),
+        updateBid: jest.fn(),
+        mintOptions: jest.fn(),
+        refundUnusedBids: jest.fn(),
+        exerciseOptions: jest.fn(),
+      },
     });
 
     const { result } = renderHook(() =>
@@ -218,70 +233,6 @@ describe("useMockVault", () => {
     });
   });
 
-  it("handles place bid action", async () => {
-    const { result } = renderHook(() =>
-      useMockVault(mockSelectedRound, mockTimestamp, mockAddress),
-    );
-    const { result: result2 } = renderHook(() => useMockOptionRounds());
-
-    await act(async () => {
-      await result.current.vaultActions.placeBid({
-        amount: BigInt(1000),
-        price: BigInt(2000),
-      });
-    });
-
-    // Verify bid was added
-    expect(result2.current.buyerStates[0].bids).toBeDefined();
-  });
-
-  it("handles refund unused bids action", async () => {
-    const { result } = renderHook(() =>
-      useMockVault(mockSelectedRound, mockTimestamp, mockAddress),
-    );
-
-    await act(async () => {
-      await result.current.vaultActions.refundUnusedBids({
-        optionBuyer: mockAddress,
-        roundAddress: "0x1",
-      });
-    });
-  });
-
-  it("handles update bid action", async () => {
-    const { result } = renderHook(() =>
-      useMockVault(mockSelectedRound, mockTimestamp, mockAddress),
-    );
-
-    await act(async () => {
-      await result.current.vaultActions.updateBid({
-        bidId: "1",
-        priceIncrease: BigInt(2000),
-      });
-    });
-  });
-
-  it("handles tokenize options action", async () => {
-    const { result } = renderHook(() =>
-      useMockVault(mockSelectedRound, mockTimestamp, mockAddress),
-    );
-
-    await act(async () => {
-      await result.current.vaultActions.mintOptions({ roundAddress: "0x1" });
-    });
-  });
-
-  it("handles exercise options action", async () => {
-    const { result } = renderHook(() =>
-      useMockVault(mockSelectedRound, mockTimestamp, mockAddress),
-    );
-
-    await act(async () => {
-      await result.current.vaultActions.exerciseOptions({
-        roundAddress: "0x1",
-      });
-    });
-  });
 
   it("uses default address when not provided", () => {
     const { result } = renderHook(() =>

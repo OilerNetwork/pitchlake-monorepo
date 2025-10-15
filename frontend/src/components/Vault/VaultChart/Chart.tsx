@@ -8,7 +8,7 @@ import {
   CheckIcon,
 } from "@/components/Icons";
 import { History } from "lucide-react";
-import GasPriceChart from "@/components/Vault/VaultChart/ChartInner";
+import ChartInner from "@/components/Vault/VaultChart/ChartInner";
 import Hoverable from "@/components/BaseComponents/Hoverable";
 import useVaultState from "@/hooks/vault/states/useVaultState";
 import { useNewContext } from "@/context/NewProvider";
@@ -89,7 +89,7 @@ const RoundPerformanceChart = () => {
   const roundHeaderFormatter = (
     selectedRound: string | undefined,
     currentRoundId: string | undefined,
-    conn: string
+    conn: string,
   ): string => {
     if (!selectedRound || !currentRoundId) return "";
 
@@ -107,7 +107,7 @@ const RoundPerformanceChart = () => {
   };
 
   return (
-    <div className="w-full h-[800px] bg-black-alt rounded-[12px] border border-greyscale-800 relative">
+    <div className="w-full max-w-[60%] h-[800px] bg-black-alt rounded-[12px] border border-greyscale-800 relative">
       {/* Round Navigation */}
       <div className="flex flex-row items-center p-5 justify-between border-b-[1px] border-greyscale-800 pb-4 h-[56px]">
         <Hoverable
@@ -120,7 +120,7 @@ const RoundPerformanceChart = () => {
             {roundHeaderFormatter(
               selectedRound.toString(),
               vaultState?.currentRoundId.toString(),
-              conn
+              conn,
             )}
           </p>
           <div className="flex items-center ">
@@ -207,14 +207,16 @@ const RoundPerformanceChart = () => {
         >
           {[
             ...Array(
-              vaultState?.currentRoundId ? Number(vaultState.currentRoundId) : 1
+              vaultState?.currentRoundId
+                ? Number(vaultState.currentRoundId)
+                : 1,
             ),
           ]
             .map((_, index) => index)
             .reverse()
             .map((index) => (
               <div
-                key={index}
+                key={index+"abac"}
                 className={`flex flex-row justify-between items-center px-4 pt-3 pb-3 hover:bg-greyscale-800 cursor-pointer font-regular text-[14px] text-[#FFFFFF] ${
                   index + 1 === Number(vaultState?.currentRoundId)
                     ? "bg-greyscale-800"
@@ -242,9 +244,9 @@ const RoundPerformanceChart = () => {
       {/* Line Toggle Buttons */}
       <div className="flex justify-center items-center my-2">
         <div className="flex gap-4">
-          {["TWAP", "BASEFEE", "STRIKE", "CAP_LEVEL"].map((line) => (
+          {["TWAP", "BASEFEE", "STRIKE", "CAP_LEVEL"].map((line,index) => (
             <Hoverable
-              key={line}
+              key={line+index}
               dataId={`chartLineButton_${line}`}
               className="p-2"
             >
@@ -254,10 +256,10 @@ const RoundPerformanceChart = () => {
                      line === "CAP_LEVEL"
                        ? "text-success"
                        : line === "BASEFEE"
-                       ? "text-greyscale"
-                       : line === "STRIKE"
-                       ? "text-warning-300"
-                       : "text-error-300"
+                         ? "text-greyscale"
+                         : line === "STRIKE"
+                           ? "text-warning-300"
+                           : "text-error-300"
                    }`}
                 onClick={() => toggleLine(line)}
               >
@@ -274,7 +276,7 @@ const RoundPerformanceChart = () => {
       </div>
 
       {/* Chart */}
-      <GasPriceChart activeLines={activeLines} />
+      <ChartInner activeLines={activeLines} />
     </div>
   );
 };

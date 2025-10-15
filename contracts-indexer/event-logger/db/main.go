@@ -31,7 +31,6 @@ func Init(dbUrl string) (*DB, error) {
 	// 	"file://db/migrations",
 	// 	dbUrl)
 	// if err != nil {
-	// 	log.Printf("FAIlED HERE 1")
 	// 	return nil, err
 	// }
 	// if err := m.Up(); err != nil {
@@ -57,7 +56,6 @@ func (db *DB) Shutdown() {
 func (db *DB) BeginTx() {
 	tx, err := db.Pool.Begin(context.TODO())
 	if err != nil {
-		log.Printf("WTHELLY TX WAALA")
 		log.Fatal(err)
 	}
 	db.tx = tx

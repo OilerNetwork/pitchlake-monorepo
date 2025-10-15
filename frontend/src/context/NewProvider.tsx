@@ -14,6 +14,7 @@ import {
 
 export type NewContextType = {
   conn: string;
+  setConn: Dispatch<SetStateAction<string>>;
   vaultAddress?: string;
   selectedRound: number;
   setSelectedRound: (roundId: number) => void;
@@ -25,13 +26,13 @@ export type NewContextType = {
 export const NewContext = createContext<NewContextType>({} as NewContextType);
 const NewContextProvider = ({ children }: { children: ReactNode }) => {
   const [vaultAddress, setVaultAddress] = useState<string | undefined>();
-  const [conn, setConn] = useState<string>("rpc"); // Default value for SSR
+  const [conn, setConn] = useState<string>(""); // Default value for SSR
 
   const [selectedRound, setSelectedRound] = useState<number>(0);
 
   // Set connection type after hydration to prevent mismatch
   useEffect(() => {
-    setConn(process.env.NEXT_PUBLIC_ENVIRONMENT || "rpc");
+    setConn(process.env.NEXT_PUBLIC_ENVIRONMENT || "ws");
   }, []);
 
   const wsData = useWebSocketVault(conn, vaultAddress);
@@ -40,6 +41,7 @@ const NewContextProvider = ({ children }: { children: ReactNode }) => {
   });
   const contextValue = {
     conn,
+    setConn,
     vaultAddress,
     setVaultAddress,
     selectedRound,

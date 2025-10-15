@@ -37,18 +37,6 @@ func (p *pitchlakePlugin) Init() error {
 	}
 	p.core = pluginCoreInstance
 
-	// Initialize the plugin
-	if err := p.core.Initialize(); err != nil {
-		return err
-	}
-	// Start the vault registry listener
-	// if p.listener, err = listener.NewListenerService(p.core.GetVaultManager()); err != nil {
-	// 	return err
-	// }
-	// if err = p.listener.Start(); err != nil {
-	// 	return err
-	// }
-
 	p.log.Println("Pitchlake Plugin initialized successfully")
 	return nil
 }

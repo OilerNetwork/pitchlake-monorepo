@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"log"
 	"pitchlake-backend/models"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -58,6 +59,7 @@ func (r *BlockRepository) GetBlocks(ctx context.Context, startTimestamp, endTime
 		if err != nil {
 			return nil, err
 		}
+		log.Printf("is_confirmed: %v", block.IsConfirmed)
 		blocks = append(blocks, block)
 	}
 

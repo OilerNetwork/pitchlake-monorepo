@@ -5,12 +5,15 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func TestNewHomeRouter(t *testing.T) {
 	serveMux := http.NewServeMux()
 	logger := log.Default()
-	router := NewHomeRouter(serveMux, logger)
+	pool := &pgxpool.Pool{}
+	router := NewHomeRouter(serveMux, logger, pool)
 
 	if router == nil {
 		t.Error("Expected router to be created")
@@ -23,7 +26,8 @@ func TestNewHomeRouter(t *testing.T) {
 
 func TestSubscribeHomeHandler(t *testing.T) {
 	logger := log.Default()
-	router := &HomeRouter{log: logger}
+	pool := &pgxpool.Pool{}
+	router := &HomeRouter{log: logger, pool: pool}
 
 	req, err := http.NewRequest("GET", "/subscribeHome", nil)
 	if err != nil {
@@ -43,7 +47,8 @@ func TestSubscribeHomeHandler(t *testing.T) {
 func TestHomeRouterInitialization(t *testing.T) {
 	serveMux := http.NewServeMux()
 	logger := log.Default()
-	router := NewHomeRouter(serveMux, logger)
+	pool := &pgxpool.Pool{}
+	router := NewHomeRouter(serveMux, logger, pool)
 
 	// Check that the endpoint is registered
 	req, err := http.NewRequest("GET", "/subscribeHome", nil)

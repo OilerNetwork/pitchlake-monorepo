@@ -99,13 +99,15 @@ start-all: ## Start all services (Fossil first, then Pitchlake services)
 	@cd fossil-monorepo && ./scripts/build-message-handler-image-docker.sh
 	@echo "📋 Step 2: Starting Fossil services (primary chain)..."
 	@cd fossil-monorepo && $(MAKE) dev-up
-	@echo "📋 Step 3: Syncing contract addresses to Pitchlake..."
+	@echo "📋 Step 3: Syncing contract addresses to Pitchlake... and urls"
 	@$(MAKE) sync-addresses
 	@echo "📋 Step 4: Rebuilding Pitchlake services with updated env..."
 	@$(MAKE) build-all
-	@echo "📋 Step 5: Running Pitchlake migrations..."
-	@$(MAKE) migrate
-	@echo "📋 Step 6: Starting Pitchlake services..."
+	@echo "📋 Step 5: Starting Pitchlake databases..."
+	@docker-compose up -d pitchlake-db fossil-db
+	@echo "📋 Step 6: Running Pitchlake migrations..."
+	@$(MAKE) migrate PITCHLAKE_DB_URL=postgres://pitchlake_user:pitchlake_password@localhost:5437/pitchlake?sslmode=disable
+	@echo "📋 Step 7: Starting remaining Pitchlake services..."
 	@docker-compose up -d
 	@echo "⏳ Waiting for services to be healthy..."
 	@sleep 10
@@ -237,32 +239,29 @@ status: ## Show status of all services
 ##@ Database Management
 
 .PHONY: migrate
-migrate: ## Run database migrations
-	@echo "🗄️  Running database migrations..."
-	@$(MAKE) migrate-pitchlake
+migrate: ## Run all database migrations
+	@echo "🗄️  Running all database migrations..."
+	sleep 5
+	@$(MAKE) migrate-event-logger $(if $(PITCHLAKE_DB_URL),PITCHLAKE_DB_URL=$(PITCHLAKE_DB_URL))
+	@$(MAKE) migrate-event-processor $(if $(PITCHLAKE_DB_URL),PITCHLAKE_DB_URL=$(PITCHLAKE_DB_URL))
+	@$(MAKE) migrate-support-server $(if $(PITCHLAKE_DB_URL),PITCHLAKE_DB_URL=$(PITCHLAKE_DB_URL))
 	@$(MAKE) migrate-fossil
-	@echo "✅ Migrations completed!"
+	@echo "✅ All migrations completed!"
 
-.PHONY: migrate-pitchlake
-migrate-pitchlake: ## Run pitchlake database migrations
-	@echo "️  Running pitchlake migrations..."
-	@if docker ps --format "table {{.Names}}" | grep -q "pitchlake-db"; then \
-		echo "Pitchlake database is running"; \
-	else \
-		echo "Starting pitchlake database..."; \
-		docker-compose up -d pitchlake-db; \
-		echo "Waiting for database to be ready..."; \
-		sleep 5; \
-	fi
-	@if docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "\dt" 2>/dev/null | grep -q "twap_state"; then \
-		echo "Pitchlake migrations already applied"; \
-	else \
-		echo "Applying pitchlake migrations..."; \
-		docker exec -i pitchlake-db psql -U pitchlake_user -d pitchlake < migrations/pitchlake/001_create_twap_tables.sql; \
-		docker exec -i pitchlake-db psql -U pitchlake_user -d pitchlake < migrations/pitchlake/002_add_notify_triggers.sql; \
-		docker exec -i pitchlake-db psql -U pitchlake_user -d pitchlake < migrations/pitchlake/003_create_fossil_table.sql; \
-		echo "Pitchlake migrations completed!"; \
-	fi
+.PHONY: migrate-event-logger
+migrate-event-logger: ## Run event-logger database migrations
+	@echo "📊 Running event-logger migrations..."
+	@cd contracts-indexer/event-logger && $(MAKE) migrate-up $(if $(PITCHLAKE_DB_URL),PITCHLAKE_DB_URL=$(PITCHLAKE_DB_URL))
+
+.PHONY: migrate-event-processor
+migrate-event-processor: ## Run event-processor database migrations
+	@echo "⚙️  Running event-processor migrations..."
+	@cd contracts-indexer/event-processor && $(MAKE) migrate-up $(if $(PITCHLAKE_DB_URL),PITCHLAKE_DB_URL=$(PITCHLAKE_DB_URL))
+
+.PHONY: migrate-support-server
+migrate-support-server: ## Run support-server database migrations
+	@echo "🛠️  Running support-server migrations..."
+	@cd support-server && $(MAKE) migrate-pitchlake $(if $(PITCHLAKE_DB_URL),PITCHLAKE_DB_URL=$(PITCHLAKE_DB_URL))
 
 .PHONY: migrate-fossil
 migrate-fossil: ## Run fossil database migrations
@@ -282,6 +281,75 @@ migrate-fossil: ## Run fossil database migrations
 		docker exec -i fossil-db psql -U fossil_user -d fossil < migrations/fossil/001_create_blockheaders_table.sql; \
 		echo "Fossil migrations completed!"; \
 	fi
+
+.PHONY: migrate-status
+migrate-status: ## Check migration status for all modules
+	@echo "📊 Checking migration status for all modules..."
+	@echo ""
+	@echo "📋 Event Logger:"
+	@cd contracts-indexer/event-logger && $(MAKE) migrate-status
+	@echo ""
+	@echo "📋 Event Processor:"
+	@cd contracts-indexer/event-processor && $(MAKE) migrate-status
+	@echo ""
+	@echo "📋 Support Server:"
+	@cd support-server && $(MAKE) migrate-pitchlake-status
+	@echo ""
+	@echo "✅ Migration status check completed!"
+
+.PHONY: migrate-down
+migrate-down: ## Rollback all database migrations
+	@echo "⚠️  WARNING: This will rollback all migrations!"
+	@read -p "Are you sure? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
+	@echo "🔄 Rolling back all migrations..."
+	@cd contracts-indexer/event-logger && $(MAKE) migrate-down
+	@cd contracts-indexer/event-processor && $(MAKE) migrate-down
+	@cd support-server && $(MAKE) migrate-pitchlake-down
+	@echo "✅ All migrations rolled back!"
+
+.PHONY: migrate-force-drop
+migrate-force-drop: ## Drop all migration tables (fixes dirty states)
+	@echo "⚠️  WARNING: This will drop ALL migration tables and reset migration state!"
+	@echo "This should only be used to fix dirty migration states."
+	@read -p "Are you sure you want to continue? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
+	@echo "🗑️  Dropping all migration tables..."
+	@cd contracts-indexer/event-logger && $(MAKE) migrate-force-drop
+	@cd contracts-indexer/event-processor && $(MAKE) migrate-force-drop
+	@cd support-server && $(MAKE) migrate-pitchlake-force-drop
+	@echo "✅ All migration tables dropped!"
+
+.PHONY: migrate-force-drop-event-logger
+migrate-force-drop-event-logger: ## Drop event-logger migration table
+	@echo "🗑️  Dropping event-logger migration table..."
+	@cd contracts-indexer/event-logger && $(MAKE) migrate-force-drop
+
+.PHONY: migrate-force-drop-event-processor
+migrate-force-drop-event-processor: ## Drop event-processor migration table
+	@echo "🗑️  Dropping event-processor migration table..."
+	@cd contracts-indexer/event-processor && $(MAKE) migrate-force-drop
+
+.PHONY: migrate-force-drop-support-server
+migrate-force-drop-support-server: ## Drop support-server migration table
+	@echo "🗑️  Dropping support-server migration table..."
+	@cd support-server && $(MAKE) migrate-pitchlake-force-drop
+
+.PHONY: drop-all-tables
+drop-all-tables: ## Drop all tables in the pitchlake database (WARNING: This will delete all data!)
+	@echo "⚠️  WARNING: This will drop ALL tables in the pitchlake database!"
+	@echo "This will permanently delete all data in the database."
+	@read -p "Are you absolutely sure you want to continue? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
+	@echo "🗑️  Dropping all tables in pitchlake database..."
+	@if docker ps --format "table {{.Names}}" | grep -q "pitchlake-db"; then \
+		echo "Pitchlake database is running"; \
+	else \
+		echo "Starting pitchlake database..."; \
+		docker-compose up -d pitchlake-db; \
+		echo "Waiting for database to be ready..."; \
+		sleep 5; \
+	fi
+	@echo "Dropping all tables..."
+	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO pitchlake_user; GRANT ALL ON SCHEMA public TO public;"
+	@echo "✅ All tables dropped successfully!"
 
 .PHONY: reset-dbs
 reset-dbs: ## Reset all databases (WARNING: This will delete all data!)

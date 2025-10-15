@@ -47,7 +47,6 @@ export class UnconfirmedBlockProcessor {
         twapResults
       );
 
-      console.log("Result", result);
       if (result.shouldRecalibrate) return true; // Signal that we need to recalibrate
 
       console.log(`Processed block ${block.number}`);
@@ -60,7 +59,6 @@ export class UnconfirmedBlockProcessor {
 
   async processBlocks(blocks: Block[]): Promise<boolean> {
     for (const block of blocks) {
-      console.log("Block", block.number);
       while (true) {
         try {
           const needsRecalibration = await this.processBlock(block);

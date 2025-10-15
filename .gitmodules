@@ -1,8 +1,8 @@
-[submodule "contracts-indexer/event-logger/juno"]
-	path = contracts-indexer/event-logger/juno
-	url = git@github.com:NethermindEth/juno.git
-	branch = main
 [submodule "fossil-monorepo"]
 	path = fossil-monorepo
 	url = git@github.com:NethermindEth/fossil-monorepo.git
-	branch = job-request-update-matt-fixes
+	branch = main
+[submodule "contracts-indexer/event-logger/juno"]
+	path = contracts-indexer/event-logger/juno
+	url = git@github.com:NethermindEth/juno.git
+	branch = release/v0.15.7

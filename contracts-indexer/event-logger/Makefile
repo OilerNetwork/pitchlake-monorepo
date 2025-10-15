@@ -1,54 +1,45 @@
-ifeq ($(VM_DEBUG),true)
-    GO_TAGS = -tags 'vm_debug,no_coverage'
-    VM_TARGET = debug
-else
-    GO_TAGS = -tags 'no_coverage'
-    VM_TARGET = all
-endif
 
+# Build commands
 build:
-	go build $(GO_TAGS) -a -ldflags="-X main.Version=$(shell git describe --tags)" -buildmode=plugin -o myplugin.so plugin/myplugin.go
+	go build -tags 'no_coverage' -buildmode=plugin -o myplugin.so plugin/myplugin.go
 
 # Docker commands
-docker-build:
-	docker compose build
 
-docker-up:
-	docker compose up
+build-docker:
+	@echo "Building event logger..."
+	docker-compose build
 
-docker-up-detached:
+start-docker:
+	@echo "Starting event logger..."
 	docker compose up -d
 
-docker-down:
+stop-docker:
+	@echo "Stopping event logger..."
 	docker compose down
 
-docker-logs:
-	docker compose logs -f
-
-docker-restart:
-	docker compose restart
-
-docker-clean:
+clean-docker:
 	docker compose down -v --remove-orphans
 	docker system prune -f
 
-docker-restart-network:
-	docker compose down --remove-orphans
-	docker compose up -d
+reset-docker-network:
+	@echo "Resetting docker network..."
+	docker network rm pitchlake-network
+	docker-compose down -v --remove-orphans
 
 # Development setup
-dev: migrate-up
+dev:
+	@echo "🔍Checking database status..."
+	@make check-db
+	@echo "🔍Migrating database..."
+	@make migrate-up PITCHLAKE_DB_URL=postgres://pitchlake_user:pitchlake_password@localhost:5437/pitchlake?sslmode=disable
 	@echo "🔧 Building Docker image..."
-	@make docker-build
+	@make build-docker
 	@echo ""
 	@echo "🚀 Development environment ready!"
 	@echo "📊 Database: pitchlake-db (connected via pitchlake-network)"
-	@echo "�� Docker image: Built successfully"
-	@echo "📋 Next steps:"
-	@echo "   • Run 'make docker-up' to start the application"
-	@echo "   • Or run 'make docker-up-detached' to run in background"
-	@echo "   • Use 'make docker-logs' to view application logs"
-	@echo "   • Use 'make migrate-status' to check database tables"
+	@echo "🐳 Docker image: Built successfully"
+	@echo "Start the event logger with: make start-docker"
+	@make start-docker
 
 # Network commands - using fossil-monorepo network
 check-fossil-network:
@@ -78,66 +69,25 @@ check-db:
 		echo "✗ pitchlake-db is not running. Please start the pitchlake-network first."; \
 	fi
 
-# Migration commands (using pitchlake-db via fossil-monorepo network)
+# Migration commands using golang-migrate
 migrate-up:
-	@echo "Running database migrations on pitchlake-db..."
-	@if ! docker ps --format "table {{.Names}}" | grep -q "pitchlake-db"; then \
-		echo "Error: pitchlake-db is not running."; \
-		exit 1; \
-	fi; \
-	echo "Checking if migrations are needed..."; \
-	if docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "\dt" 2>/dev/null | grep -q "events"; then \
-		echo "✓ events table already exists"; \
-	else \
-		echo "Creating events table..."; \
-		docker exec -i pitchlake-db psql -U pitchlake_user -d pitchlake < db/migrations/000001_create_events_table.up.sql; \
-	fi; \
-	if docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "\dt" 2>/dev/null | grep -q "starknet_blocks"; then \
-		echo "✓ starknet_blocks table already exists"; \
-	else \
-		echo "Creating starknet_blocks table..."; \
-		docker exec -i pitchlake-db psql -U pitchlake_user -d pitchlake < db/migrations/000002_create_starknet_blocks_table.up.sql; \
-	fi; \
-	if docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "\dt" 2>/dev/null | grep -q "vault_registry"; then \
-		echo "✓ vault_registry table already exists"; \
-	else \
-		echo "Creating vault_registry table..."; \
-		docker exec -i pitchlake-db psql -U pitchlake_user -d pitchlake < db/migrations/000003_vault_registry.up.sql; \
-	fi; \
-	echo "✓ All migrations completed!"
+	@echo "Running database migrations..."
+	@cd migrate && go run main.go up
 
 migrate-down:
-	@echo "Rolling back database migrations on pitchlake-db..."
-	@if ! docker ps --format "table {{.Names}}" | grep -q "pitchlake-db"; then \
-		echo "Error: pitchlake-db is not running. Please start the fossil-monorepo first."; \
-		echo "Run: cd ../../fossil-monorepo && make dev-up"; \
-		exit 1; \
-	fi; \
-	echo "⚠️  WARNING: This will drop all tables and data!"; \
-	read -p "Are you sure you want to continue? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1; \
-	if docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "\dt" 2>/dev/null | grep -q "vault_registry"; then \
-		echo "Dropping vault_registry table..."; \
-		docker exec -i pitchlake-db psql -U pitchlake_user -d pitchlake < db/migrations/000003_create_vault_registry.down.sql; \
-	fi; \
-	if docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "\dt" 2>/dev/null | grep -q "starknet_blocks"; then \
-		echo "Dropping starknet_blocks table..."; \
-		docker exec -i pitchlake-db psql -U pitchlake_user -d pitchlake < db/migrations/000002_create_starknet_blocks_table.down.sql; \
-	fi; \
-	if docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "\dt" 2>/dev/null | grep -q "events"; then \
-		echo "Dropping events table..."; \
-		docker exec -i pitchlake-db psql -U pitchlake_user -d pitchlake < db/migrations/000001_create_events_table.down.sql; \
-	fi; \
-	echo "✓ All migrations rolled back!"
+	@echo "Rolling back database migrations..."
+	@cd migrate && go run main.go down
 
 migrate-status:
-	@echo "Checking migration status on pitchlake-db..."
-	@if ! docker ps --format "table {{.Names}}" | grep -q "pitchlake-db"; then \
-		echo "Error: pitchlake-db is not running. Please start the fossil-monorepo first."; \
-		echo "Run: cd ../../fossil-monorepo && make dev-up"; \
-		exit 1; \
-	fi; \
-	echo "Checking tables..."; \
-	docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "\dt" 2>/dev/null || echo "Could not connect to database"
+	@echo "Checking migration status..."
+	@cd migrate && go run main.go status
+
+migrate-force-drop:
+	@echo "⚠️  WARNING: This will drop the migration table and reset all migration state!"
+	@echo "This should only be used to fix dirty migration states."
+	@read -p "Are you sure you want to continue? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
+	@echo "Dropping migration table..."
+	@cd migrate && go run main.go force-drop
 
 # Vault management commands
 add-vault:
@@ -159,16 +109,15 @@ list-vaults:
 	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "SELECT vault_address, deployed_block_hash, deployed_block_number, last_block_indexed, last_block_processed FROM vault_registry ORDER BY id;" || echo "Failed to list vaults. Make sure the container is running."
 
 list-events:
-	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "SELECT event_name from events"
+	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "SELECT event_name, event_nonce, block_number, block_hash from events"
 
 list-driver-events:
 	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "SELECT * from driver_events"
 
 list-blocks:
 	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "SELECT * from starknet_blocks"
-list-driver-events:
-	@docker exec pitchlake-db psql -U pitchlake_user -d pitchlake -c "SELECT * from driver_events"
-# Infrastructure help
+
+# Help
 help-infra:
 	@echo "Infrastructure Commands:"
 	@echo ""
@@ -181,14 +130,16 @@ help-infra:
 	@echo ""
 	@echo "Migration Commands:"
 	@echo "  migrate-up          - Run database migrations"
-	@echo "  migrate-down        - Roll back database migrations (with confirmation)"
+	@echo "  migrate-down        - Roll back database migrations"
 	@echo "  migrate-status      - Check migration status"
+	@echo "  migrate-force-drop  - Drop migration table (fixes dirty states)"
 	@echo ""
 	@echo "Vault Management Commands:"
 	@echo "  add-vault           - Add a new vault to the registry"
 	@echo "  list-vaults         - List all vaults in the registry"
 	@echo "  list-events         - List all events in the database"
 	@echo "  list-blocks         - List all blocks in the database"
+	@echo "  list-driver-events  - List all driver events in the database"
 	@echo ""
 	@echo "Help:"
 	@echo "  help-infra          - Show this help message"

@@ -35,11 +35,13 @@ type DB struct {
 
 The system relies on PostgreSQL triggers to detect data changes:
 
-- **`lp_row_update`**: Triggers on liquidity provider state changes
+- **`lp_update`**: Triggers on liquidity provider state changes
 - **`vault_update`**: Triggers on vault state changes  
-- **`state_transition`**: Triggers on state field changes
 - **`ob_update`**: Triggers on option buyer updates
 - **`or_update`**: Triggers on option round updates
+- **`bids_update`**: Triggers on bid changes
+- **`unconfirmed_insert`**: Triggers on unconfirmed block inserts
+- **`confirmed_insert`**: Triggers on confirmed block inserts
 
 ### Data Models
 
@@ -128,6 +130,11 @@ type OptionRound struct {
 }
 ```
 
+#### Job Request
+- **Endpoint**: `POST /sendJobRequest`
+- **Purpose**: Send job requests to Fossil API for proof generation
+- **Features**: Integration with Fossil API for vault state transitions
+
 ## WebSocket Implementation
 
 ### Connection Management
@@ -183,13 +190,6 @@ Subscribers receive only relevant data based on:
 - **User type** for access control
 
 ## Configuration
-
-### Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `PITCHLAKE_DB_URL` | PostgreSQL connection string | Required |
-| `FRONTEND_URL` | Frontend URL for CORS | Optional (commented out in code) |
 
 ### Server Configuration
 
@@ -272,8 +272,8 @@ type dbServer struct {
 
 The backend includes comprehensive testing:
 
-- **Unit tests** for individual components (40 tests)
-- **Integration tests** for WebSocket functionality (4 tests)
+- **Unit tests** for individual components (handlers, services, validations)
+- **Integration tests** for WebSocket functionality
 - **Test coverage** reporting and analysis
 
 ### Build and Deployment
@@ -286,7 +286,7 @@ The backend includes comprehensive testing:
 
 ### Core Dependencies
 
-- **Go 1.23+** - Programming language
+- **Go 1.25+** - Programming language
 - **github.com/coder/websocket** - WebSocket implementation
 - **github.com/jackc/pgx/v5** - PostgreSQL driver
 - **github.com/joho/godotenv** - Environment variable management
