@@ -99,14 +99,14 @@ start-all: ## Start all services (Fossil first, then Pitchlake services)
 	@cd fossil-monorepo && ./scripts/build-message-handler-image-docker.sh
 	@echo "📋 Step 2: Starting Fossil services (primary chain)..."
 	@cd fossil-monorepo && $(MAKE) dev-up
-	@echo "📋 Step 3: Syncing contract addresses to Pitchlake..."
+	@echo "📋 Step 3: Syncing contract addresses to Pitchlake... and urls"
 	@$(MAKE) sync-addresses
 	@echo "📋 Step 4: Rebuilding Pitchlake services with updated env..."
 	@$(MAKE) build-all
 	@echo "📋 Step 5: Starting Pitchlake databases..."
 	@docker-compose up -d pitchlake-db fossil-db
 	@echo "📋 Step 6: Running Pitchlake migrations..."
-	@$(MAKE) migrate
+	@$(MAKE) migrate PITCHLAKE_DB_URL=postgres://pitchlake_user:pitchlake_password@pitchlake-db:5432/pitchlake?sslmode=disable
 	@echo "📋 Step 7: Starting remaining Pitchlake services..."
 	@docker-compose up -d
 	@echo "⏳ Waiting for services to be healthy..."
@@ -242,26 +242,26 @@ status: ## Show status of all services
 migrate: ## Run all database migrations
 	@echo "🗄️  Running all database migrations..."
 	sleep 5
-	@$(MAKE) migrate-event-logger
-	@$(MAKE) migrate-event-processor
-	@$(MAKE) migrate-support-server
+	@$(MAKE) migrate-event-logger $(if $(PITCHLAKE_DB_URL),PITCHLAKE_DB_URL=$(PITCHLAKE_DB_URL))
+	@$(MAKE) migrate-event-processor $(if $(PITCHLAKE_DB_URL),PITCHLAKE_DB_URL=$(PITCHLAKE_DB_URL))
+	@$(MAKE) migrate-support-server $(if $(PITCHLAKE_DB_URL),PITCHLAKE_DB_URL=$(PITCHLAKE_DB_URL))
 	@$(MAKE) migrate-fossil
 	@echo "✅ All migrations completed!"
 
 .PHONY: migrate-event-logger
 migrate-event-logger: ## Run event-logger database migrations
 	@echo "📊 Running event-logger migrations..."
-	@cd contracts-indexer/event-logger && $(MAKE) migrate-up
+	@cd contracts-indexer/event-logger && $(MAKE) migrate-up $(if $(PITCHLAKE_DB_URL),PITCHLAKE_DB_URL=$(PITCHLAKE_DB_URL))
 
 .PHONY: migrate-event-processor
 migrate-event-processor: ## Run event-processor database migrations
 	@echo "⚙️  Running event-processor migrations..."
-	@cd contracts-indexer/event-processor && $(MAKE) migrate-up
+	@cd contracts-indexer/event-processor && $(MAKE) migrate-up $(if $(PITCHLAKE_DB_URL),PITCHLAKE_DB_URL=$(PITCHLAKE_DB_URL))
 
 .PHONY: migrate-support-server
 migrate-support-server: ## Run support-server database migrations
 	@echo "🛠️  Running support-server migrations..."
-	@cd support-server && $(MAKE) migrate-pitchlake
+	@cd support-server && $(MAKE) migrate-pitchlake $(if $(PITCHLAKE_DB_URL),PITCHLAKE_DB_URL=$(PITCHLAKE_DB_URL))
 
 .PHONY: migrate-fossil
 migrate-fossil: ## Run fossil database migrations
