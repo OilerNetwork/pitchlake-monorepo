@@ -28,6 +28,10 @@ reset-docker-network:
 
 # Development setup
 dev:
+	@echo "🔍Checking database status..."
+	@make check-db
+	@echo "🔍Migrating database..."
+	@make migrate-up PITCHLAKE_DB_URL=postgres://pitchlake_user:pitchlake_password@localhost:5437/pitchlake?sslmode=disable
 	@echo "🔧 Building Docker image..."
 	@make build-docker
 	@echo ""

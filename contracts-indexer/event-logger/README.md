@@ -62,6 +62,7 @@ make migrate-force-drop    # Drop migration table (fixes dirty states)
 make check-db              # Check database connection
 ```
 
+## Local Dev Commands (Docker Only)
 ### Vault Management
 ```bash
 make add-vault VAULT_ADDRESS=0x... DEPLOYED_BLOCK_HASH=0x... DEPLOYED_BLOCK_NUMBER=1213  # Add new vault

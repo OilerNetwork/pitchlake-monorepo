@@ -17,7 +17,6 @@ check-db:
 	@echo "Checking database connection..."
 	@if ! docker ps --format "table {{.Names}}" | grep -q "pitchlake-db"; then \
 		echo "Error: pitchlake-db is not running. Please start the database first."; \
-		echo "Run: cd ../../fossil-monorepo && make dev-up"; \
 		exit 1; \
 	fi; \
 	echo "✓ pitchlake-db is running"
@@ -67,3 +66,17 @@ docker-run:
 	@echo "Running event-processor..."
 	@docker compose up -d
 	@echo "✓ Run completed!"
+
+dev:
+	@echo "🔍Checking database status..."
+	@make check-db
+	@echo "🔍Migrating database..."
+	@make migrate-up PITCHLAKE_DB_URL=postgres://pitchlake_user:pitchlake_password@localhost:5437/pitchlake?sslmode=disable
+	@echo "🔧 Building Docker image..."
+	@make docker-build
+	@echo ""
+	@echo "🚀 Development environment ready!"
+	@echo "📊 Database: pitchlake-db (connected via pitchlake-network)"
+	@echo "🐳 Docker image: Built successfully"
+	@echo "Start the event processor with: make docker-run"
+	@make docker-run
