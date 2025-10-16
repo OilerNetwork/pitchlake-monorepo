@@ -353,7 +353,7 @@ These functions are only callable by the round's parent Vault contract.
 
 #### Set Pricing Data
 
-This function is called by the parent vault when `Vault::fossil_callback()` is called for the first time. This sets the pricing data for the options so that the auction can start. This function is only needed for round 1's initializatin, for all other rounds, the pricing data is set in the constructor.
+This function is called by the parent vault when `Vault::fossil_callback()` is called for the first time. This sets the pricing data for the options so that the auction can start. This function is only needed for round 1's initialization, for all other rounds, the pricing data is set in the constructor.
 
 ```rust
 fn set_pricing_data(pricing_data: PricingData) -> u256;
@@ -573,7 +573,7 @@ pub struct OptionsMinted {
 
 ### Exercising Options
 
-Use this function to exercise your options for this round. This call will succeed any time after the round becomes `Settled`. This function does not distiguish between minted (ERC-20) options and un-minted options; it will burn any minted options and flag any un-minted as non-mintable once exercised. Only Alice can exercise her options.
+Use this function to exercise your options for this round. This call will succeed any time after the round becomes `Settled`. This function does not distinguish between minted (ERC-20) options and un-minted options; it will burn any minted options and flag any un-minted as non-mintable once exercised. Only Alice can exercise her options.
 
 ```rust
 fn exercise_options(ref self: TContractState) -> u256;
@@ -604,7 +604,7 @@ pub struct OptionsExercised {
 Fossil is used to supply L1 data (and computations performed on L1 data) from specific timestamp ranges to a vault. Data from Fossil is needed once per round, at the very end. The data received from Fossil is used to settle the current round, and initialize/deploy the next, the values are:
 
 - `TWAP` - The TWAP of L1 basefee over the last 30 days
-  - This is used as the settlement price for the current round, and is used to determind the strike price of the next round
+  - This is used as the settlement price for the current round, and is used to determined the strike price of the next round
 - `max_return` - The max 30d returns of 30d TWAPs in the last 3 months. This is essentially the most the 30d TWAP has moved in the last 3 months.
   - This is used to calculate the cap level for the next round
 - `reserve_price` - The calculated minimum price to charge for a single option.
@@ -620,7 +620,7 @@ When you purchase a single Pitchlake option, the underlying asset is the (30 day
 
 The **reserve price** that we get from Fossil is the minimum price per option that this round will accept. This is the minimum price option buyers (OBs) will need to bid, the resulting clearing price may be above the reserve price if there is higher demand for the options, but will not be below this value (unless no options sell, then the clearing price will be `0`). The clearing price multiplied by the total number of options sold is known as the **premium**; this is the fee that the OBs pay to obtain the options, and it is paid out to the liquidity providers (LPs).
 
-The reserve price from Fossil is a fairly complex algorithm using historical data/trends/forecasting/Black–Scholes to calculate the minimim price that one of these options should cost. [Here](https://github.com/OilerNetwork/fossil-offchain-processor/blob/main/crates/server/src/pricing_data/reserve_price.rs) is the reference code before optimization for the zkvm.
+The reserve price from Fossil is a fairly complex algorithm using historical data/trends/forecasting/Black–Scholes to calculate the minimum price that one of these options should cost. [Here](https://github.com/OilerNetwork/fossil-offchain-processor/blob/main/crates/server/src/pricing_data/reserve_price.rs) is the reference code before optimization for the zkvm.
 
 #### How many options are there per round and what is the max payout per option ?
 
@@ -628,7 +628,7 @@ Since this is crypto, collateral for a potential payout needs to be locked up fr
 
 _Cap Level_
 
-The cap level is a percentage that defines the maxium an option will pay out above the strike price (i.e if strike price is 1 gwei, and cap level is 150%, then the max payout for this option is 1.5 gwei; from our previous example, with a strike price of 1 gwei and a settlement price of 3 gwei, the payout would not be 2 gwei, it would be capped at 1.5 gwei (per option)).
+The cap level is a percentage that defines the maximum an option will pay out above the strike price (i.e if strike price is 1 gwei, and cap level is 150%, then the max payout for this option is 1.5 gwei; from our previous example, with a strike price of 1 gwei and a settlement price of 3 gwei, the payout would not be 2 gwei, it would be capped at 1.5 gwei (per option)).
 
 This cap level is calculated to reduce the possibility of LPs getting drained in a black swan event. The goal is for the option payout to never be capped; if an option's payout is capped, that means 100% of LP deposits were used for the payout. As a reminder:
 
@@ -693,13 +693,13 @@ All (LP) deposits have been locked inside the vault for this round. OBs can now 
 
 The auction is over. All premium has been added to LP (unlocked) positions, if any options did not sell in the auction, some of the locked liquidity becomes unlocked for LPs. Options have been delegated for winning bids and refunds have been delegated for losing/over bids.
 
-OBs can refund at this time or any time afterwards if forgotton about. While awaiting settlement, OBs can optionally mint their options into ERC-20 tokens.
+OBs can refund at this time or any time afterwards if forgotten about. While awaiting settlement, OBs can optionally mint their options into ERC-20 tokens.
 
 > **💡 Note:** Minting options allows for short (30d) secondary markets for the round's options. The price of these options on the secondary market will flucuate throughout the round, but will approach the actual payout of the option as the settlement date is reached (at the settlement date the price of an option is fixed, since anyone can now take this option token and exercise it for the payout).
 
 #### Settled
 
-The payout per option becomes fixed, and OBs can now exercise options for this round (if forgotten about, an OB can exercise at any time in the future). Exercising does not distinguish between a 'delgated' option and a minted option (either way these options are burned/flagged as exercised).
+The payout per option becomes fixed, and OBs can now exercise options for this round (if forgotten about, an OB can exercise at any time in the future). Exercising does not distinguish between a 'delegated' option and a minted option (either way these options are burned/flagged as exercised).
 
 ### Liquidity Flow
 
@@ -707,7 +707,7 @@ Liquidity (a position) is split into 3 classifications/buckets: unlocked, locked
 
 #### Unlocked Liquidity
 
-This is ETH that is not currently being used as collateral in a round. LPs can withdraw from this balance at any time. As soon as the next auction starts, all unlocked liquidity will become locked. After an auction ends, the premium collected will be added to LP unlocked balances immediatelty.
+This is ETH that is not currently being used as collateral in a round. LPs can withdraw from this balance at any time. As soon as the next auction starts, all unlocked liquidity will become locked. After an auction ends, the premium collected will be added to LP unlocked balances immediately.
 
 #### Locked Liquidity
 
@@ -717,7 +717,7 @@ This is ETH that is being used as collateral in a round. This ETH remains locked
 
 As mentioned above, liquidity will continuously flow between unlocked -> locked -> unlocked -> locked as each next round starts. If an LP wishes to stop this cycle, they will need to show up between round N settling and round N + 1's auction starting; in this short (few hour) window, all liquidity is unlocked, so LPs can withdraw what they wish, and let the rest become locked into the next auction.
 
-This is not ideal since an LP may not be able to time this window, instead, during each round, an LP can choose to "queue" a withdrawal. For example, Alice has 1 ETH locked into the vault for the current round. She wants to exit most of her position after this round, but does not think she will be awake when the current round settles and before the next auction starts. To overcome this, Alice uses the `queue_withdrawal` function described earlier to queue 75% of her position for withdrawal. This means once the current round settles, 75% of Alices remaining liquidity (1 ETH minus her cut of the payout if there is one) is "stashed" aside, the reamining 25% becomes unlocked, and eventually locked a few hours later. Alice can then show up any time in the future and collect her stash.
+This is not ideal since an LP may not be able to time this window, instead, during each round, an LP can choose to "queue" a withdrawal. For example, Alice has 1 ETH locked into the vault for the current round. She wants to exit most of her position after this round, but does not think she will be awake when the current round settles and before the next auction starts. To overcome this, Alice uses the `queue_withdrawal` function described earlier to queue 75% of her position for withdrawal. This means once the current round settles, 75% of Alices remaining liquidity (1 ETH minus her cut of the payout if there is one) is "stashed" aside, the remaining 25% becomes unlocked, and eventually locked a few hours later. Alice can then show up any time in the future and collect her stash.
 
 #### Notes
 
@@ -737,7 +737,7 @@ This is not ideal since an LP may not be able to time this window, instead, duri
 
 Upon each state transition of a vault's round, LP positions are updated proportional to their share of the round's liquidity. Unlike standard token contracts like ERC-20, LP positions (locked/unlocked/stashed balances) are not stored in simple `address -> number` mappings. Instead, a mapping and pointers/flags are used to dynamically calculate an LP's position when needed. This is done to avoid iterating over each LP and updating their position every time the round's state transitions.
 
-> **💡 Note:** Without using a calcuate-on-the-spot method, the Pitchlake protocol would not be possible. Imagine there are 1,000 LPs in a vault, once the next auction starts, all LP unlocked balances become locked, that would mean we'd need 2,000 storage writes track that. Instead, when we fetch an LP's balance, we perform come calculations on previous checkpoints/round outcomes/etc to determind the value of the position now.
+> **💡 Note:** Without using a calculate-on-the-spot method, the Pitchlake protocol would not be possible. Imagine there are 1,000 LPs in a vault, once the next auction starts, all LP unlocked balances become locked, that would mean we'd need 2,000 storage writes track that. Instead, when we fetch an LP's balance, we perform come calculations on previous checkpoints/round outcomes/etc to determined the value of the position now.
 
 Positions are tracked in a deposit mapping along with checkpoints. For example, if this is Alice's first time depositing (1 ETH for the upcoming round which is 2), this is stored in the mapping like so: `positions[0xAlice, 2] = 1 ETH`. If Alice does not participate in the protocol (deposit/withdraw) for 10 rounds, this is still the only thing that is stored regarding her position.
 
@@ -783,13 +783,13 @@ Now that the position mapping and checkpoint is refreshed, the storage/updating 
 
 #### Further
 
-Similar calcualte-on-the-fly mechanisms are used for other user states as well. For example, after an auction ends, it is not reasonable to actually calculate/distribute refunds or calculate/mint options to each option buyer. Instead, we just keep track of global variables like the clearing price and clearing bid, and use this information to compute an OB's refundable balance when we need it (same for computing the number of options an OB receives from the auction).
+Similar calculate-on-the-fly mechanisms are used for other user states as well. For example, after an auction ends, it is not reasonable to actually calculate/distribute refunds or calculate/mint options to each option buyer. Instead, we just keep track of global variables like the clearing price and clearing bid, and use this information to compute an OB's refundable balance when we need it (same for computing the number of options an OB receives from the auction).
 
-This compute-as-needed functionality is required to keep gas costs minimal and to resepect typical smart contract practices. Outside of blockchain, it would be much easier to simply update each user's position/option balance/refundable balance/etc as rounds transitioned states. This is why there appears to be additional fields emitted in each event. The extra data emitted in the events allow our off-chain contract indexer to compute user states in a more typical approach (adjusting actual DB tables for an LP's unlocked balance when an auction starts for example).
+This compute-as-needed functionality is required to keep gas costs minimal and to respect typical smart contract practices. Outside of blockchain, it would be much easier to simply update each user's position/option balance/refundable balance/etc as rounds transitioned states. This is why there appears to be additional fields emitted in each event. The extra data emitted in the events allow our off-chain contract indexer to compute user states in a more typical approach (adjusting actual DB tables for an LP's unlocked balance when an auction starts for example).
 
 ### Auction Mechanics
 
-Options are sold in a fair batch auction. This means OBs place bids for batches of options, and in the end, the auction determines the **clearing price** that sells the most options for the most premium. When an OB makes a bid, they input a **price** and **amount**. A bid's price is the max price the OB is willing to pay for a single option, and a bid's amount is the max number of options the OB wants to receive. An OB can increase an exisiting bid's price, or create additional bids for different prices/amounts.
+Options are sold in a fair batch auction. This means OBs place bids for batches of options, and in the end, the auction determines the **clearing price** that sells the most options for the most premium. When an OB makes a bid, they input a **price** and **amount**. A bid's price is the max price the OB is willing to pay for a single option, and a bid's amount is the max number of options the OB wants to receive. An OB can increase an existing bid's price, or create additional bids for different prices/amounts.
 
 The primary goal of the auction is to sell as many options as it can, the secondary goal is to maximize the clearing price that will sell all of these options. For each of these examples, assume there are 100 total options available:
 
@@ -811,7 +811,7 @@ It is easy to follow how a clearing price is determined once we see the bids sor
 
 For example, using the bids listed above, if there are a total of 50 options for sale in the auction, we start at the top. With a clearing price of 9, we'd only sell 16 / 50 options, so we continue down the list, with a clearing price of 7, we'd only sell 41 / 50 options, so we continue down the list. With a clearing price of 3, we'd sell all 50 / 50 options, so we can stop here (in this example this is the last tier, but if there were a tier of bids with a price of 2 below, we'd still stop since we have hit the highest price to sell all 50). In this case, bid #5 will receive the remaining 9 options, it will receive a refund for the remaining 21 options from the bid, and bid #6 will become fully refundable.
 
-From the above example, we can draw a few conclusions. Bid #5 is what we refer to as the _clearing bid_. At the end of each auction, there will always be exactly 1 clearing bid. This is the ONLY bid that might recieve an amount of options less than what was bid for. All bids ranked above the clearing bid will recieve their full amount of options, and all bids below the clearing bid are fully refundable. To see this, notice how bid #5 receives 9 / 30 options; all bids above this (#1-#4) receive their full amount of options, and all bids below (#6) are fully refundable. Any of the bids above the clearing bid could recieve refunds if their price is above the clearing price.
+From the above example, we can draw a few conclusions. Bid #5 is what we refer to as the _clearing bid_. At the end of each auction, there will always be exactly 1 clearing bid. This is the ONLY bid that might receive an amount of options less than what was bid for. All bids ranked above the clearing bid will receive their full amount of options, and all bids below the clearing bid are fully refundable. To see this, notice how bid #5 receives 9 / 30 options; all bids above this (#1-#4) receive their full amount of options, and all bids below (#6) are fully refundable. Any of the bids above the clearing bid could receive refunds if their price is above the clearing price.
 
 This simple fact of knowing that there is only 1 clearing bid per auction is how we can efficiently track winning/losing bids once an auction has ended. Once the auction ends, the contract determines the clearing price and stores the price along with the nonce of the clearing bid (and how many options this bid receives). With this we can easily calculate how many options an OB received or how much they can refund on-the-fly when we need it. This is similar to how we compute LP positions on the fly instead of updating them each time a state transitions.
 
