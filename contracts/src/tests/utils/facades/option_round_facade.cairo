@@ -230,7 +230,7 @@ pub impl OptionRoundFacadeImpl of OptionRoundFacadeTrait {
             // Make bid
             safe_option_round.place_bid(*bid_amount, *bid_price).expect_err(*error);
         };
-    ; }
+    }
 
     // Update a bid for an option bidder
     // @return: The updated bid

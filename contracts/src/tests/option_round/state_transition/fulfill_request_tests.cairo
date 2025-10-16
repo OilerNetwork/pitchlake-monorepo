@@ -17,8 +17,8 @@ use pitch_lake::tests::utils::helpers::setup::{
 use pitch_lake::tests::utils::lib::test_accounts::liquidity_provider_1;
 use pitch_lake::vault::contract::Vault::Errors as vErrors;
 use pitch_lake::vault::interface::{JobRequest, L1Data};
+use starknet::get_block_timestamp;
 use starknet::testing::{set_block_timestamp, set_contract_address};
-use starknet::{contract_address_const, get_block_timestamp};
 
 
 fn get_mock_l1_data() -> L1Data {
@@ -51,7 +51,7 @@ fn test_only_pitchlake_verifier_can_call_fossil_callback() {
     let res = vault.generate_settle_round_result_serialized(get_mock_l1_data());
 
     // Should fail
-    set_contract_address(contract_address_const::<'NOT IT'>());
+    set_contract_address('NOT IT'.try_into().unwrap());
     vault.fossil_callback_expect_error(req, res, vErrors::CallerNotVerifier);
 
     // Should not fail
@@ -163,7 +163,7 @@ fn test_only_fossil_client_can_call_fossil_client_callback() {
     //let settlement_date = current_round.get_option_settlement_date();
 
     // Should fail
-    set_contract_address(contract_address_const::<'NOT IT'>());
+    set_contract_address('NOT IT'.try_into().unwrap());
     vault.fossil_callback_expect_error(req, res, vErrors::CallerNotVerifier);
 
     // Should not fail

@@ -1,4 +1,3 @@
-use core::starknet::SyscallResultTrait;
 use openzeppelin_token::erc20::interface::{ERC20ABIDispatcher, ERC20ABIDispatcherTrait};
 use openzeppelin_utils::serde::SerializedAppend;
 use pitch_lake::library::constants::{DAY, HOUR, MINUTE};
@@ -25,7 +24,7 @@ use pitch_lake::vault::interface::{
 };
 use starknet::syscalls::deploy_syscall;
 use starknet::testing::{set_block_timestamp, set_contract_address};
-use starknet::{ContractAddress, get_block_timestamp};
+use starknet::{ContractAddress, SyscallResultTrait, get_block_timestamp};
 
 // ERC20 Constants
 pub const DECIMALS: u8 = 18_u8;

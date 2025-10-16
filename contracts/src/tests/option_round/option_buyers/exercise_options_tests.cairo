@@ -97,7 +97,7 @@ fn test_exercise_options_events() {
             payout_amount,
         );
     };
-; }
+}
 
 
 /// State Tests ///

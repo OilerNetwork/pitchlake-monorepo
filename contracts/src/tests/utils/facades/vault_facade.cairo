@@ -244,7 +244,7 @@ pub impl VaultFacadeImpl of VaultFacadeTrait {
             let bps = bps_multi.pop_front().unwrap();
             self.queue_withdrawal(*lp, *bps);
         };
-    ; }
+    }
 
     fn claim_queued_liquidity(ref self: VaultFacade, account: ContractAddress) -> u256 {
         let expected_stashed_amount = self.get_lp_stashed_balance(account);
