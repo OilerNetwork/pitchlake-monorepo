@@ -1,7 +1,6 @@
 use core::array::SpanTrait;
 use openzeppelin_token::erc20::ERC20Component;
 use openzeppelin_token::erc20::ERC20Component::Transfer;
-use pitch_lake::option_round::contract::OptionRound;
 use pitch_lake::option_round::interface::{
     AuctionEnded, AuctionStarted, BidPlaced, BidUpdated, OptionRoundEvent, OptionRoundSettled,
     OptionsExercised, OptionsMinted, PricingData, PricingDataSet, UnusedBidsRefunded,
@@ -229,7 +228,7 @@ pub fn assert_event_option_settle(
                     ),
                 },
             );
-            assert_events_equal(e, expected);   
+            assert_events_equal(e, expected);
         },
         Option::None => { panic(array!['No events found']); },
     };

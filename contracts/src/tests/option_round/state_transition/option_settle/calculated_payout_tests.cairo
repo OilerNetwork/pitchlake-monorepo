@@ -1,15 +1,10 @@
 use pitch_lake::library::constants::BPS_u256;
-use pitch_lake::library::utils::{max, min};
+use pitch_lake::library::utils::min;
 use pitch_lake::tests::utils::facades::option_round_facade::{
     OptionRoundFacade, OptionRoundFacadeTrait,
 };
-use pitch_lake::tests::utils::facades::vault_facade::{VaultFacade, VaultFacadeTrait};
-use pitch_lake::tests::utils::helpers::accelerators::{
-    accelerate_to_auctioning, accelerate_to_running, accelerate_to_settled,
-};
-use pitch_lake::tests::utils::helpers::setup::{setup_facade, setup_test_running};
-use pitch_lake::tests::utils::lib::test_accounts::option_bidder_buyer_1;
-use pitch_lake::tests::utils::lib::variables::bps;
+use pitch_lake::tests::utils::helpers::accelerators::accelerate_to_settled;
+use pitch_lake::tests::utils::helpers::setup::setup_test_running;
 
 
 fn calculate_expected_payout(ref round: OptionRoundFacade, settlement_price: u256) -> u256 {

@@ -1,31 +1,24 @@
 use pitch_lake::library::pricing_utils;
-use pitch_lake::library::pricing_utils::calculate_strike_price;
-use pitch_lake::option_round::interface::PricingData;
-use pitch_lake::tests::utils::facades::option_round_facade::{
-    OptionRoundFacade, OptionRoundFacadeTrait,
-};
+use pitch_lake::tests::utils::facades::option_round_facade::OptionRoundFacadeTrait;
 use pitch_lake::tests::utils::facades::vault_facade::{
     VaultFacade, VaultFacadeImpl, VaultFacadeTrait,
 };
 use pitch_lake::tests::utils::helpers::accelerators::{
     accelerate_to_auctioning, accelerate_to_auctioning_custom, accelerate_to_running,
-    accelerate_to_running_custom, accelerate_to_settled, accelerate_to_settled_custom,
-    timeskip_to_settlement_date,
+    accelerate_to_running_custom, accelerate_to_settled, timeskip_to_settlement_date,
 };
 use pitch_lake::tests::utils::helpers::event_helpers::{
     assert_fossil_callback_success_event, clear_event_logs,
 };
 use pitch_lake::tests::utils::helpers::general_helpers::to_gwei;
 use pitch_lake::tests::utils::helpers::setup::{
-    PITCHLAKE_VERIFIER, deploy_eth, deploy_vault, eth_supply_and_approve_all_bidders,
-    eth_supply_and_approve_all_providers, setup_facade,
+    PITCHLAKE_VERIFIER, deploy_eth, deploy_vault, setup_facade,
 };
 use pitch_lake::tests::utils::lib::test_accounts::liquidity_provider_1;
-use pitch_lake::vault::contract::Vault;
 use pitch_lake::vault::contract::Vault::Errors as vErrors;
-use pitch_lake::vault::interface::{JobRequest, L1Data, VerifierData};
+use pitch_lake::vault::interface::{JobRequest, L1Data};
 use starknet::testing::{set_block_timestamp, set_contract_address};
-use starknet::{ContractAddress, contract_address_const, get_block_timestamp};
+use starknet::{contract_address_const, get_block_timestamp};
 
 
 fn get_mock_l1_data() -> L1Data {

@@ -68,9 +68,8 @@ fn test_exercise_options_events() {
     accelerate_to_settled(ref vault, 2 * current_round.get_strike_price());
     clear_event_logs(array![current_round.contract_address()]);
 
-    // OB1 mints all options before exercising, emitting 0 for mintable options exercised
-    match option_bidders.pop_front() {
-        Option::Some(ob) => {
+    if let Option::Some(ob) = option_bidders.pop_front() {
+        {
             current_round.mint_options(*ob);
             clear_event_logs(array![vault.contract_address()]);
             let payout_amount = current_round.exercise_options(*ob);
@@ -83,29 +82,22 @@ fn test_exercise_options_events() {
                 0_u256,
                 payout_amount,
             );
-        },
-        Option::None => {},
-    }
-    // The rest of the OBs exercise all of their options which are mintable
-    loop {
-        match option_bidders.pop_front() {
-            Option::Some(ob) => {
-                clear_event_logs(array![vault.contract_address()]);
-                let payout_amount = current_round.exercise_options(*ob);
-                assert_event_options_exercised(
-                    vault.contract_address(),
-                    eth.contract_address,
-                    current_round.get_round_id(),
-                    *ob,
-                    bid_count,
-                    bid_count,
-                    payout_amount,
-                );
-            },
-            Option::None => { break (); },
         }
+    } // The rest of the OBs exercise all of their options which are mintable
+    for ob in option_bidders {
+        clear_event_logs(array![vault.contract_address()]);
+        let payout_amount = current_round.exercise_options(*ob);
+        assert_event_options_exercised(
+            vault.contract_address(),
+            eth.contract_address,
+            current_round.get_round_id(),
+            *ob,
+            bid_count,
+            bid_count,
+            payout_amount,
+        );
     };
-}
+; }
 
 
 /// State Tests ///
@@ -130,17 +122,12 @@ fn test_exercise_options_eth_transfer() {
     let round_balance_before = get_erc20_balance(
         eth.contract_address, current_round.contract_address(),
     );
-    loop {
-        match option_bidders.pop_front() {
-            Option::Some(ob) => {
-                let lp_balance_before = get_erc20_balance(eth.contract_address, *ob);
-                let payout_amount = current_round.exercise_options(*ob);
+    for ob in option_bidders {
+        let lp_balance_before = get_erc20_balance(eth.contract_address, *ob);
+        let payout_amount = current_round.exercise_options(*ob);
 
-                let lp_balance_after = get_erc20_balance(eth.contract_address, *ob);
-                assert_eq!(lp_balance_after, lp_balance_before + payout_amount);
-            },
-            Option::None => { break (); },
-        }
+        let lp_balance_after = get_erc20_balance(eth.contract_address, *ob);
+        assert_eq!(lp_balance_after, lp_balance_before + payout_amount);
     }
     let round_balance_after = get_erc20_balance(
         eth.contract_address, current_round.contract_address(),
