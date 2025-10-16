@@ -145,7 +145,7 @@ Use this function to release all stashed withdrawals for an `account`. Alice can
 
 ```rust
 // Returns the amount collected
-fn withdraw_stash(ref self: TContractState, account: ContractAddress) -> u256;
+fn withdraw_stash(account: ContractAddress) -> u256;
 ```
 
 Emits:
@@ -557,7 +557,7 @@ After the auction, options are 'distributed' to winning bidders. These options b
 
 ```rust
 // Returns the number of option tokens minted
-fn mint_options(ref self: TContractState) -> u256;
+fn mint_options() -> u256;
 ```
 
 Emits:
@@ -576,7 +576,7 @@ pub struct OptionsMinted {
 Use this function to exercise your options for this round. This call will succeed any time after the round becomes `Settled`. This function does not distinguish between minted (ERC-20) options and un-minted options; it will burn any minted options and flag any un-minted as non-mintable once exercised. Only Alice can exercise her options.
 
 ```rust
-fn exercise_options(ref self: TContractState) -> u256;
+fn exercise_options() -> u256;
 ```
 
 Emits:
