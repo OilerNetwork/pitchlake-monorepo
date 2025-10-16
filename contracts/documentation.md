@@ -630,7 +630,7 @@ _Cap Level_
 
 The cap level is a percentage that defines the maximum an option will pay out above the strike price (i.e if strike price is 1 gwei, and cap level is 150%, then the max payout for this option is 1.5 gwei; from our previous example, with a strike price of 1 gwei and a settlement price of 3 gwei, the payout would not be 2 gwei, it would be capped at 1.5 gwei (per option)).
 
-This cap level is calculated to reduce the possibility of LPs getting drained in a black swan event. The goal is for the option payout to never be capped; if an option's payout is capped, that means 100% of LP deposits were used for the payout. As a reminder:
+This cap level is calculated to reduce the possibility of LPs getting drained in a black swan event. The goal is for the option payout to not reach the cap; if an option's payout is capped, that means 100% of LP deposits were used for the payout. As a reminder:
 
 - `max returns` - This is the most the underlying asset has moved in the last 90 days (can be thought of as a hypothetical black swan event)
 
