@@ -1,21 +1,15 @@
 use pitch_lake::tests::utils::facades::option_round_facade::{
     OptionRoundFacade, OptionRoundFacadeTrait,
 };
-use pitch_lake::tests::utils::facades::vault_facade::{VaultFacade, VaultFacadeTrait};
+use pitch_lake::tests::utils::facades::vault_facade::VaultFacadeTrait;
 use pitch_lake::tests::utils::helpers::accelerators::{
-    accelerate_to_auctioning, accelerate_to_running, accelerate_to_running_custom,
-    timeskip_and_end_auction,
+    accelerate_to_auctioning, accelerate_to_running_custom, timeskip_and_end_auction,
 };
 use pitch_lake::tests::utils::helpers::general_helpers::{
-    create_array_gradient, create_array_gradient_reverse, create_array_linear,
+    create_array_gradient, create_array_linear,
 };
 use pitch_lake::tests::utils::helpers::setup::{setup_facade, setup_test_auctioning_bidders};
-use pitch_lake::tests::utils::lib::test_accounts::{
-    option_bidder_buyer_1, option_bidder_buyer_2, option_bidder_buyer_3, option_bidder_buyer_4,
-    option_bidders_get,
-};
-use pitch_lake::tests::utils::lib::variables::decimals;
-use starknet::testing::{set_block_timestamp, set_contract_address};
+use pitch_lake::tests::utils::lib::test_accounts::{option_bidder_buyer_1, option_bidders_get};
 
 // Test clearing price is 0 before auction end
 #[test]

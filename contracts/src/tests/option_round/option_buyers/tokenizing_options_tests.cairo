@@ -3,15 +3,10 @@ use pitch_lake::{
     tests::{
         utils::{
             helpers::{
-                accelerators::{
-                    accelerate_to_auctioning, accelerate_to_running_custom,
-                    timeskip_and_end_auction,
-                },
+                accelerators::{accelerate_to_auctioning, timeskip_and_end_auction},
                 setup::{setup_facade //deploy_custom_option_round
                 },
-                general_helpers::{
-                    assert_two_arrays_equal_length, get_erc20_balance, to_wei, to_wei_multi,
-                },
+                general_helpers::{get_erc20_balance, to_wei, to_wei_multi},
                 event_helpers::{assert_event_options_tokenized, clear_event_logs},
             },
             lib::{test_accounts::{option_bidder_buyer_1, option_bidders_get}},
@@ -22,8 +17,7 @@ use pitch_lake::{
         },
     },
 };
-use starknet::testing::set_block_timestamp;
-use starknet::{ContractAddress, contract_address_const};
+use starknet::ContractAddress;
 
 fn test_helper(ref vault: VaultFacade) -> (OptionRoundFacade, Span<ContractAddress>) {
     let mut current_round = vault.get_current_round();
@@ -54,32 +48,27 @@ fn test_tokenizing_options_mints_option_tokens() {
     let (mut current_round, mut option_bidders) = test_helper(ref vault);
 
     // Check that tokenizing options mints the correct number of option tokens
-    loop {
-        match option_bidders.pop_front() {
-            Option::Some(bidder) => {
-                // User's option erc20 balance before tokenizing
-                let option_erc20_balance_before = get_erc20_balance(
-                    current_round.contract_address(), *bidder,
-                );
+    for bidder in option_bidders {
+        // User's option erc20 balance before tokenizing
+        let option_erc20_balance_before = get_erc20_balance(
+            current_round.contract_address(), *bidder,
+        );
 
-                // Tokenize options
-                let options_minted = current_round.mint_options(*bidder);
+        // Tokenize options
+        let options_minted = current_round.mint_options(*bidder);
 
-                // User's option erc20 balance after tokenizing
-                let option_erc20_balance_after = get_erc20_balance(
-                    current_round.contract_address(), *bidder,
-                );
+        // User's option erc20 balance after tokenizing
+        let option_erc20_balance_after = get_erc20_balance(
+            current_round.contract_address(), *bidder,
+        );
 
-                // Check that the user's erc20 option balance increases by the number of options
-                // minted
-                assert(
-                    option_erc20_balance_after == option_erc20_balance_before + options_minted,
-                    'wrong option erc20 balance',
-                );
-            },
-            Option::None => { break (); },
-        }
-    }
+        // Check that the user's erc20 option balance increases by the number of options
+        // minted
+        assert(
+            option_erc20_balance_after == option_erc20_balance_before + options_minted,
+            'wrong option erc20 balance',
+        );
+    };
 }
 
 #[test]
@@ -90,24 +79,18 @@ fn test_tokenizing_options_events() {
 
     // Check options tokenized event emits correctly
     clear_event_logs(array![vault.contract_address()]);
-    loop {
-        match option_bidders.pop_front() {
-            Option::Some(bidder) => {
-                // User's option erc20 balance before tokenizing
-                // Tokenize options
-                let options_minted = current_round.mint_options(*bidder);
-                assert_event_options_tokenized(
-                    vault.contract_address(),
-                    eth.contract_address,
-                    current_round.get_round_id(),
-                    *bidder,
-                    options_minted,
-                );
-                // User's option erc20 balance after tokenizing
-            },
-            Option::None => { break (); },
-        }
-    }
+    for bidder in option_bidders {
+        // User's option erc20 balance before tokenizing
+        // Tokenize options
+        let options_minted = current_round.mint_options(*bidder);
+        assert_event_options_tokenized(
+            vault.contract_address(),
+            eth.contract_address,
+            current_round.get_round_id(),
+            *bidder,
+            options_minted,
+        );
+    };
 }
 
 #[test]
@@ -134,35 +117,29 @@ fn test_tokenizing_options_twice_does_nothing() {
     let (mut current_round, mut option_bidders) = test_helper(ref vault);
 
     // Check that tokenizing options twice does nothing for each bidder
-    loop {
-        match option_bidders.pop_front() {
-            Option::Some(bidder) => {
-                // Tokenize options
-                current_round.mint_options(*bidder);
+    for bidder in option_bidders {
+        // Tokenize options
+        current_round.mint_options(*bidder);
 
-                // User's option erc20 balance before tokenizing again
-                let option_erc20_balance_before = get_erc20_balance(
-                    current_round.contract_address(), *bidder,
-                );
+        // User's option erc20 balance before tokenizing again
+        let option_erc20_balance_before = get_erc20_balance(
+            current_round.contract_address(), *bidder,
+        );
 
-                // Tokenize again, should do nothing
-                current_round.mint_options(*bidder);
+        // Tokenize again, should do nothing
+        current_round.mint_options(*bidder);
 
-                // User's option erc20 balance after tokenizing
-                let option_erc20_balance_after = get_erc20_balance(
-                    current_round.contract_address(), *bidder,
-                );
+        // User's option erc20 balance after tokenizing
+        let option_erc20_balance_after = get_erc20_balance(
+            current_round.contract_address(), *bidder,
+        );
 
-                // Check that the user's erc20 option balance increases by the number of options
-                // minted
-                assert(
-                    option_erc20_balance_after == option_erc20_balance_before,
-                    'wrong option erc20 balance',
-                );
-            },
-            Option::None => { break (); },
-        }
-    }
+        // Check that the user's erc20 option balance increases by the number of options
+        // minted
+        assert(
+            option_erc20_balance_after == option_erc20_balance_before, 'wrong option erc20 balance',
+        );
+    };
 }
 
 // Test tokenizing options sets option_balance to 0
@@ -173,20 +150,11 @@ fn test_tokenizing_options_twice_does_nothing() {
 fn test_tokenizing_options_sets_option_storage_balance_to_0() {
     let (mut vault, _) = setup_facade();
     let (mut current_round, mut option_bidders) = test_helper(ref vault);
+    for bidder in option_bidders {
+        // Tokenize options
+        current_round.mint_options(*bidder);
 
-    loop {
-        match option_bidders.pop_front() {
-            Option::Some(bidder) => {
-                // Tokenize options
-                current_round.mint_options(*bidder);
-
-                // Check that the user's option balance in storage is set to 0 (all erc20 now)
-                assert(
-                    current_round.get_mintable_options_for(*bidder) == 0,
-                    'wrong option erc20 balance',
-                );
-            },
-            Option::None => { break (); },
-        }
-    }
+        // Check that the user's option balance in storage is set to 0 (all erc20 now)
+        assert(current_round.get_mintable_options_for(*bidder) == 0, 'wrong option erc20 balance');
+    };
 }

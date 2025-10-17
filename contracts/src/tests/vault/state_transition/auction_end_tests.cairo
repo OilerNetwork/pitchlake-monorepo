@@ -1,42 +1,23 @@
 use core::array::SpanTrait;
 use openzeppelin_token::erc20::interface::ERC20ABIDispatcherTrait;
-use pitch_lake::library::eth::Eth;
 use pitch_lake::option_round::contract::OptionRound::Errors;
-use pitch_lake::option_round::interface::{
-    IOptionRoundDispatcher, IOptionRoundDispatcherTrait, OptionRoundState,
-};
-use pitch_lake::tests::utils::facades::option_round_facade::{
-    OptionRoundFacade, OptionRoundFacadeTrait,
-};
-use pitch_lake::tests::utils::facades::vault_facade::{VaultFacade, VaultFacadeTrait};
+use pitch_lake::option_round::interface::OptionRoundState;
+use pitch_lake::tests::utils::facades::option_round_facade::OptionRoundFacadeTrait;
+use pitch_lake::tests::utils::facades::vault_facade::VaultFacadeTrait;
 use pitch_lake::tests::utils::helpers::accelerators::{
     accelerate_to_auctioning, accelerate_to_auctioning_custom, accelerate_to_running,
-    accelerate_to_running_custom, accelerate_to_settled, timeskip_and_end_auction,
-    timeskip_past_round_transition_period,
+    accelerate_to_settled, timeskip_and_end_auction,
 };
-use pitch_lake::tests::utils::helpers::event_helpers::{
-    assert_event_auction_end, assert_no_events_left, clear_event_logs, pop_log,
-};
-use pitch_lake::tests::utils::helpers::general_helpers::{
-    create_array_gradient, create_array_linear, get_portion_of_amount, span_to_array,
-    sum_u256_array,
-};
+use pitch_lake::tests::utils::helpers::event_helpers::{assert_event_auction_end, clear_event_logs};
+use pitch_lake::tests::utils::helpers::general_helpers::create_array_gradient;
 use pitch_lake::tests::utils::helpers::setup::{
     setup_facade, setup_test_auctioning_providers, setup_test_running,
 };
 use pitch_lake::tests::utils::lib::test_accounts::{
-    liquidity_provider_1, liquidity_provider_2, liquidity_provider_3, liquidity_provider_4,
-    liquidity_provider_5, liquidity_providers_get, option_bidder_buyer_1, option_bidder_buyer_2,
-    option_bidder_buyer_3, option_bidder_buyer_4, option_bidders_get,
+    liquidity_provider_3, liquidity_provider_4, option_bidders_get,
 };
 use pitch_lake::tests::utils::lib::variables::decimals;
-use pitch_lake::vault::contract::Vault;
-use pitch_lake::vault::interface::{
-    IVaultDispatcher, IVaultDispatcherTrait, IVaultSafeDispatcher, IVaultSafeDispatcherTrait,
-};
-use starknet::syscalls::deploy_syscall;
-use starknet::testing::{set_block_timestamp, set_contract_address};
-use starknet::{ClassHash, ContractAddress, get_block_timestamp, get_contract_address};
+use starknet::ContractAddress;
 
 
 /// Failures ///
@@ -278,33 +259,26 @@ fn test_end_auction_updates_locked_and_unlocked_balances() {
     assert(total_premiums > 0, 'premiums shd be greater than 0');
 
     // Check liquidity provider balances
-    loop {
-        match liquidity_providers_locked_before.pop_front() {
-            Option::Some(lp_locked_before) => {
-                let lp_unlocked_before = liquidity_providers_unlocked_before.pop_front().unwrap();
-                let lp_locked_after = liquidity_providers_locked_after.pop_front().unwrap();
-                let lp_unlocked_after = liquidity_providers_unlocked_after.pop_front().unwrap();
+    for lp_locked_before in liquidity_providers_locked_before {
+        let lp_unlocked_before = liquidity_providers_unlocked_before.pop_front().unwrap();
+        let lp_locked_after = liquidity_providers_locked_after.pop_front().unwrap();
+        let lp_unlocked_after = liquidity_providers_unlocked_after.pop_front().unwrap();
 
-                let lp_deposit_amount = deposit_amounts.pop_front().unwrap();
-                let lp_sold_liq = sold_liq * *lp_deposit_amount / total_liq;
-                let lp_unsold_liq_and_prems = *lp_deposit_amount
-                    * (unsold_liq + total_premiums)
-                    / total_liq;
+        let lp_deposit_amount = deposit_amounts.pop_front().unwrap();
+        let lp_sold_liq = sold_liq * *lp_deposit_amount / total_liq;
+        let lp_unsold_liq_and_prems = *lp_deposit_amount
+            * (unsold_liq + total_premiums)
+            / total_liq;
 
-                assert(
-                    (*lp_locked_before, *lp_unlocked_before) == (*lp_deposit_amount, 0),
-                    'LP locked before wrong',
-                );
-                assert(
-                    (
-                        *lp_locked_after, *lp_unlocked_after,
-                    ) == (lp_sold_liq, lp_unsold_liq_and_prems),
-                    'LP locked after wrong',
-                );
-            },
-            Option::None => { break (); },
-        }
-    }
+        assert(
+            (*lp_locked_before, *lp_unlocked_before) == (*lp_deposit_amount, 0),
+            'LP locked before wrong',
+        );
+        assert(
+            (*lp_locked_after, *lp_unlocked_after) == (lp_sold_liq, lp_unsold_liq_and_prems),
+            'LP locked after wrong',
+        );
+    };
 }
 
 // Test that the vault and LP spreads update when the auction ends. Tests rollover
@@ -389,22 +363,17 @@ fn test_end_auction_updates_vault_and_lp_spreads_complex() {
         ),
     );
     // Check LP spreads
-    loop {
-        match lp_spreads_before.pop_front() {
-            Option::Some(lp_spread_before) => {
-                let lp_spread_after = lp_spreads_after.pop_front().unwrap();
-                let lp_starting_liquidity2 = round2_deposits.pop_front().unwrap();
-                assert(*lp_spread_before == (*lp_starting_liquidity2, 0), 'LP spread before wrong');
-                assert(
-                    *lp_spread_after == (
-                        *lp_starting_liquidity2 * sold_liq2 / total_liq2,
-                        *lp_starting_liquidity2 * earned_liq2 / total_liq2,
-                    ),
-                    'LP spread after wrong',
-                );
-            },
-            Option::None => { break (); },
-        }
-    }
+    for lp_spread_before in lp_spreads_before {
+        let lp_spread_after = lp_spreads_after.pop_front().unwrap();
+        let lp_starting_liquidity2 = round2_deposits.pop_front().unwrap();
+        assert(*lp_spread_before == (*lp_starting_liquidity2, 0), 'LP spread before wrong');
+        assert(
+            *lp_spread_after == (
+                *lp_starting_liquidity2 * sold_liq2 / total_liq2,
+                *lp_starting_liquidity2 * earned_liq2 / total_liq2,
+            ),
+            'LP spread after wrong',
+        );
+    };
 }
 
