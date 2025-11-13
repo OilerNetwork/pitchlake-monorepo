@@ -184,14 +184,9 @@ pub impl VaultFacadeImpl of VaultFacadeTrait {
     ) -> Array<u256> {
         assert_two_arrays_equal_length(liquidity_providers, amounts);
         let mut updated_unlocked_positions = array![];
-        loop {
-            match liquidity_providers.pop_front() {
-                Option::Some(liquidity_provider) => {
-                    let amount = amounts.pop_front().unwrap();
-                    updated_unlocked_positions.append(self.deposit(*amount, *liquidity_provider));
-                },
-                Option::None => { break (); },
-            };
+        for liquidity_provider in liquidity_providers {
+            let amount = amounts.pop_front().unwrap();
+            updated_unlocked_positions.append(self.deposit(*amount, *liquidity_provider));
         }
         updated_unlocked_positions
     }
@@ -233,14 +228,9 @@ pub impl VaultFacadeImpl of VaultFacadeTrait {
     ) -> Array<u256> {
         assert_two_arrays_equal_length(liquidity_providers, amounts);
         let mut unlocked_bals = array![];
-        loop {
-            match liquidity_providers.pop_front() {
-                Option::Some(liquidity_provider) => {
-                    let amount = amounts.pop_front().unwrap();
-                    unlocked_bals.append(self.withdraw(*amount, *liquidity_provider));
-                },
-                Option::None => { break (); },
-            };
+        for liquidity_provider in liquidity_providers {
+            let amount = amounts.pop_front().unwrap();
+            unlocked_bals.append(self.withdraw(*amount, *liquidity_provider));
         }
         unlocked_bals
     }
@@ -250,14 +240,9 @@ pub impl VaultFacadeImpl of VaultFacadeTrait {
         mut liquidity_providers: Span<ContractAddress>,
         mut bps_multi: Span<u128>,
     ) {
-        loop {
-            match liquidity_providers.pop_front() {
-                Option::Some(lp) => {
-                    let bps = bps_multi.pop_front().unwrap();
-                    self.queue_withdrawal(*lp, *bps);
-                },
-                Option::None => { break (); },
-            };
+        for lp in liquidity_providers {
+            let bps = bps_multi.pop_front().unwrap();
+            self.queue_withdrawal(*lp, *bps);
         };
     }
 
@@ -448,14 +433,9 @@ pub impl VaultFacadeImpl of VaultFacadeTrait {
         ref self: VaultFacade, mut liquidity_providers: Span<ContractAddress>,
     ) -> Array<u256> {
         let mut balances = array![];
-        loop {
-            match liquidity_providers.pop_front() {
-                Option::Some(liquidity_provider) => {
-                    let balance = self.get_lp_locked_balance(*liquidity_provider);
-                    balances.append(balance);
-                },
-                Option::None => { break (); },
-            };
+        for liquidity_provider in liquidity_providers {
+            let balance = self.get_lp_locked_balance(*liquidity_provider);
+            balances.append(balance);
         }
         balances
     }
@@ -473,14 +453,9 @@ pub impl VaultFacadeImpl of VaultFacadeTrait {
         ref self: VaultFacade, mut liquidity_providers: Span<ContractAddress>,
     ) -> Array<u128> {
         let mut balances = array![];
-        loop {
-            match liquidity_providers.pop_front() {
-                Option::Some(liquidity_provider) => {
-                    let balance = self.get_lp_queued_bps(*liquidity_provider);
-                    balances.append(balance);
-                },
-                Option::None => { break (); },
-            };
+        for liquidity_provider in liquidity_providers {
+            let balance = self.get_lp_queued_bps(*liquidity_provider);
+            balances.append(balance);
         }
         balances
     }
@@ -489,14 +464,9 @@ pub impl VaultFacadeImpl of VaultFacadeTrait {
         ref self: VaultFacade, mut liquidity_providers: Span<ContractAddress>,
     ) -> Array<u256> {
         let mut balances = array![];
-        loop {
-            match liquidity_providers.pop_front() {
-                Option::Some(liquidity_provider) => {
-                    let balance = self.get_lp_stashed_balance(*liquidity_provider);
-                    balances.append(balance);
-                },
-                Option::None => { break (); },
-            }
+        for liquidity_provider in liquidity_providers {
+            let balance = self.get_lp_stashed_balance(*liquidity_provider);
+            balances.append(balance);
         }
         balances
     }
@@ -509,14 +479,9 @@ pub impl VaultFacadeImpl of VaultFacadeTrait {
         ref self: VaultFacade, mut liquidity_providers: Span<ContractAddress>,
     ) -> Array<u256> {
         let mut balances = array![];
-        loop {
-            match liquidity_providers.pop_front() {
-                Option::Some(liquidity_provider) => {
-                    let balance = self.get_lp_unlocked_balance(*liquidity_provider);
-                    balances.append(balance);
-                },
-                Option::None => { break (); },
-            };
+        for liquidity_provider in liquidity_providers {
+            let balance = self.get_lp_unlocked_balance(*liquidity_provider);
+            balances.append(balance);
         }
         balances
     }
@@ -538,15 +503,9 @@ pub impl VaultFacadeImpl of VaultFacadeTrait {
         ref self: VaultFacade, mut liquidity_providers: Span<ContractAddress>,
     ) -> Array<(u256, u256)> {
         let mut spreads = array![];
-        loop {
-            match liquidity_providers.pop_front() {
-                Option::Some(liquidity_provider) => {
-                    let locked_and_unlocked = self
-                        .get_lp_locked_and_unlocked_balance(*liquidity_provider);
-                    spreads.append(locked_and_unlocked);
-                },
-                Option::None => { break (); },
-            };
+        for liquidity_provider in liquidity_providers {
+            let locked_and_unlocked = self.get_lp_locked_and_unlocked_balance(*liquidity_provider);
+            spreads.append(locked_and_unlocked);
         }
         spreads
     }
@@ -564,15 +523,9 @@ pub impl VaultFacadeImpl of VaultFacadeTrait {
         ref self: VaultFacade, mut liquidity_providers: Span<ContractAddress>,
     ) -> Array<(u256, u256, u256)> {
         let mut spreads = array![];
-        loop {
-            match liquidity_providers.pop_front() {
-                Option::Some(liquidity_provider) => {
-                    let balances = self
-                        .get_lp_locked_and_unlocked_and_stashed_balance(*liquidity_provider);
-                    spreads.append(balances);
-                },
-                Option::None => { break (); },
-            };
+        for liquidity_provider in liquidity_providers {
+            let balances = self.get_lp_locked_and_unlocked_and_stashed_balance(*liquidity_provider);
+            spreads.append(balances);
         }
         spreads
     }

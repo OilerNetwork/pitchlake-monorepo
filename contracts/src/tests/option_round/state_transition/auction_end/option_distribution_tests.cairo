@@ -1,35 +1,16 @@
-use openzeppelin_token::erc20::interface::ERC20ABIDispatcherTrait;
-use pitch_lake::tests::{
-    utils::{
-        helpers::{
-            accelerators::{
-                accelerate_to_auctioning, accelerate_to_auctioning_custom, accelerate_to_running,
-                accelerate_to_running_custom, timeskip_and_end_auction,
-                //accelerate_to_running_custom_option_round,
-            },
-            setup::{setup_facade, setup_test_auctioning_bidders},
-            general_helpers::{
-                assert_two_arrays_equal_length, create_array_gradient,
-                create_array_gradient_reverse, create_array_linear, pow, sum_u256_array, to_wei,
-                to_wei_multi,
-            },
-        },
-        lib::{
-            test_accounts::{
-                liquidity_provider_1, option_bidder_buyer_1, option_bidder_buyer_2,
-                option_bidder_buyer_3, option_bidder_buyer_4, option_bidder_buyer_5,
-                option_bidder_buyer_6, option_bidders_get,
-            },
-            variables::{decimals},
-        },
-        facades::{
-            option_round_facade::{OptionRoundFacade, OptionRoundFacadeTrait},
-            vault_facade::{VaultFacade, VaultFacadeTrait},
-        },
-    },
+use pitch_lake::tests::utils::facades::option_round_facade::{
+    OptionRoundFacade, OptionRoundFacadeTrait,
 };
-use starknet::testing::{set_block_timestamp, set_contract_address};
-use starknet::{ContractAddress, contract_address_const};
+use pitch_lake::tests::utils::facades::vault_facade::{VaultFacade, VaultFacadeTrait};
+use pitch_lake::tests::utils::helpers::accelerators::{
+    accelerate_to_auctioning, accelerate_to_running_custom, timeskip_and_end_auction,
+};
+use pitch_lake::tests::utils::helpers::general_helpers::{
+    create_array_gradient, create_array_gradient_reverse, create_array_linear, sum_u256_array,
+    to_wei, to_wei_multi,
+};
+use pitch_lake::tests::utils::helpers::setup::{setup_facade, setup_test_auctioning_bidders};
+use pitch_lake::tests::utils::lib::test_accounts::{option_bidder_buyer_1, option_bidders_get};
 
 // Test that options sold is 0 pre auction end
 #[test]
@@ -152,15 +133,10 @@ fn test_bidding_same_amount_higher_price_wins() {
             assert(
                 winner_option_balance == total_options_available, 'winner should get all options',
             );
-            loop {
-                match option_bidders.pop_front() {
-                    Option::Some(ob) => {
-                        let loser_option_balance = current_round.get_mintable_options_for(*ob);
-                        assert(loser_option_balance == 0, 'loser should get no options')
-                    },
-                    Option::None => { break (); },
-                }
-            }
+            for ob in option_bidders {
+                let loser_option_balance = current_round.get_mintable_options_for(*ob);
+                assert(loser_option_balance == 0, 'loser should get no options')
+            };
         },
         Option::None => { panic!("This shd not revert here") },
     }
@@ -189,15 +165,10 @@ fn test_bidding_same_price_earlier_bids_win() {
         Option::Some(ob) => {
             let winner_option_balance = current_round.get_mintable_options_for(*ob);
             assert_eq!(winner_option_balance, total_options_available);
-            loop {
-                match option_bidders.pop_front() {
-                    Option::Some(ob) => {
-                        let loser_option_balance = current_round.get_mintable_options_for(*ob);
-                        assert_eq!(loser_option_balance, 0)
-                    },
-                    Option::None => { break (); },
-                }
-            }
+            for ob in option_bidders {
+                let loser_option_balance = current_round.get_mintable_options_for(*ob);
+                assert_eq!(loser_option_balance, 0)
+            };
         },
         Option::None => { panic!("This shd not revert here") },
     }
@@ -231,15 +202,10 @@ fn test_bidding_higher_price_beats_higher_total_bid_amount() {
             assert(
                 winner_option_balance == total_options_available, 'winner should get all options',
             );
-            loop {
-                match option_bidders.pop_front() {
-                    Option::Some(ob) => {
-                        let loser_option_balance = current_round.get_mintable_options_for(*ob);
-                        assert(loser_option_balance == 0, 'loser should get no options')
-                    },
-                    Option::None => { break (); },
-                }
-            }
+            for ob in option_bidders {
+                let loser_option_balance = current_round.get_mintable_options_for(*ob);
+                assert(loser_option_balance == 0, 'loser should get no options')
+            };
         },
         Option::None => { panic!("This shd not revert here") },
     }
@@ -439,18 +405,12 @@ fn test_the_last_bidder_gets_no_options_if_none_left() {
                 },
                 Option::None => { panic!("This shd not revert here") },
             }
-
-            loop {
-                match option_bidders.pop_front() {
-                    Option::Some(bidder) => {
-                        assert(
-                            current_round.get_mintable_options_for(*bidder) == bid_amount,
-                            'bidder shd get bid amount',
-                        );
-                    },
-                    Option::None => { break (); },
-                }
-            }
+            for bidder in option_bidders {
+                assert(
+                    current_round.get_mintable_options_for(*bidder) == bid_amount,
+                    'bidder shd get bid amount',
+                );
+            };
         },
         Option::None => { panic!("This shd not revert here") },
     }
@@ -486,16 +446,11 @@ fn test_last_bid_is_partial() {
             let expected_partial_amount = total_options_available - (4 * bid_amount);
 
             assert(mintable_options == expected_partial_amount, 'losing bidder remaining options');
-            loop {
-                match option_bidders.pop_front() {
-                    Option::Some(bidder) => {
-                        // @dev Each bidder bids for the same amount
-                        let mintable_options = current_round.get_mintable_options_for(*bidder);
-                        assert(mintable_options == bid_amount, 'bidder should get bid amount');
-                    },
-                    Option::None => { break (); },
-                }
-            }
+            for bidder in option_bidders {
+                // @dev Each bidder bids for the same amount
+                let mintable_options = current_round.get_mintable_options_for(*bidder);
+                assert(mintable_options == bid_amount, 'bidder should get bid amount');
+            };
         },
         Option::None => { panic!("This shd not revert here") },
     }
@@ -614,15 +569,10 @@ fn auction_real_numbers_test_helper(
     // Check that the correct number of options were sold and distributed
     assert(options_sold == expected_options_sold, 'options sold should match');
     let mut option_bidders = option_bidders_get(bid_amounts.len()).span();
-    loop {
-        match option_bidders.pop_front() {
-            Option::Some(bidder) => {
-                let options = current_round.get_mintable_options_for(*bidder);
-                let expected_options = expected_option_distribution.pop_front().unwrap();
-                assert(options == *expected_options, 'options should match');
-            },
-            Option::None => { break (); },
-        }
-    }
+    for bidder in option_bidders {
+        let options = current_round.get_mintable_options_for(*bidder);
+        let expected_options = expected_option_distribution.pop_front().unwrap();
+        assert(options == *expected_options, 'options should match');
+    };
 }
 

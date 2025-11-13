@@ -1,31 +1,24 @@
 use pitch_lake::library::pricing_utils;
-use pitch_lake::library::pricing_utils::calculate_strike_price;
-use pitch_lake::option_round::interface::PricingData;
-use pitch_lake::tests::utils::facades::option_round_facade::{
-    OptionRoundFacade, OptionRoundFacadeTrait,
-};
+use pitch_lake::tests::utils::facades::option_round_facade::OptionRoundFacadeTrait;
 use pitch_lake::tests::utils::facades::vault_facade::{
     VaultFacade, VaultFacadeImpl, VaultFacadeTrait,
 };
 use pitch_lake::tests::utils::helpers::accelerators::{
     accelerate_to_auctioning, accelerate_to_auctioning_custom, accelerate_to_running,
-    accelerate_to_running_custom, accelerate_to_settled, accelerate_to_settled_custom,
-    timeskip_to_settlement_date,
+    accelerate_to_running_custom, accelerate_to_settled, timeskip_to_settlement_date,
 };
 use pitch_lake::tests::utils::helpers::event_helpers::{
     assert_fossil_callback_success_event, clear_event_logs,
 };
 use pitch_lake::tests::utils::helpers::general_helpers::to_gwei;
 use pitch_lake::tests::utils::helpers::setup::{
-    PITCHLAKE_VERIFIER, deploy_eth, deploy_vault, eth_supply_and_approve_all_bidders,
-    eth_supply_and_approve_all_providers, setup_facade,
+    PITCHLAKE_VERIFIER, deploy_eth, deploy_vault, setup_facade,
 };
 use pitch_lake::tests::utils::lib::test_accounts::liquidity_provider_1;
-use pitch_lake::vault::contract::Vault;
 use pitch_lake::vault::contract::Vault::Errors as vErrors;
-use pitch_lake::vault::interface::{JobRequest, L1Data, VerifierData};
+use pitch_lake::vault::interface::{JobRequest, L1Data};
+use starknet::get_block_timestamp;
 use starknet::testing::{set_block_timestamp, set_contract_address};
-use starknet::{ContractAddress, contract_address_const, get_block_timestamp};
 
 
 fn get_mock_l1_data() -> L1Data {
@@ -58,7 +51,7 @@ fn test_only_pitchlake_verifier_can_call_fossil_callback() {
     let res = vault.generate_settle_round_result_serialized(get_mock_l1_data());
 
     // Should fail
-    set_contract_address(contract_address_const::<'NOT IT'>());
+    set_contract_address('NOT IT'.try_into().unwrap());
     vault.fossil_callback_expect_error(req, res, vErrors::CallerNotVerifier);
 
     // Should not fail
@@ -170,7 +163,7 @@ fn test_only_fossil_client_can_call_fossil_client_callback() {
     //let settlement_date = current_round.get_option_settlement_date();
 
     // Should fail
-    set_contract_address(contract_address_const::<'NOT IT'>());
+    set_contract_address('NOT IT'.try_into().unwrap());
     vault.fossil_callback_expect_error(req, res, vErrors::CallerNotVerifier);
 
     // Should not fail

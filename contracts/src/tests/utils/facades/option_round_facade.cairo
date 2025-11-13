@@ -12,12 +12,9 @@ use pitch_lake::tests::utils::helpers::general_helpers::{
     assert_two_arrays_equal_length, get_erc20_balance, to_gwei,
 };
 use pitch_lake::tests::utils::helpers::setup::eth_supply_and_approve_all_bidders;
-use pitch_lake::tests::utils::lib::test_accounts::{bystander, liquidity_provider_1, vault_manager};
-use pitch_lake::types::{Bid, Errors};
-use pitch_lake::vault::contract::Vault;
-use pitch_lake::vault::interface::{
-    IVaultDispatcher, IVaultDispatcherTrait, IVaultSafeDispatcher, IVaultSafeDispatcherTrait,
-};
+use pitch_lake::tests::utils::lib::test_accounts::liquidity_provider_1;
+use pitch_lake::types::Bid;
+use pitch_lake::vault::interface::{IVaultDispatcher, IVaultDispatcherTrait};
 use starknet::ContractAddress;
 use starknet::testing::set_contract_address;
 
@@ -162,18 +159,13 @@ pub impl OptionRoundFacadeImpl of OptionRoundFacadeTrait {
         assert_two_arrays_equal_length(bidders, amounts);
         assert_two_arrays_equal_length(bidders, prices);
         let mut results = array![];
-        loop {
-            match bidders.pop_front() {
-                Option::Some(bidder) => {
-                    let bid_amount = amounts.pop_front().unwrap();
-                    let bid_price = prices.pop_front().unwrap();
-                    // Make bid
-                    let bid_id = self.place_bid(*bid_amount, *bid_price, *bidder);
-                    // Append result
-                    results.append(bid_id);
-                },
-                Option::None => { break (); },
-            }
+        for bidder in bidders {
+            let bid_amount = amounts.pop_front().unwrap();
+            let bid_price = prices.pop_front().unwrap();
+            // Make bid
+            let bid_id = self.place_bid(*bid_amount, *bid_price, *bidder);
+            // Append result
+            results.append(bid_id);
         }
         results
     }
@@ -205,22 +197,15 @@ pub impl OptionRoundFacadeImpl of OptionRoundFacadeTrait {
         assert_two_arrays_equal_length(bidders, amounts);
         assert_two_arrays_equal_length(bidders, prices);
         let safe_option_round = self.get_safe_dispatcher();
-
-        loop {
-            match bidders.pop_front() {
-                Option::Some(bidder) => {
-                    let bid_amount = amounts.pop_front().unwrap();
-                    let bid_price = prices.pop_front().unwrap();
-                    // Make bid
-                    set_contract_address(*bidder);
-                    match safe_option_round.place_bid(*bid_amount, *bid_price) {
-                        Result::Ok(_) => {},
-                        Result::Err(_) => {},
-                    }
-                },
-                Option::None => { break (); },
+        for bidder in bidders {
+            let bid_amount = amounts.pop_front().unwrap();
+            let bid_price = prices.pop_front().unwrap();
+            // Make bid
+            set_contract_address(*bidder);
+            if let Result::Ok(_) = safe_option_round.place_bid(*bid_amount, *bid_price) {
+                {}
             }
-        }
+        };
     }
 
 
@@ -237,18 +222,13 @@ pub impl OptionRoundFacadeImpl of OptionRoundFacadeTrait {
         assert_two_arrays_equal_length(bidders, amounts);
         assert_two_arrays_equal_length(bidders, prices);
         let safe_option_round = self.get_safe_dispatcher();
-        loop {
-            match bidders.pop_front() {
-                Option::Some(bidder) => {
-                    set_contract_address(*bidder);
-                    let bid_amount = amounts.pop_front().unwrap();
-                    let bid_price = prices.pop_front().unwrap();
-                    let error = errors.pop_front().unwrap();
-                    // Make bid
-                    safe_option_round.place_bid(*bid_amount, *bid_price).expect_err(*error);
-                },
-                Option::None => { break (); },
-            }
+        for bidder in bidders {
+            set_contract_address(*bidder);
+            let bid_amount = amounts.pop_front().unwrap();
+            let bid_price = prices.pop_front().unwrap();
+            let error = errors.pop_front().unwrap();
+            // Make bid
+            safe_option_round.place_bid(*bid_amount, *bid_price).expect_err(*error);
         };
     }
 
@@ -296,14 +276,9 @@ pub impl OptionRoundFacadeImpl of OptionRoundFacadeTrait {
     // @return: The amounts refunded
     fn refund_bids(ref self: OptionRoundFacade, mut bidders: Span<ContractAddress>) -> Array<u256> {
         let mut refund_amounts = array![];
-        loop {
-            match bidders.pop_front() {
-                Option::Some(bidder) => {
-                    let refund_amount = self.refund_bid(*bidder);
-                    refund_amounts.append(refund_amount)
-                },
-                Option::None => { break (); },
-            }
+        for bidder in bidders {
+            let refund_amount = self.refund_bid(*bidder);
+            refund_amounts.append(refund_amount)
         }
         refund_amounts
     }
@@ -333,11 +308,8 @@ pub impl OptionRoundFacadeImpl of OptionRoundFacadeTrait {
         ref self: OptionRoundFacade, mut bidders: Span<ContractAddress>,
     ) -> Array<u256> {
         let mut payouts = array![];
-        loop {
-            match bidders.pop_front() {
-                Option::Some(bidder) => { payouts.append(self.exercise_options(*bidder)); },
-                Option::None => { break (); },
-            }
+        for bidder in bidders {
+            payouts.append(self.exercise_options(*bidder));
         }
         payouts
     }

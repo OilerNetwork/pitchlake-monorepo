@@ -139,6 +139,7 @@ export class StateHandlers {
             formatRawFossilRequest(requestData),
             vaultContract,
             this.logger,
+            this.account,
           );
 
           await this.db.insertJobRequest(
@@ -398,6 +399,7 @@ export class StateHandlers {
             requestData,
             vaultContract,
             this.logger,
+            this.account,
           );
 
           // Store the settlement job request for tracking

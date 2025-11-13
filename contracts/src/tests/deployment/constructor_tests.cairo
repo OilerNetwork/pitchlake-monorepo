@@ -1,40 +1,7 @@
-//use openzeppelin_token::erc20::interface::{ERC20ABIDispatcherTrait,};
-use pitch_lake::{
-    library::eth::Eth,
-    vault::{
-        contract::Vault,
-        interface::{
-            IVaultDispatcher, IVaultDispatcherTrait, IVaultSafeDispatcher,
-            IVaultSafeDispatcherTrait,
-        },
-    },
-    option_round::{
-        //contract::{OptionRound,},
-        interface::{IOptionRoundDispatcher, IOptionRoundDispatcherTrait, OptionRoundState},
-    },
-    tests::{
-        utils::{
-            helpers::{
-                event_helpers::{
-                    assert_event_auction_end, assert_event_auction_start,
-                    assert_event_option_settle,
-                },
-                setup::{PROGRAM_ID, PROVING_DELAY, setup_facade},
-            },
-            facades::{
-                option_round_facade::{OptionRoundFacade, OptionRoundFacadeTrait},
-                vault_facade::VaultFacadeTrait,
-            },
-            lib::{variables::{decimals} //            test_accounts::{
-            //                liquidity_provider_1, liquidity_provider_2, option_bidder_buyer_1,
-            //                option_bidder_buyer_2
-            //            },
-            },
-        },
-    },
-};
-use starknet::ContractAddress;
-
+use pitch_lake::option_round::interface::OptionRoundState;
+use pitch_lake::tests::utils::facades::option_round_facade::OptionRoundFacadeTrait;
+use pitch_lake::tests::utils::facades::vault_facade::VaultFacadeTrait;
+use pitch_lake::tests::utils::helpers::setup::{PROGRAM_ID, PROVING_DELAY, setup_facade};
 
 /// Constructor Tests ///
 
