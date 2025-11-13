@@ -228,7 +228,7 @@ pub fn assert_event_option_settle(
                     ),
                 },
             );
-            assert_events_equal(e, expected);
+            assert_events_equal(e, expected);   
         },
         Option::None => { panic(array!['No events found']); },
     };
