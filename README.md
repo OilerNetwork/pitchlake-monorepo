@@ -27,11 +27,12 @@ Before starting, ensure you have the following installed:
 
 ### 1. Initial Setup
 
-Clone the repository and navigate to the project root:
+Clone the repository and navigate to the project root and initialize submodules:
 
 ```bash
 git clone <repository-url>
 cd "Pitchlake Production"
+git submodule update --init --recursive
 ```
 
 ### 2. Complete Development Environment Setup
