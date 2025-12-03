@@ -31,7 +31,7 @@ Clone the repository and navigate to the project root and initialize submodules:
 
 ```bash
 git clone <repository-url>
-cd "Pitchlake Production"
+cd "pitchlake-monorepo"
 git submodule update --init --recursive
 ```
 
