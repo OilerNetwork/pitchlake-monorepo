@@ -274,13 +274,15 @@ Contract addresses are automatically synced between Fossil and Pitchlake service
 
 ### Component-Specific Documentation
 
-- **Fossil Monorepo**: See [Fossil Docs](fossil-monorepo/README.md)
-- **Smart Contracts**: See [Contract Docs](contracts/README.md)
-- **Frontend**: See [Frontend Docs](frontend/README.md) [Dev](frontend/documentation.md)
-- **Backend**: See [Backend Docs] (backend/README.md) [Dev](backend/documentation.md)
-- **Support Server**: See [Support server Docs](support-server/README.md) [Dev](support-server/documentation.md)
-- **Indexer:Logger**: See [Indexer:Loger Docs](contracts-indexer/event-logger/README.md) [Dev](contracts-indexer/event-logger/documentation.md)
-- **Indexer:Processor**: See [Indexer:Processor](contracts-indexer/event-processor/README.md) [Dev](contracts-indexer/event-processor/README.md)
+| Component | Documentation | Developer Guide |
+|-----------|----------------|------------------|
+| **Fossil Monorepo** | [README](fossil-monorepo/README.md) | - |
+| **Smart Contracts** | [README](contracts/README.md) | - |
+| **Frontend** | [README](frontend/README.md) | [Developer Guide](frontend/documentation.md) |
+| **Backend** | [README](backend/README.md) | [Developer Guide](backend/documentation.md) |
+| **Support Server** | [README](support-server/README.md) | [Developer Guide](support-server/documentation.md) |
+| **Indexer:Logger** | [README](contracts-indexer/event-logger/README.md) | [Developer Guide](contracts-indexer/event-logger/documentation.md) |
+| **Indexer:Processor** | [README](contracts-indexer/event-processor/README.md) | [Developer Guide](contracts-indexer/event-processor/README.md) |
 
 ### Development Tools
 
