@@ -276,7 +276,7 @@ Contract addresses are automatically synced between Fossil and Pitchlake service
 
 | Component | Documentation | Developer Guide |
 |-----------|----------------|------------------|
-| **Fossil Monorepo** | [README](fossil-monorepo/README.md) | - |
+| **Fossil Monorepo** | [README](https://github.com/NethermindEth/fossil-monorepo/blob/main/README.md) | - |
 | **Smart Contracts** | [README](contracts/README.md) | [Developer Guide](contracts/documentation.md) |
 | **Frontend** | [README](frontend/README.md) | [Developer Guide](frontend/documentation.md) |
 | **Backend** | [README](backend/README.md) | [Developer Guide](backend/documentation.md) |
