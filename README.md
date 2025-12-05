@@ -274,13 +274,13 @@ Contract addresses are automatically synced between Fossil and Pitchlake service
 
 ### Component-Specific Documentation
 
-- **Fossil Monorepo**: See `fossil-monorepo/README.md`
-- **Smart Contracts**: See `contracts/README.md`
-- **Frontend**: See `frontend/README.md`
-- **Backend**: See `backend/README.md`
-- **Support Server**: See `support-server/README.md`
-- **Indexer:Logger**: See `contracts-indexer/event-logger/README.md`
-- **Indexer:Processor**: See `contracts-indexer/event-processor/README.md`
+- **Fossil Monorepo**: See [Fossil Docs](fossil-monorepo/README.md)
+- **Smart Contracts**: See [Contract Docs](contracts/README.md)
+- **Frontend**: See [Frontend Docs](frontend/README.md) [Dev](frontend/documentation.md)
+- **Backend**: See [Backend Docs] (backend/README.md) [Dev](backend/documentation.md)
+- **Support Server**: See [Support server Docs](support-server/README.md) [Dev](support-server/documentation.md)
+- **Indexer:Logger**: See [Indexer:Loger Docs](contracts-indexer/event-logger/README.md) [Dev](contracts-indexer/event-logger/documentation.md)
+- **Indexer:Processor**: See [Indexer:Processor](contracts-indexer/event-processor/README.md) [Dev](contracts-indexer/event-processor/README.md)
 
 ### Development Tools
 
